@@ -2155,6 +2155,7 @@ void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum, qbo
 	//int startat = trap_Milliseconds();
 
 	Com_Printf(S_COLOR_MDGREY "Initializing %s cgame " S_COLOR_GREEN "%s\n", MODNAME, ETLEGACY_VERSION);
+	CG_FatBoss_Init();
 
 	// clean up the config backup if one exists
 	CG_RestoreProfile();

@@ -1,0 +1,224 @@
+# Builds the FatBoss cgame for every client platform and packs it into one
+# zzz_fatboss_<version>.pk3. That pk3 goes next to the official legacy_v*.pk3
+# on a server running the official ET: Legacy mod of the same version.
+#
+# The version below must match the server's mod exactly (legacy_v2.86.0.pk3).
+# A player whose platform is missing from the pk3 fails the sv_pure check,
+# so the package job refuses to publish without the required platforms.
+name: FatBoss cgame
+
+on:
+  push:
+    branches: [fatboss]
+    paths:
+      - "src/cgame/**"
+      - "src/game/bg_*"
+      - "src/ui/**"
+      - "fatboss/**"
+      - ".github/workflows/fatboss.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CI_ETL_DESCRIBE: v2.86.0
+  CI_ETL_TAG: v2.86.0
+
+jobs:
+  lnx64:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: maus007/docker-run-action-fork@v1
+        with:
+          image: etlegacy/lnx-build:latest
+          options: -v ${{ github.workspace }}:/code -e CI_ETL_DESCRIBE=${{ env.CI_ETL_DESCRIBE }} -e CI_ETL_TAG=${{ env.CI_ETL_TAG }} -e CI=true
+          run: |
+            git config --global --add safe.directory /code
+            ./easybuild.sh build -64 -mod
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cgame-lnx64
+          path: build/legacy/cgame*.so
+          if-no-files-found: error
+
+  lnx32:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: maus007/docker-run-action-fork@v1
+        with:
+          image: etlegacy/lnx-build:latest
+          options: -v ${{ github.workspace }}:/code -e CI_ETL_DESCRIBE=${{ env.CI_ETL_DESCRIBE }} -e CI_ETL_TAG=${{ env.CI_ETL_TAG }} -e CI=true
+          run: |
+            git config --global --add safe.directory /code
+            ./easybuild.sh build -mod
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cgame-lnx32
+          path: build/legacy/cgame*.so
+          if-no-files-found: error
+
+  lnx-aarch64:
+    runs-on: ubuntu-24.04
+    container:
+      image: etlegacy/lnx-aarch64-build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          ./easybuild.sh build -RPIT -mod -ninja
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cgame-lnx-aarch64
+          path: build/legacy/cgame*.so
+          if-no-files-found: error
+
+  osx:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - run: brew bundle
+      - shell: bash
+        env:
+          SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+          DEVELOPER_DIR: /Library/Developer/CommandLineTools
+        run: ./easybuild.sh build -64 -mod --osx=10.10 --osx-arc="x86_64;arm64" -j
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cgame-osx
+          path: build/legacy/cgame_mac
+          if-no-files-found: error
+
+  win32:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - shell: cmd
+        run: call .\easybuild.bat build -mod
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cgame-win32
+          path: build/legacy/cgame*.dll
+          if-no-files-found: error
+
+  win64:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - shell: cmd
+        run: call .\easybuild.bat build -mod -64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cgame-win64
+          path: build/legacy/cgame*.dll
+          if-no-files-found: error
+
+  # Android players are rare, so a failure here does not block the pk3;
+  # the package job lists what is missing.
+  android:
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    container:
+      image: etlegacy/android-build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+      - name: Build JoyStick dependency
+        working-directory: ./app/libs/joystick
+        run: |
+          ./gradlew clean assembleRelease publishToMavenLocal --stacktrace
+      - name: Build native libraries (no APK signing needed)
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          ./gradlew stripReleaseDebugSymbols --stacktrace
+          mkdir -p out
+          find app/build/intermediates -path '*stripped_native_libs*' -name 'libcgame*.so' -exec cp {} out/ \;
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cgame-android
+          path: out/libcgame*.so
+          if-no-files-found: error
+
+  package:
+    runs-on: ubuntu-24.04
+    needs: [lnx64, lnx32, lnx-aarch64, osx, win32, win64, android]
+    if: ${{ !cancelled() }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: fatboss
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cgame-*
+          path: platforms
+          merge-multiple: true
+      - name: Pack pk3
+        id: pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          ver=$(tr -d ' \r\n' < fatboss/VERSION)
+          pk3="zzz_fatboss_${ver}.pk3"
+          ls -la platforms
+          # names must match the official legacy pk3 exactly
+          required="cgame.mp.x86_64.so cgame_mp_x86.dll cgame_mp_x64.dll"
+          optional="cgame.mp.i386.so cgame.mp.aarch64.so cgame_mac libcgame.mp.android.arm64-v8a.so libcgame.mp.android.i386.so libcgame.mp.android.x86_64.so"
+          missing=""
+          for f in $required; do [ -f "platforms/$f" ] || missing="$missing $f"; done
+          if [ -n "$missing" ]; then echo "::error::required cgame missing:$missing"; exit 1; fi
+          included=""; absent=""
+          for f in $required $optional; do
+            if [ -f "platforms/$f" ]; then included="$included $f"; else absent="$absent $f"; fi
+          done
+          [ -z "$absent" ] || echo "::warning::players on these platforms would fail sv_pure:$absent"
+          (cd platforms && zip -9 -X "../$pk3" $included)
+          sha256sum "$pk3" | tee "$pk3.sha256"
+          {
+            echo "pk3: $pk3"
+            echo "et:legacy: $CI_ETL_DESCRIBE"
+            echo "commit: $GITHUB_SHA"
+            echo "included:$included"
+            echo "missing:${absent:- none}"
+          } > "$pk3.txt"
+          cat "$pk3.txt"
+          echo "pk3=$pk3" >> "$GITHUB_OUTPUT"
+          echo "ver=$ver" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.pk3 }}
+          path: |
+            ${{ steps.pack.outputs.pk3 }}
+            ${{ steps.pack.outputs.pk3 }}.sha256
+            ${{ steps.pack.outputs.pk3 }}.txt
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          tag="fatboss-${{ steps.pack.outputs.ver }}"
+          pk3="${{ steps.pack.outputs.pk3 }}"
+          gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$tag" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
+              --title "$pk3" --notes-file "$pk3.txt"
+          gh release upload "$tag" -R "$GITHUB_REPOSITORY" --clobber "$pk3" "$pk3.sha256" "$pk3.txt"

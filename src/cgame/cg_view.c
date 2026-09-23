@@ -2738,6 +2738,12 @@ void CG_DrawActiveFrame(int serverTime, qboolean demoPlayback)
 			CG_AddAtmosphericEffects();
 		}
 
+		// these paths skip CG_AddViewWeapon, so end the inspect pose here
+		if (cg.showGameView || cgs.dbShowing || cg.snap->ps.persistant[PERS_HWEAPON_USE])
+		{
+			CG_FatBoss_CancelInspect();
+		}
+
 		if (!cg.showGameView && !cgs.dbShowing)
 		{
 			// stationary heavy weapon (e.g. misc_mg42, misc_aagun)

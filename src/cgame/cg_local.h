@@ -3165,6 +3165,15 @@ void CG_NextWeapon_f(void);
 void CG_PrevWeapon_f(void);
 void CG_Weapon_f(void);
 void CG_WeaponBank_f(void);
+
+// cg_fatboss.c
+void CG_FatBoss_Init(void);
+void CG_FatBoss_Inspect_f(void);
+void CG_FatBoss_InspectUp_f(void);
+void CG_FatBoss_CancelInspect(void);
+void CG_FatBoss_UpdateInspect(const playerState_t *ps);
+void CG_FatBoss_ApplyInspect(refEntity_t *hand);
+void CG_FatBoss_Version_f(void);
 qboolean CG_WeaponSelectable(int weapon, qboolean playSound);
 
 void CG_FinishWeaponChange(int lastweap, int newweap);

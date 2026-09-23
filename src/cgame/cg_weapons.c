@@ -2708,6 +2708,8 @@ void CG_AddViewWeapon(playerState_t *ps)
 	vec3_t       gunoff;
 	weaponInfo_t *weapon;
 
+	CG_FatBoss_UpdateInspect(ps);
+
 	if (ps->persistant[PERS_TEAM] == TEAM_SPECTATOR)
 	{
 		return;
@@ -2990,6 +2992,8 @@ void CG_AddViewWeapon(playerState_t *ps)
 
 			CG_ApplyETLDynamicGunFovOffset(hand, ps->weapon);
 		}
+
+		CG_FatBoss_ApplyInspect(hand);
 
 		// add everything onto the hand
 		CG_AddPlayerWeapon(hand, ps, &cg.predictedPlayerEntity);
