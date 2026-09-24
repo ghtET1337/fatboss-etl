@@ -19,17 +19,25 @@
                                  "thompson": "wut", "mp40": "camo"}}, ...}
     Without the URL, the same JSON is read from <fs_homepath>/legacy/fatboss_loadouts.json.
 
+    Game link: the FatBoss profile shows "/fblink CODE"; a player pastes it in
+    the console and the module posts {code, guid, name, server} to
+    FATBOSS_LINK_URL (by default the loadout URL with /loadouts replaced by
+    /link), then tells the player how it went.
+
+    FATBOSS_DEFAULT_GRAFFITI=fatboss lets players without a graffiti of their
+    own spray that design (the FatBoss starter everybody gets).
+
     FATBOSS_TEST=1 (test servers only): everybody gets the "fatboss" graffiti,
     and /fbequip <slot> <theme> tries any skin or graffiti without FatBoss.
 
     Runs next to Oksii's stats.lua and combinedfixes.lua in its own Lua VM and
-    handles only its own commands ("spray", and "fbequip" in test mode).
+    handles only its own commands ("spray", "fblink", and "fbequip" in test mode).
 ]]
 
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.2"
+local VERSION = "0.3"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order of the fbskin command
 local THEMES_HELP     = "gold polska neon camo damascus (knives) defender (colt) wut (thompson, kabar)"
@@ -48,14 +56,19 @@ local FETCH_MS        = 60000
 local READ_MS         = 5000
 local MESSAGE_GAP_MS  = 1500
 local SKINS_PER_CMD   = 12      -- keeps one fbskin command well under the 1024 character limit
+local LINK_WAIT_MS    = 15000   -- how long a /fblink waits for FatBoss to answer
+local LINK_GAP_MS     = 5000    -- one /fblink per player every few seconds
 
 local loadouts     = {}  -- cl_guid (upper case) -> { graffiti = design, skins = { slot = theme } }
 local testLoadouts = {}  -- the same, set with /fbequip in test mode; wins over loadouts
 local sentSkins    = {}  -- clientNum -> skin themes last sent to everybody
+local synced       = {}  -- clientNum -> true once the client got everybody's skins and graffiti
 local sprays       = {}  -- clientNum -> fbspray command without the sound flag
 local usedThisLife = {}  -- clientNum -> true once sprayed in the current life
 local lastMessage  = {}  -- clientNum -> level time of the last refusal
-local loadoutPath, loadoutUrl, apiToken, testMode, maxClients
+local links        = {}  -- clientNum -> { file, guid, deadline } of a /fblink waiting for FatBoss
+local lastLink     = {}  -- clientNum -> time of the last /fblink
+local loadoutPath, loadoutUrl, linkUrl, apiToken, testMode, defaultGraffiti, maxClients, homeDir
 local nextFetch, nextRead, lastLoadoutText = 0, 0, nil
 
 local function shellQuote(s)
@@ -247,10 +260,7 @@ local function spray(clientNum)
     if usedThisLife[clientNum] then
         return refuse(clientNum, levelTime, "one graffiti per life.")
     end
-    local design = loadoutOf(clientNum).graffiti
-    if not design and testMode then
-        design = "fatboss"
-    end
+    local design = loadoutOf(clientNum).graffiti or defaultGraffiti
     if not design then
         return refuse(clientNum, levelTime, "no graffiti equipped - get one from FatBoss crates.")
     end
@@ -296,6 +306,75 @@ local function spray(clientNum)
     et.G_LogPrint(string.format("%s: spray %d %s %s\n", MODNAME, clientNum, guidOf(clientNum), design))
 end
 
+local function tell(clientNum, text)
+    et.trap_SendServerCommand(clientNum, string.format('print "^3FatBoss:^7 %s\n"', text))
+    et.trap_SendServerCommand(clientNum, string.format('cpm "^3FatBoss:^7 %s"', text))
+end
+
+-- /fblink CODE: the code from the FatBoss profile ties this computer (cl_guid) to the account
+local function link(clientNum)
+    local now = et.trap_Milliseconds()
+    local code = (et.trap_Argv(1) or ""):upper():gsub("[^A-Z0-9]", "")
+    if not linkUrl or linkUrl == "" then
+        return tell(clientNum, "this server is not connected to FatBoss.")
+    end
+    if code == "" then
+        return tell(clientNum, "copy the /fblink command from your FatBoss profile and paste it here.")
+    end
+    if links[clientNum] or (lastLink[clientNum] and now - lastLink[clientNum] < LINK_GAP_MS) then
+        return tell(clientNum, "one moment, the last link is still on its way.")
+    end
+    local guid = guidOf(clientNum)
+    if not guid:match("^[0-9A-F]+$") or #guid ~= 32 then
+        return tell(clientNum, "your game has no valid cl_guid. Restart the game and try again.")
+    end
+    lastLink[clientNum] = now
+    local userinfo = et.trap_GetUserinfo(clientNum)
+    local name = (et.Info_ValueForKey(userinfo, "name") or ""):gsub("%^.", "")
+    local server = (et.trap_Cvar_Get("sv_hostname") or ""):gsub("%^.", "")
+    local base = string.format("%s/fatboss_link_%d_%d", homeDir, clientNum, now)
+    local body = io.open(base .. ".req", "w")
+    if not body then
+        return tell(clientNum, "the server could not write the request. Tell an admin.")
+    end
+    body:write(json.encode({ code = code, guid = guid, name = name:sub(1, 64), server = server:sub(1, 64) }))
+    body:close()
+    local auth = ""
+    if apiToken and apiToken ~= "" then
+        auth = " -H " .. shellQuote("Authorization: Bearer " .. apiToken)
+    end
+    -- the answer lands in .res (FatBoss answers 400 with a reason, so no -f); RunFrame picks it up
+    os.execute(string.format("(curl -sS --max-time 10%s -H 'Content-Type: application/json' --data @%s -o %s.tmp %s; mv -f %s.tmp %s.res; rm -f %s) >/dev/null 2>&1 &",
+        auth, shellQuote(base .. ".req"), shellQuote(base), shellQuote(linkUrl), shellQuote(base), shellQuote(base), shellQuote(base .. ".req")))
+    links[clientNum] = { file = base .. ".res", guid = guid, deadline = now + LINK_WAIT_MS }
+    tell(clientNum, "linking this computer to your FatBoss account...")
+end
+
+local function checkLinks(now)
+    for clientNum, pending in pairs(links) do
+        local f = io.open(pending.file, "r")
+        if f then
+            local text = f:read("*a")
+            f:close()
+            os.remove(pending.file)
+            links[clientNum] = nil
+            local answer = json.decode(text or "")
+            if type(answer) == "table" and answer.ok then
+                tell(clientNum, string.format("^2linked^7 to %s. Your FatBoss loadout shows up within a minute.", tostring(answer.name or "your account")))
+                et.G_LogPrint(string.format("%s: linked %d %s\n", MODNAME, clientNum, pending.guid))
+                nextFetch = 0          -- fetch the loadouts right away
+            elseif type(answer) == "table" and answer.error then
+                tell(clientNum, "^1not linked:^7 " .. tostring(answer.error))
+            else
+                tell(clientNum, "^1not linked:^7 FatBoss did not answer properly. Try again in a minute.")
+            end
+        elseif now > pending.deadline then
+            links[clientNum] = nil
+            tell(clientNum, "^1not linked:^7 no answer from FatBoss. Try again in a minute.")
+        end
+    end
+end
+
 -- /fbequip <knife|colt|luger|thompson|mp40|graffiti> <name|->  (test servers only)
 local function equip(clientNum)
     local guid = guidOf(clientNum)
@@ -338,17 +417,28 @@ end
 function et_InitGame(levelTime, randomSeed, restart)
     et.RegisterModname(MODNAME .. " " .. VERSION)
     maxClients = tonumber(et.trap_Cvar_Get("sv_maxclients")) or 64
-    loadoutPath = et.trap_Cvar_Get("fs_homepath") .. "/legacy/fatboss_loadouts.json"
+    homeDir = et.trap_Cvar_Get("fs_homepath") .. "/legacy"
+    loadoutPath = homeDir .. "/fatboss_loadouts.json"
     loadoutUrl = os.getenv("FATBOSS_LOADOUT_URL")
+    linkUrl = os.getenv("FATBOSS_LINK_URL")
+    if (not linkUrl or linkUrl == "") and loadoutUrl and loadoutUrl:match("/loadouts$") then
+        linkUrl = loadoutUrl:gsub("/loadouts$", "/link")
+    end
     apiToken = os.getenv("FATBOSS_API_TOKEN")
     testMode = os.getenv("FATBOSS_TEST") == "1"
+    defaultGraffiti = os.getenv("FATBOSS_DEFAULT_GRAFFITI")
+    if not validName(defaultGraffiti) then
+        defaultGraffiti = testMode and "fatboss" or nil
+    end
+    -- a new map (or a map_restart) starts clean on every client too
+    sentSkins, synced, sprays, links, usedThisLife = {}, {}, {}, {}, {}
     readLoadouts()
     fetchLoadouts()
     nextFetch = levelTime + FETCH_MS
     nextRead = levelTime + READ_MS
-    if testMode then
-        et.G_LogPrint(string.format("%s: test mode, /fbequip is on\n", MODNAME))
-    end
+    et.G_LogPrint(string.format("%s: loadouts from %s, links %s%s\n", MODNAME,
+        (loadoutUrl and loadoutUrl ~= "") and "FatBoss" or "the local file", (linkUrl and linkUrl ~= "") and "on" or "off",
+        testMode and ", test mode (/fbequip on)" or ""))
 end
 
 -- download every minute, pick up the downloaded file every few seconds
@@ -361,12 +451,19 @@ function et_RunFrame(levelTime)
         nextRead = levelTime + READ_MS
         readLoadouts()
     end
+    if next(links) then
+        checkLinks(et.trap_Milliseconds())
+    end
 end
 
 function et_ClientCommand(clientNum, command)
     command = string.lower(command or "")
     if command == "spray" then
         spray(clientNum)
+        return 1
+    end
+    if command == "fblink" then
+        link(clientNum)
         return 1
     end
     if command == "fbequip" and testMode then
@@ -383,30 +480,41 @@ function et_ClientSpawn(clientNum, revived, teamChange, restoreHealth)
     end
 end
 
--- runs on joining and on every team change: the client gets everybody's
--- skins and the graffiti already on the map (without the sound), and
--- everybody gets this player's skins
+-- Runs on joining and again on every team change. The first time, the client
+-- gets everybody's skins and the graffiti already on the map (without the
+-- sound); after that its cgame already knows them. Everybody hears about this
+-- player's skins only when they are new or changed.
 function et_ClientBegin(clientNum)
-    local entries = {}
-    for other = 0, maxClients - 1 do
-        if other ~= clientNum and connected(other) and sentSkins[other] then
-            entries[#entries + 1] = sentSkins[other]
+    local mine = skinEntry(clientNum)
+    if not synced[clientNum] then
+        synced[clientNum] = true
+        local entries = {}
+        for other = 0, maxClients - 1 do
+            if other ~= clientNum and connected(other) and sentSkins[other] then
+                entries[#entries + 1] = sentSkins[other]
+            end
+        end
+        entries[#entries + 1] = mine
+        sendSkins(clientNum, entries)
+        for _, cmd in pairs(sprays) do
+            et.trap_SendServerCommand(clientNum, cmd)
         end
     end
-    sentSkins[clientNum] = skinEntry(clientNum)
-    entries[#entries + 1] = sentSkins[clientNum]
-    sendSkins(clientNum, entries)
-    et.trap_SendServerCommand(-1, "fbskin " .. sentSkins[clientNum])
-    for _, cmd in pairs(sprays) do
-        et.trap_SendServerCommand(clientNum, cmd)
+    if sentSkins[clientNum] ~= mine then
+        sentSkins[clientNum] = mine
+        et.trap_SendServerCommand(-1, "fbskin " .. mine)
     end
 end
 
 function et_ClientDisconnect(clientNum)
     usedThisLife[clientNum] = nil
     lastMessage[clientNum] = nil
+    synced[clientNum] = nil
+    links[clientNum] = nil
+    lastLink[clientNum] = nil
     if sentSkins[clientNum] then
         sentSkins[clientNum] = nil
         et.trap_SendServerCommand(-1, "fbskin " .. clientNum .. " - - - - -")
     end
 end
+

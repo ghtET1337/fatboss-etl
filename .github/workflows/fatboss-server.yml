@@ -1,0 +1,46 @@
+# Publishes the server side of FatBoss: fatboss.lua and the container entrypoint
+# fatboss-start.sh. They only run on the game servers, so they have a release of
+# their own (fatboss-server-<misc/fatboss/VERSION>): a Lua fix never makes players
+# download a new cgame pk3. A published release is never replaced.
+name: FatBoss server files
+
+on:
+  push:
+    branches: [fatboss]
+    paths:
+      - "misc/fatboss/fatboss.lua"
+      - "misc/fatboss/fatboss-start.sh"
+      - "misc/fatboss/VERSION"
+      - ".github/workflows/fatboss-server.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: misc/fatboss
+      - name: Publish fatboss.lua and fatboss-start.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ver=$(tr -d ' \r\n' < misc/fatboss/VERSION)
+          tag="fatboss-server-${ver}"
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::warning::$tag is already published and stays as it is; bump misc/fatboss/VERSION to publish this one"
+            exit 0
+          fi
+          # the module reports its version to the server log; it must be the one in the release name
+          grep -q "^local VERSION = \"${ver}\"" misc/fatboss/fatboss.lua || { echo "::error::fatboss.lua does not say VERSION ${ver}"; exit 1; }
+          cd misc/fatboss
+          for f in fatboss.lua fatboss-start.sh; do sha256sum "$f" > "$f.sha256"; done
+          gh release create "$tag" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
+            --title "FatBoss server files ${ver}" \
+            --notes "fatboss.lua and fatboss-start.sh ${ver} for the gather servers, built from ${GITHUB_SHA}." \
+            fatboss.lua fatboss.lua.sha256 fatboss-start.sh fatboss-start.sh.sha256

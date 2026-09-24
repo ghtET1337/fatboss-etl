@@ -15,8 +15,6 @@ on:
       - "src/game/bg_*"
       - "src/ui/**"
       - "fatboss/**"
-      - "misc/fatboss/fatboss.lua"
-      - "misc/fatboss/fatboss-start.sh"
       - ".github/workflows/fatboss.yml"
   workflow_dispatch:
 
@@ -233,9 +231,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: |
-            fatboss
-            misc/fatboss
+          sparse-checkout: fatboss
       - uses: actions/download-artifact@v4
         with:
           pattern: cgame-*
@@ -270,11 +266,6 @@ jobs:
             exit 1
           fi
           sha256sum "$pk3" | tee "$pk3.sha256"
-          # the server side of this release: the Lua module and the container entrypoint
-          for f in fatboss.lua fatboss-start.sh; do
-            cp "misc/fatboss/$f" "$f"
-            sha256sum "$f" > "$f.sha256"
-          done
           {
             echo "pk3: $pk3"
             echo "et:legacy: $CI_ETL_DESCRIBE"
@@ -292,8 +283,6 @@ jobs:
             ${{ steps.pack.outputs.pk3 }}
             ${{ steps.pack.outputs.pk3 }}.sha256
             ${{ steps.pack.outputs.pk3 }}.txt
-            fatboss.lua*
-            fatboss-start.sh*
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -308,5 +297,4 @@ jobs:
             exit 0
           fi
           gh release create "$tag" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
-            --title "$pk3" --notes-file "$pk3.txt" "$pk3" "$pk3.sha256" "$pk3.txt" \
-            fatboss.lua fatboss.lua.sha256 fatboss-start.sh fatboss-start.sh.sha256
+            --title "$pk3" --notes-file "$pk3.txt" "$pk3" "$pk3.sha256" "$pk3.txt"

@@ -13,10 +13,14 @@
 #
 # Test mode (FATBOSS_TEST=1): everybody can spray the fatboss graffiti, and
 # /fbequip <knife|colt|luger|thompson|mp40|graffiti> <name> tries any skin.
+#
+# Against the real FatBoss site (loadouts from the Arsenal tab, /fblink codes):
+#   FB_LOADOUT_URL=https://<fatboss>/crates/api/game/loadouts FB_API_TOKEN=<FATBOSS_GAME_TOKEN> bash fbtest.sh start
 set -euo pipefail
 
 VER="${FB_VER:-b2}"            # cgame release: fatboss-<VER>
 SKINS="${FB_SKINS:-s2}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
+SERVER="${FB_SERVER:-0.3}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
 ETL_DIR="${ETL_DIR:-/root/etlserver}"
 PROD="${PROD:-etl-server1}"
@@ -58,8 +62,9 @@ start() {
 
 	tmp=$(mktemp -d)
 	trap 'rm -rf "$tmp"' EXIT
-	echo "Downloading fatboss-$VER and fatboss-skins-$SKINS ..."
-	fetch "fatboss-$VER" "$PK3" fatboss.lua fatboss-start.sh
+	echo "Downloading fatboss-$VER, fatboss-skins-$SKINS and fatboss-server-$SERVER ..."
+	fetch "fatboss-$VER" "$PK3"
+	fetch "fatboss-server-$SERVER" fatboss.lua fatboss-start.sh
 	fetch "fatboss-skins-$SKINS" skins.txt
 	mapfile -t skins < <(grep -E '^zzz_fatboss_skins_[a-z0-9]+\.pk3$' "$tmp/skins.txt")
 	[ "${#skins[@]}" -gt 0 ] || { echo "STOP: skins.txt lists no pk3"; exit 1; }
@@ -86,6 +91,11 @@ start() {
 	docker inspect "$PROD" --format '{{range .Config.Env}}{{println .}}{{end}}' \
 		| grep -vE '^(PATH|HOME|HOSTNAME|MAP_PORT|PASSWORD|STATS_SUBMIT|STATS_GATHER_FEATURES|STATS_AUTO_[A-Z_]*|SETTINGSBRANCH|AUTORESTART|SVTRACKER|ADVERT|MAPS|MAPS_AUTO|STARTMAP|FATBOSS_[A-Z_]*)=' \
 		| grep . > "$tmp/env" || true
+	# optionally the real FatBoss site instead of /fbequip alone
+	if [ -n "${FB_LOADOUT_URL:-}" ]; then
+		printf 'FATBOSS_LOADOUT_URL=%s\nFATBOSS_API_TOKEN=%s\nFATBOSS_DEFAULT_GRAFFITI=fatboss\n' "$FB_LOADOUT_URL" "${FB_API_TOKEN:-}" >> "$tmp/env"
+		echo "Loadouts and /fblink go to $FB_LOADOUT_URL"
+	fi
 
 	# Oksii's stats.lua loads only from the etl-stats-api settings branch, which
 	# production gets through STATS_SUBMIT=true. The test loads it the same way

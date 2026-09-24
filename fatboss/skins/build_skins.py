@@ -252,9 +252,22 @@ def mix(a, b, t):
     return a + (b - a) * t[..., None]
 
 
-def finish(paks, tex, theme):
-    """4k finish of a stock texture: (rgb float array, glow array or None)."""
+def ramp(t, stops):
+    """Colour ramp over t: stops = [(position, (r, g, b)), ...] in rising order."""
+    t = np.clip(t, stops[0][0], stops[-1][0])
+    out = np.zeros(t.shape + (3,), np.float32)
+    for (p0, c0), (p1, c1) in zip(stops, stops[1:]):
+        m = (t >= p0) & (t <= p1)
+        f = ((t[m] - p0) / max(p1 - p0, 1e-6))[:, None]
+        c0, c1 = np.array(c0, np.float32), np.array(c1, np.float32)
+        out[m] = c0 + (c1 - c0) * f
+    return out
+
+
+def finish(paks, tex, theme, div=1):
+    """4k finish of a stock texture (div > 1: smaller, for previews): (rgb float array, glow array or None)."""
     stock, (w, h), _ = TEXTURES[tex]
+    w, h = w // div, h // div
     base_img = Image.open(io.BytesIO(paks.read(stock))).convert("RGB")
     base = np.asarray(base_img.resize((w, h), Image.LANCZOS), dtype=np.float32) / 255.0
     l = luminance(base)
@@ -328,6 +341,188 @@ def finish(paks, tex, theme):
         steel = 0.5 + 0.28 * bands + 0.07 * np.sin((u * 60 + n * 8) * math.pi)
         out = np.stack([steel * 0.93, steel * 0.95, steel * 1.0], axis=-1)
         out *= np.clip(0.55 + 0.55 * shade, 0.4, 1.2)[..., None]
+        return np.clip(out, 0, 1), None
+
+    # panel shading of the stock texture, for the finishes below
+    panel = np.clip(0.55 + 0.55 * shade, 0.4, 1.2)[..., None]
+
+    def ridges(n, width):
+        """Thin lines where a noise field crosses its middle (cracks, veins)."""
+        return np.clip(1 - np.abs(n - 0.5) / width, 0, 1)
+
+    def pixelated(cells, base, octaves):
+        """Noise in square blocks: cells x cells over the square, nearest-neighbour."""
+        small = fbm(cells, rng, base=base, octaves=octaves)
+        im = Image.fromarray((small * 255).astype(np.uint8)).resize((side, side), Image.NEAREST)
+        return square(np.asarray(im, dtype=np.float32) / 255.0)
+
+    if theme == "fade":
+        n = square(fbm(side, rng, base=3, octaves=3))
+        t = u * side / w + 0.12 * (n - 0.5)
+        out = ramp(t, [(0.0, (0.98, 0.86, 0.25)), (0.4, (0.98, 0.38, 0.62)), (0.75, (0.62, 0.3, 0.9)),
+                       (1.0, (0.35, 0.3, 0.85))])
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "hardened":
+        n1 = square(fbm(side, rng, base=5, octaves=5))
+        n2 = square(fbm(side, rng, base=9, octaves=4))
+        t = n1 * 0.75 + n2 * 0.25
+        out = ramp(t, [(0.3, (0.12, 0.25, 0.62)), (0.42, (0.2, 0.42, 0.85)), (0.5, (0.45, 0.28, 0.55)),
+                       (0.56, (0.62, 0.6, 0.62)), (0.64, (0.85, 0.66, 0.25)), (0.75, (0.95, 0.8, 0.4))])
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "tiger":
+        n = square(fbm(side, rng, base=4, octaves=4))
+        body = ramp(v * side / h + 0.3 * (n - 0.5), [(0.0, (0.98, 0.7, 0.18)), (1.0, (0.85, 0.42, 0.06))])
+        s = np.sin((u * 14 + n * 3.5 + np.sin(v * 9) * 0.4) * 2 * math.pi)
+        width = 0.55 + 0.35 * square(fbm(side, rng, base=7, octaves=3))
+        stripe = np.clip((s - width) / 0.08, 0, 1)
+        out = mix(body, np.broadcast_to(np.array([0.07, 0.04, 0.02], np.float32), body.shape), stripe)
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "carbon":
+        f = 80
+        cu, cv = u * f, v * f
+        iu, iv = np.floor(cu), np.floor(cv)
+        fu, fv = cu - iu, cv - iv
+        across = ((iu + iv) % 2 == 0)
+        fiber = np.where(across, np.sin(fv * math.pi) * (0.8 + 0.2 * np.sin(cu * math.pi * 7)),
+                         np.sin(fu * math.pi) * (0.8 + 0.2 * np.sin(cv * math.pi * 7)))
+        g = 0.16 + 0.42 * np.clip(fiber, 0, 1) ** 1.2
+        out = np.stack([g * 0.95, g, g * 1.08], axis=-1)
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "digital":
+        t = pixelated(160, 4, 3) * 0.6 + pixelated(320, 7, 2) * 0.4
+        # quartiles, so every texture gets all four colours in equal shares
+        q = np.quantile(t, [0.25, 0.5, 0.75])
+        cols = np.array([(0.6, 0.62, 0.66), (0.4, 0.43, 0.49), (0.24, 0.26, 0.31), (0.11, 0.12, 0.15)], np.float32)
+        out = cols[np.searchsorted(q, t)]
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "winter":
+        n1 = square(fbm(side, rng, base=4, octaves=4))
+        n2 = square(fbm(side, rng, base=6, octaves=3))
+        cols = [(0.93, 0.95, 0.97), (0.76, 0.8, 0.85), (0.52, 0.59, 0.68), (0.3, 0.34, 0.4)]
+        out = np.empty((h, w, 3), np.float32)
+        out[:] = cols[0]
+        out[n1 > 0.54] = cols[1]
+        out[(n2 > 0.58) & (n1 > 0.48)] = cols[2]
+        out[(n1 < 0.36) & (n2 < 0.44)] = cols[3]
+        # short vertical "rain" dashes, like German splinter camo
+        rain = (np.sin(u * side / (6 * scale)) > 0.92) & (np.sin(v * side / (22 * scale) + np.floor(u * side / (6 * scale)) * 1.7) > 0.3)
+        out[rain] *= 0.72
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "desert":
+        n1 = square(fbm(side, rng, base=3, octaves=4))
+        n2 = square(fbm(side, rng, base=5, octaves=4))
+        cols = [(0.8, 0.7, 0.52), (0.68, 0.56, 0.38), (0.5, 0.39, 0.26), (0.9, 0.83, 0.67)]
+        out = np.empty((h, w, 3), np.float32)
+        out[:] = cols[0]
+        out[n1 > 0.53] = cols[1]
+        out[(n2 > 0.6) & (n1 > 0.5)] = cols[2]
+        out[(n1 < 0.4) & (n2 < 0.5)] = cols[3]
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "web":
+        n = square(fbm(side, rng, base=5, octaves=4))
+        out = ramp(n, [(0.3, (0.35, 0.02, 0.04)), (0.7, (0.72, 0.06, 0.09))])
+        lines = np.zeros((h, w), np.float32)
+        lw = 0.0014
+        for _ in range(4):
+            cx, cy = rng.random() * w / side, rng.random() * h / side
+            dx, dy = u - cx, v - cy
+            r = np.sqrt(dx * dx + dy * dy)
+            theta = np.arctan2(dy, dx)
+            spacing = 2 * math.pi / 14
+            a = theta / spacing
+            spoke = r * np.abs(a - np.round(a)) * spacing
+            gap = 0.035
+            sag = r + 0.012 * np.abs(a - np.round(a))
+            ring = np.abs(sag / gap - np.round(sag / gap)) * gap
+            near = r < 0.32
+            web = near & ((spoke < lw) | ((ring < lw) & (r > 0.02)))
+            lines = np.maximum(lines, web.astype(np.float32))
+        lines = blur(lines, scale * 0.6)
+        out = mix(out, np.broadcast_to(np.array([0.02, 0.01, 0.01], np.float32), out.shape), np.clip(lines * 1.5, 0, 1))
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "galaxy":
+        n1 = square(fbm(side, rng, base=3, octaves=5))
+        n2 = square(fbm(side, rng, base=5, octaves=5))
+        out = np.broadcast_to(np.array([0.02, 0.02, 0.07], np.float32), (h, w, 3)).copy()
+        neb = np.clip((n1 - 0.45) / 0.3, 0, 1) ** 1.5
+        col = ramp(n2, [(0.3, (0.1, 0.25, 0.95)), (0.5, (0.55, 0.12, 0.7)), (0.7, (0.95, 0.25, 0.6))])
+        out += col * neb[..., None]
+        stars = (rng.random((h, w)) > 0.9993).astype(np.float32)
+        glow = blur(stars, scale * 1.2) * 6
+        out += np.clip(stars + glow, 0, 1)[..., None] * np.array([0.95, 0.95, 1.0], np.float32)
+        return np.clip(out * np.clip(0.75 + 0.35 * shade, 0.6, 1.2)[..., None], 0, 1), None
+
+    if theme == "rust":
+        n1 = square(fbm(side, rng, base=6, octaves=6))
+        n2 = square(fbm(side, rng, base=14, octaves=4))
+        steel = np.broadcast_to(np.array([0.3, 0.3, 0.32], np.float32), (h, w, 3))
+        rust = ramp(n2, [(0.3, (0.3, 0.12, 0.05)), (0.55, (0.58, 0.26, 0.08)), (0.75, (0.78, 0.42, 0.16))])
+        m = np.clip((n1 - 0.44) / 0.08, 0, 1)
+        out = mix(steel, rust, m)
+        pits = rng.random((h, w)) > 0.994
+        out[pits] *= 0.45
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "magma":
+        n = square(fbm(side, rng, base=6, octaves=5))
+        rock = square(fbm(side, rng, base=20, octaves=3))
+        out = ramp(rock, [(0.3, (0.04, 0.035, 0.035)), (0.7, (0.16, 0.13, 0.12))])
+        crack = ridges(n, 0.018) ** 1.5
+        heat = blur(crack, scale * 4)
+        lava = ramp(crack, [(0.0, (0.9, 0.2, 0.02)), (1.0, (1.0, 0.85, 0.3))])
+        out = out * panel + lava * np.clip(crack + heat * 0.8, 0, 1)[..., None]
+        glow = lava * np.clip(crack * 0.9 + heat * 0.7, 0, 1)[..., None]
+        return np.clip(out, 0, 1), np.clip(glow, 0, 1)
+
+    if theme == "hazard":
+        n = square(fbm(side, rng, base=10, octaves=4))
+        s = ((u + v) * 22) % 1.0 < 0.5
+        out = np.where(s[..., None], np.array([0.96, 0.78, 0.08], np.float32), np.array([0.07, 0.07, 0.07], np.float32))
+        # worn paint: bare steel on the edges of the panels and in scratches
+        wear = (edges(l, scale) * 1.4 + (n > 0.7) * 0.8 + (rng.random((h, w)) > 0.996)) > 0.9
+        out[wear] = np.array([0.45, 0.45, 0.47], np.float32)
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "ice":
+        n1 = square(fbm(side, rng, base=4, octaves=4))
+        n2 = square(fbm(side, rng, base=9, octaves=5))
+        out = ramp(n1, [(0.3, (0.55, 0.78, 0.95)), (0.7, (0.85, 0.95, 1.0))])
+        crack = np.maximum(ridges(n2, 0.012), ridges(n1, 0.008) * 0.7)
+        out = mix(out, np.broadcast_to(np.array([1.0, 1.0, 1.0], np.float32), out.shape), crack)
+        return np.clip(out * np.clip(0.7 + 0.4 * shade, 0.55, 1.15)[..., None], 0, 1), None
+
+    if theme == "marble":
+        n = square(fbm(side, rng, base=4, octaves=6))
+        n2 = square(fbm(side, rng, base=7, octaves=5))
+        dark = np.maximum(np.clip(1 - np.abs(np.sin((u * 5 + v * 3 + n * 7) * math.pi)) / 0.2, 0, 1) ** 1.5,
+                          np.clip(1 - np.abs(np.sin((u * 9 - v * 4 + n2 * 9) * math.pi)) / 0.1, 0, 1) ** 1.5 * 0.7)
+        gold = np.clip(1 - np.abs(np.sin((u * 2 - v * 3 + n * 4) * math.pi)) / 0.03, 0, 1)
+        out = ramp(n, [(0.3, (0.86, 0.86, 0.84)), (0.7, (0.97, 0.96, 0.94))])
+        out = mix(out, np.broadcast_to(np.array([0.12, 0.12, 0.13], np.float32), out.shape), dark * 0.85)
+        out = mix(out, np.broadcast_to(np.array([0.85, 0.66, 0.25], np.float32), out.shape), gold)
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "wood":
+        n = square(fbm(side, rng, base=3, octaves=5))
+        grain = np.sin((v * 22 + n * 5) * 2 * math.pi) * 0.5 + 0.5
+        fine = square(fbm(side, rng, base=60, octaves=2))
+        t = grain * 0.6 + fine * 0.4
+        out = ramp(t, [(0.2, (0.24, 0.13, 0.06)), (0.6, (0.43, 0.25, 0.12)), (0.9, (0.58, 0.36, 0.18))])
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "cobalt":
+        n = square(fbm(side, rng, base=5, octaves=4))
+        streak = np.repeat(rng.random((h, 1)).astype(np.float32), w, axis=1)
+        out = ramp(shade / 1.25 + 0.1 * (n - 0.5), [(0.2, (0.03, 0.08, 0.3)), (0.6, (0.1, 0.3, 0.8)), (1.0, (0.45, 0.7, 1.0))])
+        out *= (0.92 + 0.1 * streak)[..., None]
         return np.clip(out, 0, 1), None
 
     raise ValueError(theme)
