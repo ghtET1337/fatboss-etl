@@ -15,6 +15,7 @@ on:
       - "src/game/bg_*"
       - "src/ui/**"
       - "fatboss/**"
+      - "misc/fatboss/**"
       - ".github/workflows/fatboss.yml"
   workflow_dispatch:
 
@@ -160,6 +161,38 @@ jobs:
           path: out/libcgame*.so
           if-no-files-found: error
 
+  # The weapon skins pack changes rarely and is big, so it has its own version
+  # (fatboss/skins/VERSION) and release; players keep their copy across cgame
+  # releases. A published skins release is never rebuilt: the same name must
+  # always be the same file, or players' cached copies stop matching.
+  skins:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: fatboss
+      - name: Pack and publish the skins pk3
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ver=$(tr -d ' \r\n' < fatboss/skins/VERSION)
+          tag="fatboss-skins-${ver}"
+          pk3="zzz_fatboss_skins_${ver}.pk3"
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "$tag is already published, not rebuilding it"
+            exit 0
+          fi
+          # fixed order and timestamps; JPGs are stored, zipping them gains nothing
+          (cd fatboss/pk3-skins \
+            && find . -type f -exec touch -d '2026-01-01 00:00:00 UTC' {} + \
+            && find . -type f | LC_ALL=C sort | sed 's#^\./##' | zip -X -9 -n .jpg "../../$pk3" -@)
+          sha256sum "$pk3" | tee "$pk3.sha256"
+          ls -la "$pk3"
+          gh release create "$tag" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
+            --title "$pk3" --notes "FatBoss weapon skins ${ver}, built from ${GITHUB_SHA}" "$pk3" "$pk3.sha256"
+
   package:
     runs-on: ubuntu-24.04
     needs: [lnx64, lnx32, lnx-aarch64, osx, win32, win64, android]
@@ -167,7 +200,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: fatboss
+          sparse-checkout: |
+            fatboss
+            misc/fatboss
       - uses: actions/download-artifact@v4
         with:
           pattern: cgame-*
@@ -196,6 +231,11 @@ jobs:
           # models, skins, shaders, graffiti and sounds that ship with the cgame
           (cd fatboss/pk3 && zip -r -9 -X "../../$pk3" .)
           sha256sum "$pk3" | tee "$pk3.sha256"
+          # the server side of this release: the Lua module and the container entrypoint
+          for f in fatboss.lua fatboss-start.sh; do
+            cp "misc/fatboss/$f" "$f"
+            sha256sum "$f" > "$f.sha256"
+          done
           {
             echo "pk3: $pk3"
             echo "et:legacy: $CI_ETL_DESCRIBE"
@@ -213,6 +253,8 @@ jobs:
             ${{ steps.pack.outputs.pk3 }}
             ${{ steps.pack.outputs.pk3 }}.sha256
             ${{ steps.pack.outputs.pk3 }}.txt
+            fatboss.lua*
+            fatboss-start.sh*
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -223,4 +265,5 @@ jobs:
           gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
             gh release create "$tag" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
               --title "$pk3" --notes-file "$pk3.txt"
-          gh release upload "$tag" -R "$GITHUB_REPOSITORY" --clobber "$pk3" "$pk3.sha256" "$pk3.txt"
+          gh release upload "$tag" -R "$GITHUB_REPOSITORY" --clobber "$pk3" "$pk3.sha256" "$pk3.txt" \
+            fatboss.lua fatboss.lua.sha256 fatboss-start.sh fatboss-start.sh.sha256

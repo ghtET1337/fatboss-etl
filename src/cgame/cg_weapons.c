@@ -1699,6 +1699,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 	{
 		gun.customSkin = CG_FatBoss_GunSkin(weaponNum, team, gun.customSkin);
 	}
+	CG_FatBoss_WeaponSkin(&gun, clientNum, weaponNum, modelViewType, -1, team, cent->currentState.powerups);
 
 	// upgraded fops ammobox shader
 	if (weaponNum == WP_AMMO)
@@ -2103,6 +2104,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 							barrel.customShader = weapon->modModels[0];
 						}
 					}
+					CG_FatBoss_WeaponSkin(&barrel, clientNum, weaponNum, modelViewType, i, team, cent->currentState.powerups);
 
 					CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups, ps, cent);
 
