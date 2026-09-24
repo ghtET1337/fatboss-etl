@@ -113,6 +113,7 @@ start() {
 		-e STATS_GATHER_FEATURES=false \
 		-e STATS_AUTO_RENAME=false -e STATS_AUTO_SORT=false -e STATS_AUTO_START=false \
 		-e STATS_AUTO_MAP=false -e STATS_AUTO_CONFIG=false -e STATS_AUTO_SCORES=false \
+		-e STATS_API_DUMPJSON=true -e STATS_API_PATH=/legacy/homepath/legacy/fbtest-stats/ \
 		-e AUTORESTART=false \
 		-e SVTRACKER= -e ADVERT=0 \
 		-e MAPS= -e MAPS_AUTO=false \
@@ -162,6 +163,9 @@ start() {
 status() {
 	docker ps --filter "name=^${NAME}$" --format '{{.Names}}  {{.Status}}  {{.Ports}}'
 	docker logs "$NAME" 2>&1 | grep -iE "ClientConnect|ClientBegin|clientDownload|unpure|nChkSum|Dropped|disconnected|fatboss|lua" | tail -40 || true
+	# Oksii's stats.lua writes each finished round here instead of sending it to api.etl.lol
+	echo "Stats files written by stats.lua (one per finished round):"
+	docker exec "$NAME" sh -c 'ls -la /legacy/homepath/legacy/fbtest-stats/ 2>/dev/null | tail -n +2' || true
 }
 
 stop() {
