@@ -3,7 +3,7 @@
 #
 #   bash fbtest.sh start    download a FatBoss release, start container etl-fbtest
 #   bash fbtest.sh status   show whether players got in (ClientBegin / unpure) and what FatBoss logged
-#   bash fbtest.sh stop     remove the test container and the test pk3s
+#   bash fbtest.sh stop     remove the test container and the files this script put in place
 #
 # The production server is never touched: the test container reuses its image
 # (same ET: Legacy build) and its environment, on another port. FatBoss runs
@@ -16,7 +16,7 @@
 set -euo pipefail
 
 VER="${FB_VER:-b2}"            # cgame release: fatboss-<VER>
-SKINS="${FB_SKINS:-s1}"        # skins release: fatboss-skins-<SKINS>
+SKINS="${FB_SKINS:-s2}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
 ETL_DIR="${ETL_DIR:-/root/etlserver}"
 PROD="${PROD:-etl-server1}"
@@ -25,8 +25,7 @@ PORT="${PORT:-27970}"
 PASS="${FB_PASS:-fbtest}"
 EXPECT="legacy_v2.86.0.pk3"    # the ET: Legacy version this cgame was built for
 PK3="zzz_fatboss_${VER}.pk3"
-SKINS_PK3="zzz_fatboss_skins_${SKINS}.pk3"
-FB_DIR="$ETL_DIR/fatboss-test" # fatboss-start.sh and fatboss.lua for the test container
+FB_DIR="$ETL_DIR/fatboss-test" # fatboss-start.sh, fatboss.lua and the list of what this script installed
 WEB="$ETL_DIR/maps/legacy"     # what the redirect web server hands to players
 
 fetch() { # <release tag> <file>...
@@ -37,6 +36,15 @@ fetch() { # <release tag> <file>...
 		curl -fsSL -o "$tmp/$f.sha256" "$REL/$tag/$f.sha256"
 		(cd "$tmp" && sha256sum -c --quiet "$f.sha256") || { echo "STOP: $f does not match its sha256"; exit 1; }
 	done
+}
+
+# removes the pk3s an earlier run put on the redirect, except the ones given
+remove_installed() {
+	[ -f "$FB_DIR/installed.txt" ] || return 0
+	while read -r f; do
+		case " $* " in *" $f "*) continue ;; esac
+		[ -n "$f" ] && rm -f "$WEB/$f" && echo "removed $f from $WEB"
+	done < "$FB_DIR/installed.txt"
 }
 
 start() {
@@ -52,14 +60,23 @@ start() {
 	trap 'rm -rf "$tmp"' EXIT
 	echo "Downloading fatboss-$VER and fatboss-skins-$SKINS ..."
 	fetch "fatboss-$VER" "$PK3" fatboss.lua fatboss-start.sh
-	fetch "fatboss-skins-$SKINS" "$SKINS_PK3"
+	fetch "fatboss-skins-$SKINS" skins.txt
+	mapfile -t skins < <(grep -E '^zzz_fatboss_skins_[a-z0-9]+\.pk3$' "$tmp/skins.txt")
+	[ "${#skins[@]}" -gt 0 ] || { echo "STOP: skins.txt lists no pk3"; exit 1; }
+	fetch "fatboss-skins-$SKINS" "${skins[@]}"
 
 	mkdir -p "$WEB" "$FB_DIR"
-	install -m 644 "$tmp/$PK3" "$WEB/$PK3"
-	install -m 644 "$tmp/$SKINS_PK3" "$WEB/$SKINS_PK3"
+	remove_installed "$PK3" "${skins[@]}"
+	mounts=()
+	for f in "$PK3" "${skins[@]}"; do
+		install -m 644 "$tmp/$f" "$WEB/$f"
+		mounts+=(-v "$WEB/$f:/legacy/server/legacy/$f:ro")
+	done
+	printf '%s\n' "$PK3" "${skins[@]}" > "$FB_DIR/installed.txt"
 	install -m 644 "$tmp/fatboss.lua" "$FB_DIR/fatboss.lua"
 	install -m 644 "$tmp/fatboss-start.sh" "$FB_DIR/fatboss-start.sh"
-	# players on older clients download the official pk3 too; over the web, not UDP
+	# players on older clients download the official pk3 too, and at 34 MB it
+	# only arrives over the web: the UDP fallback stalls for good at 32 MiB
 	if [ ! -f "$WEB/$EXPECT" ]; then
 		docker cp "$PROD:/legacy/server/legacy/$EXPECT" "$WEB/$EXPECT" && chmod 644 "$WEB/$EXPECT"
 		echo "Added $EXPECT to $WEB for the redirect"
@@ -92,8 +109,7 @@ start() {
 		-e STARTMAP=oasis \
 		-e FATBOSS_TEST=1 \
 		-v "$FB_DIR:/fatboss:ro" \
-		-v "$WEB/$PK3:/legacy/server/legacy/$PK3:ro" \
-		-v "$WEB/$SKINS_PK3:/legacy/server/legacy/$SKINS_PK3:ro" \
+		"${mounts[@]}" \
 		-p "$PORT:$PORT/udp" \
 		--entrypoint /bin/sh \
 		"$image" /fatboss/fatboss-start.sh >/dev/null
@@ -104,7 +120,7 @@ start() {
 		docker logs --tail 40 "$NAME"
 		exit 1
 	fi
-	echo "OK: $NAME on UDP $PORT, $PK3 + $SKINS_PK3, image $image"
+	echo "OK: $NAME on UDP $PORT with $PK3 ${skins[*]} (image $image)"
 	docker logs "$NAME" 2>&1 | grep -iE "fatboss" | tail -5 || true
 	if docker exec "$NAME" sh -c 'grep -l "luascripts/fatboss.lua" /legacy/server/etmain/configs/*.config' >/dev/null 2>&1; then
 		echo "OK: fatboss.lua is in lua_modules:"
@@ -113,12 +129,12 @@ start() {
 		echo "WARNING: fatboss.lua did not get into lua_modules"
 	fi
 
-	# the redirect must serve the pk3s: the skins pack is ~70 MB, far too big for UDP downloads
+	# the redirect must serve the pk3s; over UDP they crawl, and past 32 MiB they never finish
 	redirect=$(docker exec "$NAME" printenv REDIRECTURL 2>/dev/null || true)
 	if [ -z "$redirect" ]; then
 		echo "WARNING: no REDIRECTURL, players download everything over UDP (very slow)"
 	else
-		for f in "$EXPECT" "$PK3" "$SKINS_PK3"; do
+		for f in "$EXPECT" "$PK3" "${skins[@]}"; do
 			if curl -fsI --max-time 10 "$redirect/legacy/$f" >/dev/null; then
 				echo "OK: redirect serves $redirect/legacy/$f"
 			else
@@ -140,7 +156,7 @@ status() {
 
 stop() {
 	docker rm -f -v "$NAME" >/dev/null 2>&1 && echo "removed $NAME" || echo "$NAME was not running"
-	rm -f "$WEB/$PK3" "$WEB/$SKINS_PK3" && echo "removed $PK3 and $SKINS_PK3 from $WEB"
+	remove_installed
 	rm -rf "$FB_DIR" && echo "removed $FB_DIR"
 }
 

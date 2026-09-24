@@ -172,7 +172,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: fatboss
-      - name: Pack and publish the skins pk3
+      # one pk3 per line of fatboss/skins/parts.txt (a group of themes), each
+      # under 32 MiB: the UDP download fallback stalls for good past that
+      - name: Pack and publish the skins pk3s
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -180,19 +182,49 @@ jobs:
           set -euo pipefail
           ver=$(tr -d ' \r\n' < fatboss/skins/VERSION)
           tag="fatboss-skins-${ver}"
-          pk3="zzz_fatboss_skins_${ver}.pk3"
           if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "$tag is already published, not rebuilding it"
             exit 0
           fi
-          # fixed order and timestamps; JPGs are stored, zipping them gains nothing
-          (cd fatboss/pk3-skins \
-            && find . -type f -exec touch -d '2026-01-01 00:00:00 UTC' {} + \
-            && find . -type f | LC_ALL=C sort | sed 's#^\./##' | zip -X -9 -n .jpg "../../$pk3" -@)
-          sha256sum "$pk3" | tee "$pk3.sha256"
-          ls -la "$pk3"
+          limit=$((32 * 1024 * 1024))
+          root=fatboss/pk3-skins
+          find "$root" -type f -exec touch -d '2026-01-01 00:00:00 UTC' {} +
+          : > packed.txt
+          : > skins.txt
+          assets=()
+          while read -r letter themes; do
+            case "$letter" in ''|'#'*) continue ;; esac
+            pk3="zzz_fatboss_skins_${ver}${letter}.pk3"
+            list=$(mktemp)
+            echo models/fatboss/skins/env.jpg > "$list"
+            for t in $themes; do
+              (cd "$root" && find "models/fatboss/skins/$t" -type f) >> "$list"
+              echo "scripts/fatboss_skins_$t.shader" >> "$list"
+            done
+            # fixed order and timestamps: the same sources always give the same file
+            LC_ALL=C sort -o "$list" "$list"
+            (cd "$root" && zip -q -X -9 "../../$pk3" -@) < "$list"
+            cat "$list" >> packed.txt
+            size=$(stat -c %s "$pk3")
+            if [ "$size" -ge "$limit" ]; then
+              echo "::error::$pk3 is $size bytes; players could never finish it over UDP (limit $limit)"
+              exit 1
+            fi
+            sha256sum "$pk3" > "$pk3.sha256"
+            echo "$pk3" >> skins.txt
+            assets+=("$pk3" "$pk3.sha256")
+            echo "$pk3: $size bytes ($themes)"
+          done < fatboss/skins/parts.txt
+          # every file of the skins tree must be in a part
+          missing=$(comm -23 <(cd "$root" && find . -type f | sed 's#^\./##' | LC_ALL=C sort) <(LC_ALL=C sort -u packed.txt))
+          if [ -n "$missing" ]; then
+            echo "::error::files in no skins part:"; echo "$missing"; exit 1
+          fi
+          sha256sum skins.txt > skins.txt.sha256
+          cat skins.txt
           gh release create "$tag" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
-            --title "$pk3" --notes "FatBoss weapon skins ${ver}, built from ${GITHUB_SHA}" "$pk3" "$pk3.sha256"
+            --title "FatBoss skins ${ver}" --notes "FatBoss weapon skins ${ver}, built from ${GITHUB_SHA}" \
+            "${assets[@]}" skins.txt skins.txt.sha256
 
   package:
     runs-on: ubuntu-24.04
@@ -231,6 +263,12 @@ jobs:
           (cd platforms && zip -9 -X "../$pk3" $included)
           # models, skins, shaders, graffiti and sounds that ship with the cgame
           (cd fatboss/pk3 && zip -r -9 -X "../../$pk3" .)
+          # the UDP download fallback stalls for good at 32 MiB
+          size=$(stat -c %s "$pk3")
+          if [ "$size" -ge $((32 * 1024 * 1024)) ]; then
+            echo "::error::$pk3 is $size bytes; players could never finish it over UDP"
+            exit 1
+          fi
           sha256sum "$pk3" | tee "$pk3.sha256"
           # the server side of this release: the Lua module and the container entrypoint
           for f in fatboss.lua fatboss-start.sh; do
