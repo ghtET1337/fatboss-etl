@@ -16,6 +16,9 @@ static const fbSkinTheme_t fbSkinThemes[] =
 	{ "damascus", (1 << 4) | (1 << 5) },
 	{ "defender", (1 << 0) },
 	{ "wut", (1 << 2) | (1 << 5) },
+	{ "cyber", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "plasma", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "airstrike", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
 };
 
 // weapon, slot, texture, view, part (-1 main model), .skin id (NULL: custom shader on the whole model), per-team .skin

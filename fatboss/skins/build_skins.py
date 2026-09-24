@@ -34,7 +34,7 @@ import zipfile
 import zlib
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
@@ -62,6 +62,10 @@ THEMES = {
     "damascus": (("knife", "kabar"), (0.70, 0.72, 0.76)),
     "defender": (("colt",), None),              # Codex's finished skins, their own lit reflection
     "wut": (("thompson", "kabar"), None),
+    # picked from the second proposal board (2026-09-24)
+    "cyber": (ALL, (0.30, 0.34, 0.40)),
+    "plasma": (ALL, (0.35, 0.30, 0.45)),
+    "airstrike": (ALL, (0.25, 0.22, 0.30)),
 }
 CODEX = {
     # (theme, texture): (first person 4K source, third person 4K source)
@@ -516,6 +520,145 @@ def finish(paks, tex, theme, div=1):
         fine = square(fbm(side, rng, base=60, octaves=2))
         t = grain * 0.6 + fine * 0.4
         out = ramp(t, [(0.2, (0.24, 0.13, 0.06)), (0.6, (0.43, 0.25, 0.12)), (0.9, (0.58, 0.36, 0.18))])
+        return np.clip(out * panel, 0, 1), None
+
+    def hsv(hue, sat, val):
+        """HSV (0..1 arrays) to an RGB array."""
+        i = np.floor(hue * 6) % 6
+        f = hue * 6 - np.floor(hue * 6)
+        p, q, t = val * (1 - sat), val * (1 - f * sat), val * (1 - (1 - f) * sat)
+        sectors = [i == 0, i == 1, i == 2, i == 3, i == 4]
+        r = np.select(sectors, [val, q, p, p, t], default=val)
+        g = np.select(sectors, [t, val, val, q, p], default=p)
+        b = np.select(sectors, [p, p, t, val, val], default=q)
+        return np.stack([r, g, b], axis=-1).astype(np.float32)
+
+    if theme == "cyber":
+        # circuit board: traces that walk the grid, bend by 45 degrees and end in solder pads
+        step = side / 56.0
+        lw = max(2, int(round(step * 0.16)))
+        board = Image.new("L", (w, h), 0)
+        draw = ImageDraw.Draw(board)
+        dirs = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
+        for _ in range(max(6, int(w * h / (side * side) * 110))):
+            x, y = int(rng.integers(0, w // step + 1)) * step, int(rng.integers(0, h // step + 1)) * step
+            d = int(rng.integers(0, 4)) * 2          # start straight, never diagonal
+            pts = [(x, y)]
+            for _s in range(int(rng.integers(3, 12))):
+                if rng.random() < 0.3:
+                    d = (d + (1 if rng.random() < 0.5 else -1)) % 8
+                x, y = x + dirs[d][0] * step, y + dirs[d][1] * step
+                pts.append((x, y))
+            draw.line(pts, fill=255, width=lw, joint="curve")
+            for px, py in (pts[0], pts[-1]):
+                pr = lw * 1.7
+                draw.ellipse((px - pr, py - pr, px + pr, py + pr), outline=255, width=max(1, lw // 2 + 1))
+        lines = np.asarray(board, dtype=np.float32) / 255.0
+        base_col = np.array([0.05, 0.065, 0.075], np.float32)
+        out = np.broadcast_to(base_col, (h, w, 3)) * np.clip(0.6 + 0.6 * shade, 0.4, 1.3)[..., None]
+        col = mix(np.broadcast_to(np.array([0.1, 1.0, 0.8], np.float32), (h, w, 3)),
+                  np.broadcast_to(np.array([0.2, 0.55, 1.0], np.float32), (h, w, 3)), square(fbm(side, rng, base=3, octaves=2)))
+        glow = blur(lines, scale * 3)
+        out = out + col * (lines[..., None] * 0.9 + glow[..., None] * 0.5)
+        return np.clip(out, 0, 1), np.clip(col * np.clip(lines * 0.8 + glow * 0.6, 0, 1)[..., None], 0, 1)
+
+    if theme == "hologram":
+        n = square(fbm(side, rng, base=3, octaves=3))
+        hue = (u * 1.6 + v * 0.9 + n * 0.7 + shade * 0.35) % 1.0
+        val = np.clip(0.55 + 0.4 * shade, 0.4, 1.0)
+        out = hsv(hue, np.full_like(hue, 0.55), val)
+        scan = 0.9 + 0.1 * np.sin(v * side / (3.2 * scale) * math.pi)
+        out = out * scan[..., None] + 0.12
+        return np.clip(out, 0, 1), None
+
+    if theme == "plasma":
+        n1 = square(fbm(side, rng, base=5, octaves=5))
+        n2 = square(fbm(side, rng, base=9, octaves=4))
+        bolt = np.maximum(ridges(n1, 0.014), ridges(n2, 0.01) * 0.8) ** 1.3
+        halo = blur(bolt, scale * 5)
+        base_col = ramp(n2, [(0.3, (0.03, 0.01, 0.06)), (0.7, (0.1, 0.03, 0.16))])
+        col = ramp(n1, [(0.3, (0.35, 0.55, 1.0)), (0.7, (0.85, 0.35, 1.0))])
+        out = base_col * np.clip(0.7 + 0.5 * shade, 0.5, 1.3)[..., None] + col * np.clip(bolt + halo * 0.7, 0, 1)[..., None]
+        return np.clip(out, 0, 1), np.clip(col * np.clip(bolt * 0.9 + halo * 0.6, 0, 1)[..., None], 0, 1)
+
+    if theme == "synthwave":
+        t = v * side / h
+        out = ramp(t, [(0.0, (0.12, 0.02, 0.22)), (0.45, (0.85, 0.15, 0.55)), (0.75, (1.0, 0.45, 0.2)), (1.0, (1.0, 0.8, 0.3))])
+        out = out * np.clip(0.6 + 0.5 * shade, 0.45, 1.2)[..., None]
+        cells = 40
+        gu, gv = (u * cells) % 1.0, (v * cells) % 1.0
+        grid = ((np.minimum(gu, 1 - gu) < 0.05) | (np.minimum(gv, 1 - gv) < 0.05)).astype(np.float32)
+        glow = blur(grid, scale * 2.5)
+        cyan = np.array([0.2, 0.95, 1.0], np.float32)
+        out = mix(out, np.broadcast_to(cyan, out.shape), np.clip(grid * 0.85 + glow * 0.3, 0, 1))
+        return np.clip(out, 0, 1), np.clip(cyan * np.clip(grid * 0.7 + glow * 0.5, 0, 1)[..., None], 0, 1)
+
+    if theme == "radar":
+        out = np.broadcast_to(np.array([0.01, 0.05, 0.025], np.float32), (h, w, 3)) * np.clip(0.7 + 0.6 * shade, 0.5, 1.4)[..., None]
+        green = np.array([0.25, 1.0, 0.45], np.float32)
+        lines = np.zeros((h, w), np.float32)
+        sweep = np.zeros((h, w), np.float32)
+        for _ in range(3):
+            cx, cy = rng.random() * w / side, rng.random() * h / side
+            r = np.hypot(u - cx, v - cy)
+            ring = np.abs((r / 0.05) - np.round(r / 0.05)) * 0.05 < 0.0016
+            cross = (np.abs(u - cx) < 0.0012) | (np.abs(v - cy) < 0.0012)
+            lines = np.maximum(lines, ((ring | cross) & (r < 0.3)).astype(np.float32) * 0.8)
+            ang = (np.arctan2(v - cy, u - cx) / (2 * math.pi)) % 1.0
+            sweep = np.maximum(sweep, np.where(r < 0.3, np.clip(1 - ((ang - rng.random()) % 1.0) / 0.2, 0, 1) ** 2, 0))
+        blips = (rng.random((h, w)) > 0.9996).astype(np.float32)
+        blips = np.clip(blur(blips, scale * 1.5) * 12, 0, 1)
+        light = np.clip(lines + sweep * 0.45 + blips, 0, 1)
+        out = out + green * light[..., None]
+        return np.clip(out, 0, 1), np.clip(green * np.clip(lines * 0.6 + sweep * 0.35 + blips, 0, 1)[..., None], 0, 1)
+
+    if theme == "invasion":
+        # D-Day invasion stripes over olive drab, worn at the edges
+        n = square(fbm(side, rng, base=8, octaves=4))
+        olive = ramp(n, [(0.3, (0.24, 0.27, 0.15)), (0.7, (0.33, 0.36, 0.21))])
+        k = np.floor(u * 26).astype(int) % 9
+        white = np.isin(k, (0, 2, 4))
+        black = np.isin(k, (1, 3))
+        out = olive.copy()
+        out[white] = np.array([0.88, 0.87, 0.82], np.float32)
+        out[black] = np.array([0.06, 0.06, 0.06], np.float32)
+        wear = (edges(l, scale) * 1.3 + (square(fbm(side, rng, base=30, octaves=2)) > 0.72) * 0.9) > 0.95
+        out[wear] = olive[wear] * 0.8
+        return np.clip(out * panel, 0, 1), None
+
+    if theme == "airstrike":
+        # a gunmetal body in the purple smoke of a field ops airstrike marker
+        metal = np.broadcast_to(np.array([0.2, 0.21, 0.23], np.float32), (h, w, 3)) * panel
+        n1 = square(fbm(side, rng, base=4, octaves=5))
+        n2 = square(fbm(side, rng, base=9, octaves=4))
+        smoke = np.clip((n1 * 0.7 + n2 * 0.3 - 0.42) / 0.25, 0, 1) ** 1.2
+        purple = ramp(n2, [(0.3, (0.45, 0.15, 0.62)), (0.7, (0.78, 0.45, 0.9))])
+        out = mix(metal, purple, smoke * 0.9)
+        canister = np.abs(((u + 0.13) * 5) % 1.0 - 0.5) < 0.012
+        out[canister] = np.array([0.85, 0.72, 0.1], np.float32)
+        return np.clip(out, 0, 1), None
+
+    if theme == "supply":
+        # the planks of a FatBoss supply crate, with stencilled stars
+        plank = np.floor(v * 9)
+        n = square(fbm(side, rng, base=3, octaves=4))
+        grain = np.sin((v * 90 + n * 6 + plank * 1.7) * 2 * math.pi) * 0.5 + 0.5
+        tone = (np.sin(plank * 12.9898) * 43758.5453) % 1.0
+        out = ramp(grain * 0.5 + tone * 0.5, [(0.0, (0.36, 0.24, 0.12)), (0.5, (0.55, 0.38, 0.2)), (1.0, (0.68, 0.5, 0.28))])
+        gap = ((v * 9) % 1.0) < 0.035
+        out[gap] = np.array([0.12, 0.08, 0.04], np.float32)
+        stars = Image.new("L", (w, h), 0)
+        draw = ImageDraw.Draw(stars)
+        for _ in range(max(3, int(w * h / (side * side) * 14))):
+            cx, cy, r = rng.random() * w, rng.random() * h, side * (0.03 + rng.random() * 0.03)
+            pts = []
+            for i in range(10):
+                a = -math.pi / 2 + i * math.pi / 5
+                rad = r if i % 2 == 0 else r * 0.42
+                pts.append((cx + rad * math.cos(a), cy + rad * math.sin(a)))
+            draw.polygon(pts, fill=255)
+        stencil = np.asarray(stars, dtype=np.float32) / 255.0 * (0.75 + 0.25 * square(fbm(side, rng, base=40, octaves=2)))
+        out = mix(out, np.broadcast_to(np.array([0.08, 0.07, 0.05], np.float32), out.shape), np.clip(stencil, 0, 1) * 0.85)
         return np.clip(out * panel, 0, 1), None
 
     if theme == "cobalt":

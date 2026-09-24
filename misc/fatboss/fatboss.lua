@@ -37,10 +37,10 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.3"
+local VERSION = "0.4"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order of the fbskin command
-local THEMES_HELP     = "gold polska neon camo damascus (knives) defender (colt) wut (thompson, kabar)"
+local THEMES_HELP     = "gold polska neon camo cyber plasma airstrike damascus (knives) defender (colt) wut (thompson, kabar)"
 local SPRAY_RANGE     = 128
 local SPRAY_RADIUS    = 28      -- half the side of the graffiti square, in game units
 local SPRAY_SCALES    = { 1.0, 0.8, 0.6 }
