@@ -1666,6 +1666,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 	VectorCopy(parent->lightingOrigin, gun.lightingOrigin);
 	gun.shadowPlane = parent->shadowPlane;
 	gun.renderfx    = parent->renderfx;
+	gun.nonNormalizedAxes = parent->nonNormalizedAxes;
 	gun.hModel      = weapon->weaponModel[modelViewType].model;
 
 	// no need to render a gun that has no model
@@ -1693,6 +1694,10 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 	else
 	{
 		gun.customSkin = weapon->weaponModel[modelViewType].skin[0];   // if not loaded it's 0 so doesn't do any harm
+	}
+	if (isSelfFirstPerson && modelViewType == W_FP_MODEL)
+	{
+		gun.customSkin = CG_FatBoss_GunSkin(weaponNum, team, gun.customSkin);
 	}
 
 	// upgraded fops ammobox shader
@@ -1844,6 +1849,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 	VectorCopy(parent->lightingOrigin, barrel.lightingOrigin);
 	barrel.shadowPlane = parent->shadowPlane;
 	barrel.renderfx    = parent->renderfx;
+	barrel.nonNormalizedAxes = parent->nonNormalizedAxes;
 
 	// attach generic weapon parts to the first person weapon.
 	// if a barrel should be attached for third person, add it in the (!ps) section below
@@ -1857,6 +1863,10 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 
 		for (i = W_PART_1; i < W_MAX_PARTS; i++)
 		{
+			if (isSelfFirstPerson && CG_FatBoss_HidePart(weaponNum, i))
+			{
+				continue;
+			}
 			if (CHECKBITWISE(GetWeaponTableData(weaponNum)->type, WEAPON_TYPE_MORTAR | WEAPON_TYPE_SET) && (i == W_PART_4 || i == W_PART_5))
 			{
 				if (ps && !cg.renderingThirdPerson && cg.predictedPlayerState.weaponstate != WEAPON_RAISING)

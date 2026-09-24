@@ -193,6 +193,8 @@ jobs:
           done
           [ -z "$absent" ] || echo "::warning::players on these platforms would fail sv_pure:$absent"
           (cd platforms && zip -9 -X "../$pk3" $included)
+          # models, skins, shaders, graffiti and sounds that ship with the cgame
+          (cd fatboss/pk3 && zip -r -9 -X "../../$pk3" .)
           sha256sum "$pk3" | tee "$pk3.sha256"
           {
             echo "pk3: $pk3"

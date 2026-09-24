@@ -3174,6 +3174,11 @@ void CG_FatBoss_CancelInspect(void);
 void CG_FatBoss_UpdateInspect(const playerState_t *ps);
 void CG_FatBoss_ApplyInspect(refEntity_t *hand);
 void CG_FatBoss_Version_f(void);
+qboolean CG_FatBoss_HidePart(int weaponNum, int part);
+qhandle_t CG_FatBoss_GunSkin(int weaponNum, int team, qhandle_t skin);
+qboolean CG_FatBoss_ServerCommand(const char *cmd);
+void CG_FatBoss_AddSprays(void);
+void CG_FatBoss_ClearSprays(void);
 qboolean CG_WeaponSelectable(int weapon, qboolean playSound);
 
 void CG_FinishWeaponChange(int lastweap, int newweap);

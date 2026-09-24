@@ -2695,6 +2695,7 @@ void CG_DrawActiveFrame(int serverTime, qboolean demoPlayback)
 		{
 			CG_AddPacketEntities();         // after calcViewValues, so predicted player state is correct
 			CG_AddMarks();
+			CG_FatBoss_AddSprays();
 
 			DEBUGTIME
 

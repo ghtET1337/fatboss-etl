@@ -1380,6 +1380,7 @@ static void CG_MapRestart(void)
 	}
 
 	Com_Memset(&cg.lastWeapSelInBank[0], 0, MAX_WEAP_BANKS_MP * sizeof(int)); // clear weapon bank selections
+	CG_FatBoss_ClearSprays();
 
 	cg.autoCmdExecuted         = qfalse;
 	cg.numbufferedSoundScripts = 0;
@@ -3659,6 +3660,10 @@ static void CG_ServerCommand(void)
 	}
 #endif
 	default:
+		if (CG_FatBoss_ServerCommand(cmd))
+		{
+			break;
+		}
 		CG_Printf("Unknown client game command: %s [%lu]\n", cmd, hash);
 		break;
 	}
