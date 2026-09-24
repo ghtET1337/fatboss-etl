@@ -31,13 +31,13 @@
     and /fbequip <slot> <theme> tries any skin or graffiti without FatBoss.
 
     Runs next to Oksii's stats.lua and combinedfixes.lua in its own Lua VM and
-    handles only its own commands ("spray", "fblink", and "fbequip" in test mode).
+    handles only its own commands ("spray", "fblink", "fbsync", and "fbequip" in test mode).
 ]]
 
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.4"
+local VERSION = "0.5"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order of the fbskin command
 local THEMES_HELP     = "gold polska neon camo cyber plasma airstrike damascus (knives) defender (colt) wut (thompson, kabar)"
@@ -58,6 +58,7 @@ local MESSAGE_GAP_MS  = 1500
 local SKINS_PER_CMD   = 12      -- keeps one fbskin command well under the 1024 character limit
 local LINK_WAIT_MS    = 15000   -- how long a /fblink waits for FatBoss to answer
 local LINK_GAP_MS     = 5000    -- one /fblink per player every few seconds
+local SYNC_GAP_MS     = 3000    -- one fbsync (a cgame restart) per player every few seconds
 
 local loadouts     = {}  -- cl_guid (upper case) -> { graffiti = design, skins = { slot = theme } }
 local testLoadouts = {}  -- the same, set with /fbequip in test mode; wins over loadouts
@@ -68,6 +69,7 @@ local usedThisLife = {}  -- clientNum -> true once sprayed in the current life
 local lastMessage  = {}  -- clientNum -> level time of the last refusal
 local links        = {}  -- clientNum -> { file, guid, deadline } of a /fblink waiting for FatBoss
 local lastLink     = {}  -- clientNum -> time of the last /fblink
+local lastSync     = {}  -- clientNum -> time the client last got everything
 local loadoutPath, loadoutUrl, linkUrl, apiToken, testMode, defaultGraffiti, maxClients, homeDir
 local nextFetch, nextRead, lastLoadoutText = 0, 0, nil
 
@@ -414,6 +416,32 @@ local function equip(clientNum)
     broadcastSkinChanges()
 end
 
+-- everybody's skins and the graffiti already on the map, to one client (without the sound)
+local function syncClient(clientNum, mine)
+    local entries = {}
+    for other = 0, maxClients - 1 do
+        if other ~= clientNum and connected(other) and sentSkins[other] then
+            entries[#entries + 1] = sentSkins[other]
+        end
+    end
+    entries[#entries + 1] = mine
+    sendSkins(clientNum, entries)
+    for _, cmd in pairs(sprays) do
+        et.trap_SendServerCommand(clientNum, cmd)
+    end
+end
+
+-- The FatBoss cgame asks for everything again when it restarts (vid_restart
+-- forgets what the server sent when the player joined).
+local function resync(clientNum)
+    local now = et.trap_Milliseconds()
+    if not synced[clientNum] or (lastSync[clientNum] and now - lastSync[clientNum] < SYNC_GAP_MS) then
+        return
+    end
+    lastSync[clientNum] = now
+    syncClient(clientNum, skinEntry(clientNum))
+end
+
 function et_InitGame(levelTime, randomSeed, restart)
     et.RegisterModname(MODNAME .. " " .. VERSION)
     maxClients = tonumber(et.trap_Cvar_Get("sv_maxclients")) or 64
@@ -466,6 +494,10 @@ function et_ClientCommand(clientNum, command)
         link(clientNum)
         return 1
     end
+    if command == "fbsync" then
+        resync(clientNum)
+        return 1
+    end
     if command == "fbequip" and testMode then
         equip(clientNum)
         return 1
@@ -488,17 +520,8 @@ function et_ClientBegin(clientNum)
     local mine = skinEntry(clientNum)
     if not synced[clientNum] then
         synced[clientNum] = true
-        local entries = {}
-        for other = 0, maxClients - 1 do
-            if other ~= clientNum and connected(other) and sentSkins[other] then
-                entries[#entries + 1] = sentSkins[other]
-            end
-        end
-        entries[#entries + 1] = mine
-        sendSkins(clientNum, entries)
-        for _, cmd in pairs(sprays) do
-            et.trap_SendServerCommand(clientNum, cmd)
-        end
+        lastSync[clientNum] = et.trap_Milliseconds()
+        syncClient(clientNum, mine)
     end
     if sentSkins[clientNum] ~= mine then
         sentSkins[clientNum] = mine
@@ -512,6 +535,7 @@ function et_ClientDisconnect(clientNum)
     synced[clientNum] = nil
     links[clientNum] = nil
     lastLink[clientNum] = nil
+    lastSync[clientNum] = nil
     if sentSkins[clientNum] then
         sentSkins[clientNum] = nil
         et.trap_SendServerCommand(-1, "fbskin " .. clientNum .. " - - - - -")

@@ -14,7 +14,7 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b3"
+#define FATBOSS_CGAME_VERSION "b4"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1106,6 +1106,9 @@ typedef struct
 
 static fbSpray_t   fbSprays[MAX_CLIENTS];
 static sfxHandle_t fbSpraySound;
+// the server sent everybody's skins and graffiti once, when this player joined; a cgame restart
+// (vid_restart) forgets them, so the first frame of every cgame asks for them again
+static qboolean fbSyncAsked;
 
 /**
  * @brief Design names come from the server: only [a-z0-9_] reach a shader path.
@@ -1629,6 +1632,11 @@ void CG_FatBoss_AddSprays(void)
 {
 	int i, j, k;
 
+	if (!fbSyncAsked && cg.snap && !cg.demoPlayback)
+	{
+		fbSyncAsked = qtrue;
+		trap_SendClientCommand("fbsync");
+	}
 	for (i = 0; i < MAX_CLIENTS; i++)
 	{
 		if (!fbSprays[i].active)
@@ -1659,6 +1667,7 @@ void CG_FatBoss_Init(void)
 	Com_Memset(&fbInspect, 0, sizeof(fbInspect));
 	CG_FatBoss_ClearSprays();
 	CG_FatBoss_InitSkins();
+	fbSyncAsked = qfalse;
 	fbSpraySound = trap_S_RegisterSound("sound/fatboss/spray.wav", qfalse);
 	trap_Cvar_Register(&fb_inspectshots, "fb_inspectshots", "0", CVAR_TEMP);
 	for (i = 0; i < (int)ARRAY_LEN(fbInspectProfiles); i++)
