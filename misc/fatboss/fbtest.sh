@@ -67,9 +67,13 @@ start() {
 
 	# the production container's own environment, minus what the test changes
 	docker inspect "$PROD" --format '{{range .Config.Env}}{{println .}}{{end}}' \
-		| grep -vE '^(PATH|HOME|HOSTNAME|MAP_PORT|PASSWORD|STATS_SUBMIT|AUTORESTART|SVTRACKER|ADVERT|MAPS|MAPS_AUTO|STARTMAP|FATBOSS_[A-Z_]*)=' \
+		| grep -vE '^(PATH|HOME|HOSTNAME|MAP_PORT|PASSWORD|STATS_SUBMIT|STATS_GATHER_FEATURES|STATS_AUTO_[A-Z_]*|SETTINGSBRANCH|AUTORESTART|SVTRACKER|ADVERT|MAPS|MAPS_AUTO|STARTMAP|FATBOSS_[A-Z_]*)=' \
 		| grep . > "$tmp/env" || true
 
+	# Oksii's stats.lua loads only from the etl-stats-api settings branch, which
+	# production gets through STATS_SUBMIT=true. The test loads it the same way
+	# but submits nothing and runs none of the gather automation (rename, sort,
+	# auto start, map, config), so it cannot touch api.etl.lol or real matches.
 	docker rm -f -v "$NAME" >/dev/null 2>&1 || true
 	docker run -d --name "$NAME" --restart no \
 		--label com.centurylinklabs.watchtower.enable=false \
@@ -77,7 +81,11 @@ start() {
 		-e MAP_PORT="$PORT" \
 		-e HOSTNAME="^3FatBoss ^7test" \
 		-e PASSWORD="$PASS" \
+		-e SETTINGSBRANCH=etl-stats-api \
 		-e STATS_SUBMIT=false \
+		-e STATS_GATHER_FEATURES=false \
+		-e STATS_AUTO_RENAME=false -e STATS_AUTO_SORT=false -e STATS_AUTO_START=false \
+		-e STATS_AUTO_MAP=false -e STATS_AUTO_CONFIG=false -e STATS_AUTO_SCORES=false \
 		-e AUTORESTART=false \
 		-e SVTRACKER= -e ADVERT=0 \
 		-e MAPS= -e MAPS_AUTO=false \
@@ -99,7 +107,8 @@ start() {
 	echo "OK: $NAME on UDP $PORT, $PK3 + $SKINS_PK3, image $image"
 	docker logs "$NAME" 2>&1 | grep -iE "fatboss" | tail -5 || true
 	if docker exec "$NAME" sh -c 'grep -l "luascripts/fatboss.lua" /legacy/server/etmain/configs/*.config' >/dev/null 2>&1; then
-		echo "OK: fatboss.lua is in lua_modules"
+		echo "OK: fatboss.lua is in lua_modules:"
+		docker exec "$NAME" sh -c 'grep -h "lua_modules" /legacy/server/etmain/configs/*.config' | sort | uniq -c
 	else
 		echo "WARNING: fatboss.lua did not get into lua_modules"
 	fi

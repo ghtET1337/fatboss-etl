@@ -15,7 +15,8 @@ on:
       - "src/game/bg_*"
       - "src/ui/**"
       - "fatboss/**"
-      - "misc/fatboss/**"
+      - "misc/fatboss/fatboss.lua"
+      - "misc/fatboss/fatboss-start.sh"
       - ".github/workflows/fatboss.yml"
   workflow_dispatch:
 
@@ -262,8 +263,12 @@ jobs:
         run: |
           tag="fatboss-${{ steps.pack.outputs.ver }}"
           pk3="${{ steps.pack.outputs.pk3 }}"
-          gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
-            gh release create "$tag" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
-              --title "$pk3" --notes-file "$pk3.txt"
-          gh release upload "$tag" -R "$GITHUB_REPOSITORY" --clobber "$pk3" "$pk3.sha256" "$pk3.txt" \
+          # a published release is never replaced: players cache the pk3 by its
+          # name, so a rebuilt file under the same name would stop matching
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::warning::$tag is already published and stays as it is; bump fatboss/VERSION to publish this build"
+            exit 0
+          fi
+          gh release create "$tag" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
+            --title "$pk3" --notes-file "$pk3.txt" "$pk3" "$pk3.sha256" "$pk3.txt" \
             fatboss.lua fatboss.lua.sha256 fatboss-start.sh fatboss-start.sh.sha256
