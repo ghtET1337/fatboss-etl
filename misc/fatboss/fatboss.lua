@@ -37,7 +37,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.6"
+local VERSION = "0.7"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order of the fbskin command
 local THEMES_HELP     = "gold polska neon camo cyber plasma airstrike damascus (knives) defender (colt) wut (thompson, kabar)"
@@ -395,7 +395,7 @@ local function equip(clientNum)
     if not valid or (name ~= "-" and not validName(name)) then
         say("usage: /fbequip <knife|colt|luger|thompson|mp40> <theme|->   or   /fbequip graffiti <design>")
         say("themes: " .. THEMES_HELP)
-        return say("graffiti: fatboss poland_et gg ez gibbed noob nice_try cloudy")
+        return say("graffiti: fatboss poland_et gg ez gibbed noob nice_try cloudy skill_issue jebac_axis jebac_allies kurwa_mac wut_1112 sprzedam_opla nastepny_przystanek next_stop skill_404 rip_bozo lagging get_rekt")
     end
     local entry = testLoadouts[guid]
     if not entry then

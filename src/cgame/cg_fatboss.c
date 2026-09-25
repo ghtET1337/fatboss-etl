@@ -7,14 +7,15 @@
  * the first-person viewmodel.
  *
  * The weapon inspect is the Defender inspect (Colt, Thompson, Allied knife)
- * made data driven, with profiles for the Axis weapons and the rifles.
+ * made data driven, with profiles for the Axis weapons: knives, pistols
+ * and SMGs only.
  * Viewmodel numbers come from the shipped models (see gen_inspect.py in the
  * FatBoss tools); Colt, Thompson and KABAR values are Defender's own.
  */
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b5"
+#define FATBOSS_CGAME_VERSION "b6"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -24,7 +25,6 @@ typedef enum
 {
 	FB_STYLE_PISTOL,
 	FB_STYLE_SMG,
-	FB_STYLE_RIFLE,
 	FB_STYLE_KNIFE
 } fbInspectStyle_t;
 
@@ -84,66 +84,6 @@ static const vec3_t fbRim_silencer_hand[] =
 	{ -5.500000f, -11.562500f, -10.250000f },
 	{ -5.484375f, -16.375000f, -13.093750f },
 	{ -5.187500f, -14.750000f, -10.750000f }
-};
-static const vec3_t fbRim_garand_right[] =
-{
-	{ -34.703125f, -6.281250f, 6.765625f },
-	{ -34.531250f, -7.000000f, 7.046875f },
-	{ -34.515625f, -4.906250f, 7.234375f },
-	{ -34.468750f, -2.406250f, 9.687500f },
-	{ -34.421875f, -7.343750f, 7.609375f },
-	{ -34.421875f, -3.046875f, 8.671875f },
-	{ -34.343750f, -3.796875f, 7.796875f },
-	{ -34.281250f, -2.562500f, 10.750000f },
-	{ -34.093750f, -3.015625f, 11.437500f },
-	{ -33.734375f, -3.890625f, 11.281250f },
-	{ -33.562500f, -6.687500f, 9.234375f },
-	{ -33.359375f, -5.343750f, 10.593750f }
-};
-static const vec3_t fbRim_garand_left[] =
-{
-	{ -29.015625f, 5.046875f, 14.656250f },
-	{ -28.640625f, 4.687500f, 15.343750f },
-	{ -28.578125f, 5.812500f, 14.281250f },
-	{ -27.968750f, 4.656250f, 16.171875f },
-	{ -27.656250f, 7.171875f, 14.109375f },
-	{ -27.062500f, 5.328125f, 16.625000f },
-	{ -26.593750f, 8.609375f, 14.812500f },
-	{ -26.234375f, 6.078125f, 16.953125f },
-	{ -25.812500f, 7.234375f, 17.203125f },
-	{ -25.781250f, 9.546875f, 16.328125f },
-	{ -25.453125f, 9.265625f, 16.859375f },
-	{ -25.421875f, 8.625000f, 17.296875f }
-};
-static const vec3_t fbRim_kar98_left[] =
-{
-	{ -4.453125f, 16.359375f, -11.843750f },
-	{ -4.109375f, 16.921875f, -11.296875f },
-	{ -3.937500f, 16.156250f, -12.625000f },
-	{ -3.421875f, 17.703125f, -11.000000f },
-	{ -2.875000f, 16.250000f, -13.890625f },
-	{ -2.453125f, 18.250000f, -11.453125f },
-	{ -1.656250f, 17.218750f, -15.000000f },
-	{ -1.546875f, 18.703125f, -12.031250f },
-	{ -0.984375f, 19.187500f, -13.046875f },
-	{ -0.718750f, 18.859375f, -15.484375f },
-	{ -0.437500f, 19.593750f, -14.343750f },
-	{ -0.421875f, 19.296875f, -15.062500f }
-};
-static const vec3_t fbRim_kar98_right[] =
-{
-	{ -34.703125f, -6.281250f, 6.765625f },
-	{ -34.531250f, -7.000000f, 7.046875f },
-	{ -34.515625f, -4.906250f, 7.234375f },
-	{ -34.468750f, -2.406250f, 9.687500f },
-	{ -34.421875f, -7.343750f, 7.609375f },
-	{ -34.421875f, -3.046875f, 8.671875f },
-	{ -34.343750f, -3.796875f, 7.796875f },
-	{ -34.281250f, -2.562500f, 10.750000f },
-	{ -34.093750f, -3.015625f, 11.437500f },
-	{ -33.734375f, -3.890625f, 11.281250f },
-	{ -33.562500f, -6.687500f, 9.234375f },
-	{ -33.359375f, -5.343750f, 10.593750f }
 };
 static const vec3_t fbBlade_knife[] =
 {
@@ -281,41 +221,6 @@ static const fbInspectProfile_t fbInspectProfiles[] =
 		NULL, { 0 }, { 0 }, 0.66f, 0.66f, 20.0f, 5000,
 		// the MP40 viewmodel has one hand only, under the gun: keep it
 		{ FB_RIM("tag_barrel3", fbRim_mp40_left) },
-		0, { NULL, NULL }, { 0 }, { 0 }
-	},
-	{
-		// the left hand is hidden, the right hand holds the grip
-		{ WP_CARBINE, 0 }, FB_STYLE_RIFLE,
-		qtrue, { -2.3f, -9.5f, -5.0f }, { 83.9f, -2.3f, 11.8f },
-		FB_PART(0) | FB_PART(3) | FB_PART(5),
-		NULL, { 0 }, { 0 }, 0.85f, 0.62f, 8.0f, 5000,
-		{ FB_RIM("tag_barrel3", fbRim_garand_right) },
-		FB_PART(4), { NULL, NULL }, { 0 }, { 0 }
-	},
-	{
-		// the game already hides the right hand with the launcher: the left one holds it
-		{ WP_M7, 0 }, FB_STYLE_RIFLE,
-		qtrue, { -2.3f, -9.5f, -5.0f }, { 83.9f, -2.3f, 11.8f },
-		FB_PART(0) | FB_PART(1) | FB_PART(3) | FB_PART(5),
-		NULL, { 0 }, { 0 }, 0.85f, 0.62f, 8.0f, 5000,
-		{ FB_RIM("tag_barrel5", fbRim_garand_left) },
-		0, { NULL, NULL }, { 0 }, { 0 }
-	},
-	{
-		// the left hand lives in the main model: a skin hides it
-		{ WP_KAR98, 0 }, FB_STYLE_RIFLE,
-		qtrue, { -27.9f, -7.5f, -17.0f }, { 64.4f, 0.2f, -0.1f },
-		FB_PART(0) | FB_PART(3) | FB_PART(4) | FB_PART(5),
-		NULL, { 0 }, { 0 }, 0.85f, 0.62f, 8.0f, 5000,
-		{ FB_RIM("tag_barrel3", fbRim_kar98_right) },
-		0, { "models/fatboss/kar98/v_kar98_onehand_axis.skin", "models/fatboss/kar98/v_kar98_onehand_allied.skin" }, { 0 }, { 0 }
-	},
-	{
-		{ WP_GPG40, 0 }, FB_STYLE_RIFLE,
-		qtrue, { -27.9f, -7.5f, -17.0f }, { 64.4f, 0.2f, -0.1f },
-		FB_PART(0) | FB_PART(1) | FB_PART(3) | FB_PART(4) | FB_PART(5),
-		NULL, { 0 }, { 0 }, 0.85f, 0.62f, 8.0f, 5000,
-		{ FB_RIM("tag_weapon", fbRim_kar98_left) },
 		0, { NULL, NULL }, { 0 }, { 0 }
 	},
 	{
@@ -555,15 +460,6 @@ static void CG_FatBoss_InspectAngles(vec3_t angles)
 		{ 5350, {  -7.0f, 72.0f,  -8.0f } }
 	};
 	// long guns: side on across the screen, tip the top towards the camera, turn back
-	static const inspectKeyframe_t rifleKeyframes[] =
-	{
-		{    0, {  -4.0f, 86.0f,  -6.0f } },
-		{ 1200, {  -4.0f, 86.0f,  -6.0f } },
-		{ 2600, { -12.0f, 74.0f, -30.0f } },
-		{ 3900, {   4.0f, 96.0f,  16.0f } },
-		{ 5000, {  -4.0f, 86.0f,  -6.0f } },
-		{ 5350, {  -4.0f, 86.0f,  -6.0f } }
-	};
 	const inspectKeyframe_t *keyframes;
 	int                     numKeyframes;
 	int                     elapsed = CG_FatBoss_InspectElapsed();
@@ -575,10 +471,6 @@ static void CG_FatBoss_InspectAngles(vec3_t angles)
 	case FB_STYLE_PISTOL:
 		keyframes    = pistolKeyframes;
 		numKeyframes = ARRAY_LEN(pistolKeyframes);
-		break;
-	case FB_STYLE_RIFLE:
-		keyframes    = rifleKeyframes;
-		numKeyframes = ARRAY_LEN(rifleKeyframes);
 		break;
 	default:
 		keyframes    = smgKeyframes;
