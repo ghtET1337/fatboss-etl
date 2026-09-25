@@ -3181,6 +3181,10 @@ void CG_FatBoss_AddSprays(void);
 void CG_FatBoss_ClearSprays(void);
 void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int view, int part, int team, int powerups);
 void CG_FatBoss_Skins_f(void);
+void CG_FatBoss_LoadPending_f(void);
+void CG_FatBoss_LoadSkins(void);
+qboolean CG_FatBoss_ConfigStringModified(int num);
+#define FB_CS_SKINS CS_MAX      ///< fatboss.lua: one configstring per client with its FatBoss loadout
 qboolean CG_WeaponSelectable(int weapon, qboolean playSound);
 
 void CG_FinishWeaponChange(int lastweap, int newweap);

@@ -6,7 +6,12 @@
     wears what and tells every client.
 
     Weapon skins: each player's FatBoss loadout picks a theme for the knife,
-    colt, luger, thompson and mp40. Everybody sees everybody's skins.
+    colt, luger, thompson and mp40. Everybody sees everybody's skins. The
+    loadout (and the graffiti design) sits in a configstring of its own,
+    FB_CS + client number, so it reaches every client with the gamestate and
+    the cgame loads all textures on the loading screen; a change during the map
+    is a configstring update the cgame applies at the intermission, on the next
+    map or after /reconnect.
 
     Graffiti: a player binds "spray" (bind t spray). One graffiti per life, and
     each player's newest graffiti replaces the older one.
@@ -32,14 +37,17 @@
 
     Runs next to Oksii's stats.lua and combinedfixes.lua in its own Lua VM and
     handles only its own commands ("spray", "fblink", "fbsync", and "fbequip" in test mode).
+    fbsync (a cgame restart) gets the graffiti on the map again; skins need nothing.
 ]]
 
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.7"
+local VERSION = "0.8"
 
-local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order of the fbskin command
+local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
+-- first configstring past CS_MAX of ET: Legacy 2.86 (bg_public.h); the FatBoss cgame reads FB_CS + client
+local FB_CS           = 943
 local THEMES_HELP     = "gold polska neon camo cyber plasma airstrike damascus (knives) defender (colt) wut (thompson, kabar)"
 local SPRAY_RANGE     = 128
 local SPRAY_RADIUS    = 28      -- half the side of the graffiti square, in game units
@@ -55,15 +63,14 @@ local CON_CONNECTED   = 2
 local FETCH_MS        = 60000
 local READ_MS         = 5000
 local MESSAGE_GAP_MS  = 1500
-local SKINS_PER_CMD   = 12      -- keeps one fbskin command well under the 1024 character limit
 local LINK_WAIT_MS    = 15000   -- how long a /fblink waits for FatBoss to answer
 local LINK_GAP_MS     = 5000    -- one /fblink per player every few seconds
 local SYNC_GAP_MS     = 3000    -- one fbsync (a cgame restart) per player every few seconds
 
 local loadouts     = {}  -- cl_guid (upper case) -> { graffiti = design, skins = { slot = theme } }
 local testLoadouts = {}  -- the same, set with /fbequip in test mode; wins over loadouts
-local sentSkins    = {}  -- clientNum -> skin themes last sent to everybody
-local synced       = {}  -- clientNum -> true once the client got everybody's skins and graffiti
+local setStrings   = {}  -- clientNum -> loadout configstring last set
+local synced       = {}  -- clientNum -> true once the client got the graffiti on the map
 local sprays       = {}  -- clientNum -> fbspray command without the sound flag
 local usedThisLife = {}  -- clientNum -> true once sprayed in the current life
 local lastMessage  = {}  -- clientNum -> level time of the last refusal
@@ -99,35 +106,37 @@ local function loadoutOf(clientNum)
     return testLoadouts[guid] or loadouts[guid] or {}
 end
 
--- "<client> <knife> <colt> <luger> <thompson> <mp40>", "-" for a stock weapon
-local function skinEntry(clientNum)
-    local skins = loadoutOf(clientNum).skins or {}
-    local parts = { tostring(clientNum) }
+-- "<knife> <colt> <luger> <thompson> <mp40> <graffiti>", "-" for stock; "" for nothing at all (a small gamestate)
+local function loadoutString(clientNum)
+    local loadout = loadoutOf(clientNum)
+    local skins = loadout.skins or {}
+    local parts, any = {}, false
     for _, slot in ipairs(SLOTS) do
         parts[#parts + 1] = skins[slot] or "-"
+        any = any or skins[slot] ~= nil
+    end
+    local graffiti = loadout.graffiti or defaultGraffiti
+    parts[#parts + 1] = graffiti or "-"
+    if not any and not graffiti then
+        return ""
     end
     return table.concat(parts, " ")
 end
 
-local function sendSkins(target, entries)
-    for i = 1, #entries, SKINS_PER_CMD do
-        et.trap_SendServerCommand(target, "fbskin " .. table.concat(entries, " ", i, math.min(i + SKINS_PER_CMD - 1, #entries)))
+local function setLoadout(clientNum, value)
+    if setStrings[clientNum] ~= value then
+        setStrings[clientNum] = value
+        et.trap_SetConfigstring(FB_CS + clientNum, value)
     end
 end
 
--- tells everybody about players whose skins changed since they were last sent
-local function broadcastSkinChanges()
-    local changed = {}
+-- every connected player's loadout into its configstring (only the changed ones go out)
+local function publishLoadouts()
     for clientNum = 0, maxClients - 1 do
         if connected(clientNum) then
-            local entry = skinEntry(clientNum)
-            if sentSkins[clientNum] ~= entry then
-                sentSkins[clientNum] = entry
-                changed[#changed + 1] = entry
-            end
+            setLoadout(clientNum, loadoutString(clientNum))
         end
     end
-    sendSkins(-1, changed)
 end
 
 local function parseEntry(entry)
@@ -175,7 +184,7 @@ local function readLoadouts()
     end
     loadouts, lastLoadoutText = fresh, text
     et.G_LogPrint(string.format("%s: %d loadouts\n", MODNAME, count))
-    broadcastSkinChanges()
+    publishLoadouts()
 end
 
 -- background download; the file is swapped in only when curl succeeds
@@ -412,26 +421,18 @@ local function equip(clientNum)
     else
         entry.skins[slot] = name ~= "-" and name or nil
     end
-    say(string.format("%s = %s", slot, name))
-    broadcastSkinChanges()
+    say(string.format("%s = %s (shows after /reconnect, on the next map or at the intermission; fb_loadskins loads it now)", slot, name))
+    setLoadout(clientNum, loadoutString(clientNum))
 end
 
--- everybody's skins and the graffiti already on the map, to one client (without the sound)
-local function syncClient(clientNum, mine)
-    local entries = {}
-    for other = 0, maxClients - 1 do
-        if other ~= clientNum and connected(other) and sentSkins[other] then
-            entries[#entries + 1] = sentSkins[other]
-        end
-    end
-    entries[#entries + 1] = mine
-    sendSkins(clientNum, entries)
+-- the graffiti already on the map, to one client (without the sound)
+local function syncClient(clientNum)
     for _, cmd in pairs(sprays) do
         et.trap_SendServerCommand(clientNum, cmd)
     end
 end
 
--- The FatBoss cgame asks for everything again when it restarts (vid_restart
+-- The FatBoss cgame asks for the graffiti again when it restarts (vid_restart
 -- forgets what the server sent when the player joined).
 local function resync(clientNum)
     local now = et.trap_Milliseconds()
@@ -439,7 +440,7 @@ local function resync(clientNum)
         return
     end
     lastSync[clientNum] = now
-    syncClient(clientNum, skinEntry(clientNum))
+    syncClient(clientNum)
 end
 
 function et_InitGame(levelTime, randomSeed, restart)
@@ -458,8 +459,8 @@ function et_InitGame(levelTime, randomSeed, restart)
     if not validName(defaultGraffiti) then
         defaultGraffiti = testMode and "fatboss" or nil
     end
-    -- a new map (or a map_restart) starts clean on every client too
-    sentSkins, synced, sprays, links, usedThisLife = {}, {}, {}, {}, {}
+    -- a new map starts with empty configstrings; a map_restart keeps them (setting the same value again sends nothing)
+    setStrings, synced, sprays, links, usedThisLife = {}, {}, {}, {}, {}
     readLoadouts()
     fetchLoadouts()
     nextFetch = levelTime + FETCH_MS
@@ -512,20 +513,21 @@ function et_ClientSpawn(clientNum, revived, teamChange, restoreHealth)
     end
 end
 
+-- Before the gamestate goes out: the connecting player's loadout is in it, so their
+-- own cgame and everybody else's (a configstring update) know it from the start.
+function et_ClientConnect(clientNum, firstTime, isBot)
+    setLoadout(clientNum, loadoutString(clientNum))
+    return nil
+end
+
 -- Runs on joining and again on every team change. The first time, the client
--- gets everybody's skins and the graffiti already on the map (without the
--- sound); after that its cgame already knows them. Everybody hears about this
--- player's skins only when they are new or changed.
+-- gets the graffiti already on the map (without the sound).
 function et_ClientBegin(clientNum)
-    local mine = skinEntry(clientNum)
+    setLoadout(clientNum, loadoutString(clientNum))
     if not synced[clientNum] then
         synced[clientNum] = true
         lastSync[clientNum] = et.trap_Milliseconds()
-        syncClient(clientNum, mine)
-    end
-    if sentSkins[clientNum] ~= mine then
-        sentSkins[clientNum] = mine
-        et.trap_SendServerCommand(-1, "fbskin " .. mine)
+        syncClient(clientNum)
     end
 end
 
@@ -536,9 +538,6 @@ function et_ClientDisconnect(clientNum)
     links[clientNum] = nil
     lastLink[clientNum] = nil
     lastSync[clientNum] = nil
-    if sentSkins[clientNum] then
-        sentSkins[clientNum] = nil
-        et.trap_SendServerCommand(-1, "fbskin " .. clientNum .. " - - - - -")
-    end
+    setLoadout(clientNum, "")
 end
 

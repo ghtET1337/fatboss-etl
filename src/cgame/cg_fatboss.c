@@ -15,7 +15,7 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b7"
+#define FATBOSS_CGAME_VERSION "b8"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -998,7 +998,7 @@ typedef struct
 
 static fbSpray_t   fbSprays[MAX_CLIENTS];
 static sfxHandle_t fbSpraySound;
-// the server sent everybody's skins and graffiti once, when this player joined; a cgame restart
+// the graffiti already on the map come as server commands when a player joins; a cgame restart
 // (vid_restart) forgets them, so the first frame of every cgame asks for them again
 static qboolean fbSyncAsked;
 
@@ -1144,18 +1144,29 @@ static void CG_FatBoss_ParseSpray(void)
 /*
  * Weapon skins
  *
- * The server (fatboss.lua) sends every player's FatBoss loadout as
- *   fbskin <client> <knife> <colt> <luger> <thompson> <mp40> [<client> ...]
- * with a theme name or "-" per slot. The skins pk3 holds each theme as a 4k,
- * 2k and 1k texture; cg_fatboss_skins.inc (generated with them) says which
- * weapon model carries the gun texture. A model that is all gun gets a custom
- * shader, one with hands or sleeves in it gets a .skin file.
+ * The server (fatboss.lua) keeps every player's FatBoss loadout in a configstring
+ * of its own, FB_CS_SKINS + client number (past CS_MAX, unused by the game):
+ *   "<knife> <colt> <luger> <thompson> <mp40> <graffiti>"
+ * with a theme or design name, or "-", per slot. Configstrings come with the
+ * gamestate, so the whole server's loadouts are known on the loading screen.
+ * The skins pk3 holds each theme as a 4k, 2k and 1k texture; cg_fatboss_skins.inc
+ * (generated with them) says which weapon model carries the gun texture. A model
+ * that is all gun gets a custom shader, one with hands or sleeves in it gets a
+ * .skin file.
  *
- * Sizes: 4k for your own first-person weapon, 2k for the player you spectate,
- * 1k for everybody else's weapon in third person. Uploading a texture takes
- * width * height * 4 bytes of hunk temp memory, and running out of it drops
- * the player from the server, so a size only loads when the hunk has room;
- * otherwise the next smaller one does.
+ * Loading a texture stalls the frame that does it (a 4k one is 64 MB to decode,
+ * mipmap and upload), so every texture loads on the loading screen: your own
+ * weapons in 4k (both teams' guns, a team switch needs nothing new), everybody's
+ * in 1k, and everybody's graffiti. A loadout that changes during the map (a new
+ * skin on the website, a player joining) waits: it is applied at once when its
+ * textures are already loaded, otherwise at the intermission, on the next map, after
+ * /reconnect or vid_restart, or with fb_loadskins.
+ *
+ * Sizes: 4k for your own first-person weapon, 1k for everybody else's (the player
+ * you spectate uses the best size that is loaded). Uploading a texture takes
+ * width * height * 4 bytes of hunk temp memory, and running out of it drops the
+ * player from the server, so a size only loads when the hunk has room; otherwise
+ * the next smaller one does.
  */
 
 #define FB_SKIN_SLOTS    5
@@ -1195,7 +1206,10 @@ static const char *fbSkinResNames[FB_RES_COUNT] = { "4k", "2k", "1k" };
 
 #define FB_SKIN_HUNK_MARGIN (16 * 1024 * 1024)
 
-static int fbSkinLoadout[MAX_CLIENTS][FB_SKIN_SLOTS];                       ///< theme + 1, 0 = stock
+static int fbSkinLoadout[MAX_CLIENTS][FB_SKIN_SLOTS];                       ///< theme + 1, 0 = stock: what is drawn
+static int fbSkinWanted[MAX_CLIENTS][FB_SKIN_SLOTS];                        ///< theme + 1 the server asks for
+static qboolean fbSkinPending[MAX_CLIENTS];                                 ///< wanted differs from drawn
+static int fbSkinSlotTextures[FB_SKIN_SLOTS];                               ///< bit per texture a slot uses
 static int fbSkinRow[WP_NUM_WEAPONS][W_NUM_TYPES][W_MAX_PARTS + 1];         ///< fbSkinModels index + 1
 static int fbSkinWeaponSlot[WP_NUM_WEAPONS];                                ///< slot + 1
 // registered handles; 0 not tried yet, -1 missing
@@ -1254,35 +1268,9 @@ static int CG_FatBoss_SkinRes(int theme, int tex, int res)
 	return r;
 }
 
-/*
- * Skin textures load only at a quiet moment. A 4k texture is 64 MB to decode, mipmap and upload, and the
- * frame that does it stalls: after a loadout change that stutter hit players in the middle of a fight.
- * A skin that is not loaded yet is asked for (fbSkinWant); CG_FatBoss_SkinPump loads one texture a frame
- * while the player is dead, in limbo, spectating or the game is not on. Until then the weapon keeps another
- * size of the same skin that is already loaded, or stays stock: a new skin shows up at the next death.
- */
-static qboolean fbSkinWant[FB_SKIN_THEMES][FB_SKIN_TEXTURES][FB_RES_COUNT];
-
-static qboolean CG_FatBoss_QuietMoment(void)
-{
-	if (!cg.snap)
-	{
-		return qfalse;
-	}
-	if (cg.demoPlayback || cgs.gamestate != GS_PLAYING)
-	{
-		return qtrue;          // demos, warmup, countdown, intermission
-	}
-	if (cg.snap->ps.pm_flags & (PMF_LIMBO | PMF_FOLLOW))
-	{
-		return qtrue;
-	}
-	return cg.snap->ps.pm_type == PM_DEAD || cg.snap->ps.pm_type == PM_SPECTATOR || cg.snap->ps.pm_type == PM_INTERMISSION
-	       || cg.snap->ps.stats[STAT_HEALTH] <= 0 || cgs.clientinfo[cg.clientNum].team == TEAM_SPECTATOR;
-}
-
 /**
- * @brief The shader of a skin when it is loaded; otherwise it is asked for, and another loaded size stands in.
+ * @brief The shader of a skin at a size when it is loaded, else another loaded size of it, else 0 (stock).
+ * Nothing loads here: drawing never stalls a frame.
  */
 static qhandle_t CG_FatBoss_SkinShader(int theme, int tex, int res)
 {
@@ -1292,10 +1280,6 @@ static qhandle_t CG_FatBoss_SkinShader(int theme, int tex, int res)
 	if (fbSkinShaders[theme][tex][res] > 0)
 	{
 		return fbSkinShaders[theme][tex][res];
-	}
-	if (!fbSkinShaders[theme][tex][res])
-	{
-		fbSkinWant[theme][tex][res] = qtrue;
 	}
 	for (r = 0; r < FB_RES_COUNT; r++)
 	{
@@ -1315,7 +1299,6 @@ static void CG_FatBoss_LoadShader(int theme, int tex, int res)
 	int *h = &fbSkinShaders[theme][tex][res];
 	int i, t;
 
-	fbSkinWant[theme][tex][res] = qfalse;
 	if (*h)
 	{
 		return;
@@ -1352,33 +1335,6 @@ static void CG_FatBoss_LoadShader(int theme, int tex, int res)
 	}
 }
 
-/**
- * @brief One waiting skin texture per frame, at quiet moments only.
- */
-static void CG_FatBoss_SkinPump(void)
-{
-	int theme, tex, res;
-
-	if (!CG_FatBoss_QuietMoment())
-	{
-		return;
-	}
-	for (theme = 0; theme < FB_SKIN_THEMES; theme++)
-	{
-		for (tex = 0; tex < FB_SKIN_TEXTURES; tex++)
-		{
-			for (res = 0; res < FB_RES_COUNT; res++)
-			{
-				if (fbSkinWant[theme][tex][res])
-				{
-					CG_FatBoss_LoadShader(theme, tex, res);
-					return;
-				}
-			}
-		}
-	}
-}
-
 static qhandle_t CG_FatBoss_SkinFile(int row, int theme, int res, int team)
 {
 	const fbSkinModel_t *m = &fbSkinModels[row];
@@ -1390,7 +1346,6 @@ static qhandle_t CG_FatBoss_SkinFile(int row, int theme, int res, int team)
 	{
 		return fbSkinFiles[row][theme][res][t];
 	}
-	CG_FatBoss_SkinShader(theme, m->tex, res);      // asks for the texture when it is not loaded yet
 	if (m->view == W_TP_MODEL)
 	{
 		return 0;
@@ -1468,80 +1423,239 @@ void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int vi
 }
 
 /**
- * @brief Asks for a player's skins when they arrive, not when the weapon is first drawn:
- * your own first-person ones for your team's weapons, and everybody's third-person ones.
- * They load at the next quiet moment (CG_FatBoss_SkinPump).
+ * @brief A player's loadout from their configstring: themes into wanted (theme + 1, 0 = stock), the graffiti design.
  */
-static void CG_FatBoss_PreloadSkins(int clientNum)
+static void CG_FatBoss_ReadLoadout(int clientNum, int wanted[FB_SKIN_SLOTS], char *design, int designSize)
 {
-	static const int axisWeapons[]   = { WP_KNIFE, WP_LUGER, WP_MP40 };
-	static const int alliedWeapons[] = { WP_KNIFE_KABAR, WP_COLT, WP_THOMPSON };
-	int              i, theme, team = cgs.clientinfo[clientNum].team;
+	char buf[MAX_STRING_CHARS];
+	char *p = buf, *token;
+	int  i;
 
-	for (i = 0; i < FB_SKIN_MODELS; i++)
+	Q_strncpyz(buf, CG_ConfigString(FB_CS_SKINS + clientNum), sizeof(buf));
+	Com_Memset(wanted, 0, sizeof(int) * FB_SKIN_SLOTS);
+	design[0] = 0;
+	for (i = 0; i <= FB_SKIN_SLOTS; i++)
 	{
-		const fbSkinModel_t *m = &fbSkinModels[i];
-
-		theme = fbSkinLoadout[clientNum][m->slot] - 1;
-		if (theme < 0 || !(fbSkinThemes[theme].textures & (1 << m->tex)) || m->view != W_TP_MODEL)
+		while (*p == ' ')
 		{
-			continue;
+			p++;
 		}
-		if (m->skin)
+		if (!*p)
 		{
-			CG_FatBoss_SkinFile(i, theme, FB_RES_1K, team);
+			break;
 		}
-		else
+		token = p;
+		while (*p && *p != ' ')
 		{
-			CG_FatBoss_SkinShader(theme, m->tex, FB_RES_1K);
+			p++;
 		}
-	}
-	if (clientNum != cg.clientNum || (team != TEAM_AXIS && team != TEAM_ALLIES))
-	{
-		return;
-	}
-	for (i = 0; i < 3; i++)
-	{
-		int weapon = team == TEAM_AXIS ? axisWeapons[i] : alliedWeapons[i];
-		int row    = 0, p;
-
-		// the knife's gun texture sits on a part, not on the main model
-		for (p = 0; p <= W_MAX_PARTS && !row; p++)
+		if (*p)
 		{
-			row = fbSkinRow[weapon][W_FP_MODEL][p];
+			*p++ = 0;
 		}
-		if (!row)
+		if (i < FB_SKIN_SLOTS)
 		{
-			continue;
+			wanted[i] = CG_FatBoss_ThemeIndex(token) + 1;
 		}
-		theme = fbSkinLoadout[clientNum][fbSkinModels[row - 1].slot] - 1;
-		if (theme >= 0 && (fbSkinThemes[theme].textures & (1 << fbSkinModels[row - 1].tex)))
+		else if (CG_FatBoss_ValidDesign(token))
 		{
-			CG_FatBoss_SkinShader(theme, fbSkinModels[row - 1].tex, FB_RES_4K);
+			Q_strncpyz(design, token, designSize);
 		}
 	}
 }
 
 /**
- * @brief fbskin <client> <knife> <colt> <luger> <thompson> <mp40> [<client> ...]
+ * @brief Whether a slot's textures are loaded (or known missing) at the sizes this player needs.
  */
-static void CG_FatBoss_ParseSkins(void)
+static qboolean CG_FatBoss_SlotReady(int clientNum, int slot, int theme)
 {
-	int argc = trap_Argc(), i, s, clientNum;
+	int tex;
 
-	for (i = 1; i + FB_SKIN_SLOTS < argc; i += FB_SKIN_SLOTS + 1)
+	if (theme < 0)
 	{
-		clientNum = Q_atoi(CG_Argv(i));
-		if (clientNum < 0 || clientNum >= MAX_CLIENTS)
+		return qtrue;
+	}
+	for (tex = 0; tex < FB_SKIN_TEXTURES; tex++)
+	{
+		if (!(fbSkinSlotTextures[slot] & fbSkinThemes[theme].textures & (1 << tex)))
+		{
+			continue;
+		}
+		if (!fbSkinShaders[theme][tex][FB_RES_1K])
+		{
+			return qfalse;
+		}
+		if (clientNum == cg.clientNum && !fbSkinShaders[theme][tex][CG_FatBoss_SkinRes(theme, tex, FB_RES_4K)])
+		{
+			return qfalse;
+		}
+	}
+	return qtrue;
+}
+
+/**
+ * @brief Loads what a slot needs: 1k for third person, and 4k (or the size the hunk allows) for your own weapons.
+ * Returns how many textures it loaded; with justOne it stops after the first.
+ */
+static int CG_FatBoss_LoadSlot(int clientNum, int slot, int theme, qboolean justOne)
+{
+	int tex, loaded = 0, res;
+
+	if (theme < 0)
+	{
+		return 0;
+	}
+	for (tex = 0; tex < FB_SKIN_TEXTURES; tex++)
+	{
+		if (!(fbSkinSlotTextures[slot] & fbSkinThemes[theme].textures & (1 << tex)))
+		{
+			continue;
+		}
+		if (!fbSkinShaders[theme][tex][FB_RES_1K])
+		{
+			CG_FatBoss_LoadShader(theme, tex, FB_RES_1K);
+			loaded++;
+			if (justOne)
+			{
+				return loaded;
+			}
+		}
+		if (clientNum == cg.clientNum)
+		{
+			res = CG_FatBoss_SkinRes(theme, tex, FB_RES_4K);
+			if (!fbSkinShaders[theme][tex][res])
+			{
+				CG_FatBoss_LoadShader(theme, tex, res);
+				loaded++;
+				if (justOne)
+				{
+					return loaded;
+				}
+			}
+		}
+	}
+	return loaded;
+}
+
+/**
+ * @brief Draws every wanted skin whose textures are loaded by now.
+ */
+static void CG_FatBoss_ApplyReady(void)
+{
+	int i, s;
+
+	for (i = 0; i < MAX_CLIENTS; i++)
+	{
+		if (!fbSkinPending[i])
+		{
+			continue;
+		}
+		fbSkinPending[i] = qfalse;
+		for (s = 0; s < FB_SKIN_SLOTS; s++)
+		{
+			if (fbSkinLoadout[i][s] == fbSkinWanted[i][s])
+			{
+				continue;
+			}
+			if (CG_FatBoss_SlotReady(i, s, fbSkinWanted[i][s] - 1))
+			{
+				fbSkinLoadout[i][s] = fbSkinWanted[i][s];
+			}
+			else
+			{
+				fbSkinPending[i] = qtrue;
+			}
+		}
+	}
+}
+
+/**
+ * @brief On the loading screen: everybody's loadout, and every texture and graffiti it needs.
+ */
+void CG_FatBoss_LoadSkins(void)
+{
+	char design[64];
+	int  i, s, textures = 0;
+
+	for (i = 0; i < MAX_CLIENTS; i++)
+	{
+		CG_FatBoss_ReadLoadout(i, fbSkinWanted[i], design, sizeof(design));
+		for (s = 0; s < FB_SKIN_SLOTS; s++)
+		{
+			textures            += CG_FatBoss_LoadSlot(i, s, fbSkinWanted[i][s] - 1, qfalse);
+			fbSkinLoadout[i][s]  = fbSkinWanted[i][s];
+		}
+		fbSkinPending[i] = qfalse;
+		if (design[0])
+		{
+			trap_R_RegisterShader(va("fatboss/graffiti/%s", design));
+		}
+	}
+	CG_DPrintf("FatBoss: %i skin textures loaded\n", textures);
+}
+
+/**
+ * @brief A loadout changed during the map. Applied now when nothing has to load, else it waits.
+ */
+qboolean CG_FatBoss_ConfigStringModified(int num)
+{
+	char design[64];
+	int  clientNum = num - FB_CS_SKINS;
+
+	if (clientNum < 0 || clientNum >= MAX_CLIENTS)
+	{
+		return qfalse;
+	}
+	CG_FatBoss_ReadLoadout(clientNum, fbSkinWanted[clientNum], design, sizeof(design));
+	fbSkinPending[clientNum] = qtrue;
+	CG_FatBoss_ApplyReady();
+	return qtrue;
+}
+
+/**
+ * @brief During the intermission (and in demos) waiting skins load, one texture a frame: nobody is fighting.
+ */
+static void CG_FatBoss_SkinPump(void)
+{
+	int i, s;
+
+	if (!cg.snap || !(cg.demoPlayback || cg.snap->ps.pm_type == PM_INTERMISSION))
+	{
+		return;
+	}
+	for (i = 0; i < MAX_CLIENTS; i++)
+	{
+		if (!fbSkinPending[i])
 		{
 			continue;
 		}
 		for (s = 0; s < FB_SKIN_SLOTS; s++)
 		{
-			fbSkinLoadout[clientNum][s] = CG_FatBoss_ThemeIndex(CG_Argv(i + 1 + s)) + 1;
+			if (fbSkinLoadout[i][s] != fbSkinWanted[i][s] && CG_FatBoss_LoadSlot(i, s, fbSkinWanted[i][s] - 1, qtrue))
+			{
+				return;
+			}
 		}
-		CG_FatBoss_PreloadSkins(clientNum);
+		CG_FatBoss_ApplyReady();
 	}
+}
+
+/**
+ * @brief fb_loadskins: load every waiting skin now (it stalls the game a moment).
+ */
+void CG_FatBoss_LoadPending_f(void)
+{
+	int i, s, textures = 0;
+
+	for (i = 0; i < MAX_CLIENTS; i++)
+	{
+		for (s = 0; fbSkinPending[i] && s < FB_SKIN_SLOTS; s++)
+		{
+			textures += CG_FatBoss_LoadSlot(i, s, fbSkinWanted[i][s] - 1, qfalse);
+		}
+	}
+	CG_FatBoss_ApplyReady();
+	CG_Printf("FatBoss: %i skin texture%s loaded\n", textures, textures == 1 ? "" : "s");
 }
 
 static void CG_FatBoss_InitSkins(void)
@@ -1549,18 +1663,21 @@ static void CG_FatBoss_InitSkins(void)
 	int i;
 
 	Com_Memset(fbSkinLoadout, 0, sizeof(fbSkinLoadout));
+	Com_Memset(fbSkinWanted, 0, sizeof(fbSkinWanted));
+	Com_Memset(fbSkinPending, 0, sizeof(fbSkinPending));
+	Com_Memset(fbSkinSlotTextures, 0, sizeof(fbSkinSlotTextures));
 	Com_Memset(fbSkinRow, 0, sizeof(fbSkinRow));
 	Com_Memset(fbSkinWeaponSlot, 0, sizeof(fbSkinWeaponSlot));
 	Com_Memset(fbSkinShaders, 0, sizeof(fbSkinShaders));
 	Com_Memset(fbSkinFiles, 0, sizeof(fbSkinFiles));
 	Com_Memset(fbSkinResUsed, 0, sizeof(fbSkinResUsed));
-	Com_Memset(fbSkinWant, 0, sizeof(fbSkinWant));
 	for (i = 0; i < FB_SKIN_MODELS; i++)
 	{
 		const fbSkinModel_t *m = &fbSkinModels[i];
 
 		fbSkinRow[m->weapon][m->view][m->part + 1] = i + 1;
 		fbSkinWeaponSlot[m->weapon]                 = m->slot + 1;
+		fbSkinSlotTextures[m->slot]                |= 1 << m->tex;
 	}
 }
 
@@ -1581,6 +1698,11 @@ void CG_FatBoss_Skins_f(void)
 			{
 				Q_strcat(line, sizeof(line), va(" %s=%s", fbSkinSlotNames[s], fbSkinThemes[fbSkinLoadout[i][s] - 1].name));
 			}
+			if (fbSkinWanted[i][s] != fbSkinLoadout[i][s])
+			{
+				Q_strcat(line, sizeof(line), va(" ^3(%s next: %s)^7", fbSkinSlotNames[s],
+				                                fbSkinWanted[i][s] ? fbSkinThemes[fbSkinWanted[i][s] - 1].name : "stock"));
+			}
 		}
 		if (line[0])
 		{
@@ -1592,6 +1714,13 @@ void CG_FatBoss_Skins_f(void)
 	{
 		CG_Printf("FatBoss: nobody here wears a weapon skin\n");
 	}
+	for (i = 0; i < MAX_CLIENTS && !fbSkinPending[i]; i++)
+	{
+	}
+	if (i < MAX_CLIENTS)
+	{
+		CG_Printf("^3FatBoss: changes marked \"next\" wait for the intermission, the next map or /reconnect (fb_loadskins loads them now)\n");
+	}
 	for (i = 0; i < FB_SKIN_THEMES; i++)
 	{
 		for (t = 0; t < FB_SKIN_TEXTURES; t++)
@@ -1602,11 +1731,6 @@ void CG_FatBoss_Skins_f(void)
 				{
 					CG_Printf("  loaded %s/%s_%s%s\n", fbSkinThemes[i].name, fbSkinTexNames[t], fbSkinResNames[r],
 					          fbSkinShaders[i][t][r] < 0 ? " ^1missing" : "");
-				}
-				else if (fbSkinWant[i][t][r])
-				{
-					CG_Printf("  waiting %s/%s_%s ^3(loads when you are dead or spectating)\n", fbSkinThemes[i].name,
-					          fbSkinTexNames[t], fbSkinResNames[r]);
 				}
 			}
 		}
@@ -1620,8 +1744,7 @@ qboolean CG_FatBoss_ServerCommand(const char *cmd)
 {
 	if (!Q_stricmp(cmd, "fbskin"))
 	{
-		CG_FatBoss_ParseSkins();
-		return qtrue;
+		return qtrue;           // fatboss.lua before 0.8; loadouts come in configstrings now
 	}
 	if (!Q_stricmp(cmd, "fbspray"))
 	{

@@ -973,6 +973,11 @@ static void CG_ConfigStringModified(void)
 	// new configstring already integrated
 	trap_GetGameState(&cgs.currentGameState);
 
+	if (CG_FatBoss_ConfigStringModified(num))
+	{
+		return;
+	}
+
 	// do something with it if necessary
 	switch (num)
 	{

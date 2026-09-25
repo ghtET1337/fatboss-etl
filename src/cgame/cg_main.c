@@ -2367,6 +2367,9 @@ void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum, qbo
 
 	CG_RegisterClients();       // if low on memory, some clients will be deferred
 
+	CG_LoadingString(" - FatBoss skins -");
+	CG_FatBoss_LoadSkins();     // every weapon skin and graffiti on the server, while the loading screen is up
+
 	DEBUG_INITPROFILE_EXEC("clients");
 
 	cg.loading = qfalse;    // future players will be deferred
