@@ -15,7 +15,7 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b6"
+#define FATBOSS_CGAME_VERSION "b7"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350

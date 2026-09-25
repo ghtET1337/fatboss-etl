@@ -34,7 +34,9 @@ import zipfile
 import zlib
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+
+import textskins
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
@@ -66,7 +68,15 @@ THEMES = {
     "cyber": (ALL, (0.30, 0.34, 0.40)),
     "plasma": (ALL, (0.35, 0.30, 0.45)),
     "airstrike": (ALL, (0.25, 0.22, 0.30)),
+    # text skins, picked from the third proposal board (2026-09-25); made by textskins.py
+    "skill_issue": (ALL, (0.12, 0.12, 0.14)),
+    "caution_noob": (ALL, (0.12, 0.12, 0.12)),
+    "sticker_bomb": (ALL, (0.10, 0.10, 0.10)),
+    "knockoff": (ALL, (0.18, 0.14, 0.16)),
+    "connection_interrupted": (ALL, (0.08, 0.08, 0.10)),
+    "sale": (ALL, (0.10, 0.10, 0.08)),
 }
+TEXT_THEMES = ("skill_issue", "caution_noob", "sticker_bomb", "knockoff", "connection_interrupted", "sale")
 CODEX = {
     # (theme, texture): (first person 4K source, third person 4K source)
     ("defender", "colt"): ("models/weapons2/colt/defender_native4k.tga",) * 2,
@@ -270,6 +280,10 @@ def ramp(t, stops):
 
 def finish(paks, tex, theme, div=1):
     """4k finish of a stock texture (div > 1: smaller, for previews): (rgb float array, glow array or None)."""
+    if theme in TEXT_THEMES or theme in dict(textskins.THEMES):
+        if textskins._READ is None:
+            textskins.set_reader(paks.read)
+        return textskins.build(theme, tex, div), None
     stock, (w, h), _ = TEXTURES[tex]
     w, h = w // div, h // div
     base_img = Image.open(io.BytesIO(paks.read(stock))).convert("RGB")
@@ -702,19 +716,29 @@ def main():
     ap.add_argument("--only", nargs="*", help="build only these textures (quick tests)")
     ap.add_argument("--tables-only", action="store_true",
                     help="keep the textures, rewrite only shaders, .skin files and the cgame table")
+    ap.add_argument("--themes", nargs="*", help="(re)build only these themes' textures, keep the others")
     args = ap.parse_args()
 
     paks = Paks(args.paks)
     codex = Paks([args.codex])
+    textskins.set_reader(paks.read)
     textures = [t for t in ALL if not args.only or t in args.only]
     if not args.tables_only:
-        if os.path.isdir(OUT):
-            shutil.rmtree(OUT)
-        os.makedirs(OUT)
+        if args.themes:
+            for theme in args.themes:
+                if theme not in THEMES:
+                    raise SystemExit(f"unknown theme {theme}")
+                shutil.rmtree(os.path.join(OUT, "models", "fatboss", "skins", theme), ignore_errors=True)
+        else:
+            if os.path.isdir(OUT):
+                shutil.rmtree(OUT)
+            os.makedirs(OUT)
         # environment map for the reflection stage
         env = Image.open(io.BytesIO(codex.read(CODEX_ENV))).convert("RGB")
         save_jpg(env, os.path.join(OUT, "models/fatboss/skins/env.jpg"), (256, 256), 92)
         for theme, (covers, _) in THEMES.items():
+            if args.themes and theme not in args.themes:
+                continue
             for tex in covers:
                 if tex not in textures:
                     continue
