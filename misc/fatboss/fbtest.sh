@@ -18,9 +18,9 @@
 #   FB_LOADOUT_URL=https://<fatboss>/crates/api/game/loadouts FB_API_TOKEN=<FATBOSS_GAME_TOKEN> bash fbtest.sh start
 set -euo pipefail
 
-VER="${FB_VER:-b7}"            # cgame release: fatboss-<VER>
+VER="${FB_VER:-b8}"            # cgame release: fatboss-<VER>
 SKINS="${FB_SKINS:-s4}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
-SERVER="${FB_SERVER:-0.7}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
+SERVER="${FB_SERVER:-0.8}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
 ETL_DIR="${ETL_DIR:-/root/etlserver}"
 PROD="${PROD:-etl-server1}"
@@ -158,7 +158,7 @@ start() {
 		ufw status | grep -q "^$PORT/udp" || echo "Note: ufw is active and $PORT/udp is not open (ufw allow $PORT/udp)"
 	fi
 	echo "In game:  /password $PASS   then   /connect <this host IP>:$PORT"
-	echo "Then:     bind t spray   bind i +ilookatweapon   /fbequip colt gold   /fb_skins"
+	echo "Then:     bind t spray   bind i +ilookatweapon   /fbequip colt gold   /fb_loadskins (or /reconnect)   /fb_skins"
 }
 
 status() {
