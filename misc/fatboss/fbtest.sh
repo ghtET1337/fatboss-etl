@@ -20,7 +20,7 @@ set -euo pipefail
 
 VER="${FB_VER:-b4}"            # cgame release: fatboss-<VER>
 SKINS="${FB_SKINS:-s3}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
-SERVER="${FB_SERVER:-0.5}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
+SERVER="${FB_SERVER:-0.6}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
 ETL_DIR="${ETL_DIR:-/root/etlserver}"
 PROD="${PROD:-etl-server1}"
@@ -72,14 +72,16 @@ start() {
 
 	mkdir -p "$WEB" "$FB_DIR"
 	remove_installed "$PK3" "${skins[@]}"
-	mounts=()
+	rm -f "$FB_DIR"/zzz_fatboss*.pk3
+	# the same way production gets them: fatboss-start.sh copies the pk3s from /fatboss
 	for f in "$PK3" "${skins[@]}"; do
 		install -m 644 "$tmp/$f" "$WEB/$f"
-		mounts+=(-v "$WEB/$f:/legacy/server/legacy/$f:ro")
+		install -m 644 "$tmp/$f" "$FB_DIR/$f"
 	done
 	printf '%s\n' "$PK3" "${skins[@]}" > "$FB_DIR/installed.txt"
 	install -m 644 "$tmp/fatboss.lua" "$FB_DIR/fatboss.lua"
 	install -m 644 "$tmp/fatboss-start.sh" "$FB_DIR/fatboss-start.sh"
+	echo "$EXPECT" > "$FB_DIR/ETL_PK3"
 	# players on older clients download the official pk3 too, and at 34 MB it
 	# only arrives over the web: the UDP fallback stalls for good at 32 MiB
 	if [ ! -f "$WEB/$EXPECT" ]; then
@@ -120,7 +122,6 @@ start() {
 		-e STARTMAP=oasis \
 		-e FATBOSS_TEST=1 \
 		-v "$FB_DIR:/fatboss:ro" \
-		"${mounts[@]}" \
 		-p "$PORT:$PORT/udp" \
 		--entrypoint /bin/sh \
 		"$image" /fatboss/fatboss-start.sh >/dev/null
