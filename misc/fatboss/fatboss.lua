@@ -37,7 +37,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.5"
+local VERSION = "0.6"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order of the fbskin command
 local THEMES_HELP     = "gold polska neon camo cyber plasma airstrike damascus (knives) defender (colt) wut (thompson, kabar)"
