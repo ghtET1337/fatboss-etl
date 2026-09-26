@@ -9,19 +9,9 @@ fatboss/skins/wut/thompson_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen lightingDiffuse
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/wut/thompson_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/wut/thompson_2k.jpg
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -41,6 +31,12 @@ fatboss/skins/wut/thompson_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen lightingDiffuse
 		tcGen environment
@@ -57,19 +53,9 @@ fatboss/skins/wut/kabar_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen lightingDiffuse
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/wut/kabar_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/wut/kabar_2k.jpg
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -86,6 +72,12 @@ fatboss/skins/wut/kabar_1k
 	nocompress
 	{
 		map models/fatboss/skins/wut/kabar_1k.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{

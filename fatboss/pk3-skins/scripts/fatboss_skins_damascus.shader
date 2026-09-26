@@ -9,19 +9,9 @@ fatboss/skins/damascus/knife_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.70 0.72 0.76 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/damascus/knife_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/damascus/knife_2k.jpg
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -41,6 +31,12 @@ fatboss/skins/damascus/knife_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.70 0.72 0.76 )
 		tcGen environment
@@ -57,19 +53,9 @@ fatboss/skins/damascus/kabar_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.70 0.72 0.76 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/damascus/kabar_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/damascus/kabar_2k.jpg
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -86,6 +72,12 @@ fatboss/skins/damascus/kabar_1k
 	nocompress
 	{
 		map models/fatboss/skins/damascus/kabar_1k.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{

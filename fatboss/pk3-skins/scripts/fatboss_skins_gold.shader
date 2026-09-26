@@ -9,19 +9,9 @@ fatboss/skins/gold/colt_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.85 0.75 0.50 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/gold/colt_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/gold/colt_2k.jpg
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -41,6 +31,12 @@ fatboss/skins/gold/colt_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.85 0.75 0.50 )
 		tcGen environment
@@ -57,19 +53,9 @@ fatboss/skins/gold/luger_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.85 0.75 0.50 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/gold/luger_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/gold/luger_2k.jpg
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -89,6 +75,12 @@ fatboss/skins/gold/luger_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.85 0.75 0.50 )
 		tcGen environment
@@ -105,19 +97,9 @@ fatboss/skins/gold/thompson_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.85 0.75 0.50 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/gold/thompson_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/gold/thompson_2k.jpg
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -137,6 +119,12 @@ fatboss/skins/gold/thompson_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.85 0.75 0.50 )
 		tcGen environment
@@ -153,19 +141,9 @@ fatboss/skins/gold/mp40_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.85 0.75 0.50 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/gold/mp40_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/gold/mp40_2k.jpg
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -185,6 +163,12 @@ fatboss/skins/gold/mp40_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.85 0.75 0.50 )
 		tcGen environment
@@ -201,19 +185,9 @@ fatboss/skins/gold/knife_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.85 0.75 0.50 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/gold/knife_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/gold/knife_2k.jpg
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -233,6 +207,12 @@ fatboss/skins/gold/knife_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.85 0.75 0.50 )
 		tcGen environment
@@ -249,19 +229,9 @@ fatboss/skins/gold/kabar_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.85 0.75 0.50 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/gold/kabar_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/gold/kabar_2k.jpg
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -278,6 +248,12 @@ fatboss/skins/gold/kabar_1k
 	nocompress
 	{
 		map models/fatboss/skins/gold/kabar_1k.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{

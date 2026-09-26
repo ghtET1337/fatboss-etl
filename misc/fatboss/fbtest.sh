@@ -12,15 +12,16 @@
 # fatboss.lua to Oksii's lua_modules at start.
 #
 # Test mode (FATBOSS_TEST=1): everybody can spray the fatboss graffiti, and
-# /fbequip <knife|colt|luger|thompson|mp40|graffiti> <name> tries any skin.
+# /fbequip <knife|colt|luger|thompson|mp40|graffiti> <name> [wear] tries any
+# skin, in any wear (0..1 or fn mw ft ww bs).
 #
 # Against the real FatBoss site (loadouts from the Arsenal tab, /fblink codes):
 #   FB_LOADOUT_URL=https://<fatboss>/crates/api/game/loadouts FB_API_TOKEN=<FATBOSS_GAME_TOKEN> bash fbtest.sh start
 set -euo pipefail
 
-VER="${FB_VER:-b9}"            # cgame release: fatboss-<VER>
-SKINS="${FB_SKINS:-s5}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
-SERVER="${FB_SERVER:-0.8}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
+VER="${FB_VER:-b10}"            # cgame release: fatboss-<VER>
+SKINS="${FB_SKINS:-s6}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
+SERVER="${FB_SERVER:-0.9}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
 ETL_DIR="${ETL_DIR:-/root/etlserver}"
 PROD="${PROD:-etl-server1}"
@@ -38,6 +39,25 @@ fetch() { # <release tag> <file>...
 	for f in "$@"; do
 		curl -fsSL -o "$tmp/$f" "$REL/$tag/$f"
 		curl -fsSL -o "$tmp/$f.sha256" "$REL/$tag/$f.sha256"
+		(cd "$tmp" && sha256sum -c --quiet "$f.sha256") || { echo "STOP: $f does not match its sha256"; exit 1; }
+	done
+}
+
+# the skins pk3s: one already on this host with the right sha256 is not downloaded again
+fetch_skins() { # <release tag> <file>...
+	local tag=$1 d got
+	shift
+	for f in "$@"; do
+		curl -fsSL -o "$tmp/$f.sha256" "$REL/$tag/$f.sha256"
+		got=
+		for d in "$FB_DIR" "$WEB"; do
+			if [ -f "$d/$f" ] && [ "$(sha256sum < "$d/$f" | cut -c1-64)" = "$(cut -c1-64 "$tmp/$f.sha256")" ]; then
+				cp "$d/$f" "$tmp/$f" && got=1 && break
+			fi
+		done
+		if [ -z "$got" ]; then
+			curl -fsSL -o "$tmp/$f" "$REL/$tag/$f"
+		fi
 		(cd "$tmp" && sha256sum -c --quiet "$f.sha256") || { echo "STOP: $f does not match its sha256"; exit 1; }
 	done
 }
@@ -66,9 +86,9 @@ start() {
 	fetch "fatboss-$VER" "$PK3"
 	fetch "fatboss-server-$SERVER" fatboss.lua fatboss-start.sh
 	fetch "fatboss-skins-$SKINS" skins.txt
-	mapfile -t skins < <(grep -E '^zzz_fatboss_skins_[a-z0-9]+\.pk3$' "$tmp/skins.txt")
+	mapfile -t skins < <(grep -E '^zzz_fatboss_(skins?|wear)_[a-z0-9_]+\.pk3$' "$tmp/skins.txt")
 	[ "${#skins[@]}" -gt 0 ] || { echo "STOP: skins.txt lists no pk3"; exit 1; }
-	fetch "fatboss-skins-$SKINS" "${skins[@]}"
+	fetch_skins "fatboss-skins-$SKINS" "${skins[@]}"
 
 	mkdir -p "$WEB" "$FB_DIR"
 	remove_installed "$PK3" "${skins[@]}"
@@ -158,7 +178,7 @@ start() {
 		ufw status | grep -q "^$PORT/udp" || echo "Note: ufw is active and $PORT/udp is not open (ufw allow $PORT/udp)"
 	fi
 	echo "In game:  /password $PASS   then   /connect <this host IP>:$PORT"
-	echo "Then:     bind t spray   bind i +ilookatweapon   /fbequip colt gold   /fb_loadskins (or /reconnect)   /fb_skins"
+	echo "Then:     bind t spray   bind i +ilookatweapon   /fbequip colt fade bs   /fb_loadskins (or /reconnect)   /fb_skins"
 }
 
 status() {

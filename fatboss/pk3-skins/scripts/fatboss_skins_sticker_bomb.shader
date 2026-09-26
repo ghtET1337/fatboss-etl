@@ -9,19 +9,9 @@ fatboss/skins/sticker_bomb/colt_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.10 0.10 0.10 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/sticker_bomb/colt_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/sticker_bomb/colt_2k.jpg
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -41,6 +31,12 @@ fatboss/skins/sticker_bomb/colt_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.10 0.10 0.10 )
 		tcGen environment
@@ -57,19 +53,9 @@ fatboss/skins/sticker_bomb/luger_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.10 0.10 0.10 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/sticker_bomb/luger_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/sticker_bomb/luger_2k.jpg
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -89,6 +75,12 @@ fatboss/skins/sticker_bomb/luger_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.10 0.10 0.10 )
 		tcGen environment
@@ -105,19 +97,9 @@ fatboss/skins/sticker_bomb/thompson_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.10 0.10 0.10 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/sticker_bomb/thompson_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/sticker_bomb/thompson_2k.jpg
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -137,6 +119,12 @@ fatboss/skins/sticker_bomb/thompson_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.10 0.10 0.10 )
 		tcGen environment
@@ -153,19 +141,9 @@ fatboss/skins/sticker_bomb/mp40_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.10 0.10 0.10 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/sticker_bomb/mp40_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/sticker_bomb/mp40_2k.jpg
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -185,6 +163,12 @@ fatboss/skins/sticker_bomb/mp40_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.10 0.10 0.10 )
 		tcGen environment
@@ -201,19 +185,9 @@ fatboss/skins/sticker_bomb/knife_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.10 0.10 0.10 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/sticker_bomb/knife_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/sticker_bomb/knife_2k.jpg
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -233,6 +207,12 @@ fatboss/skins/sticker_bomb/knife_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.10 0.10 0.10 )
 		tcGen environment
@@ -249,19 +229,9 @@ fatboss/skins/sticker_bomb/kabar_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.10 0.10 0.10 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-}
-
-fatboss/skins/sticker_bomb/kabar_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/sticker_bomb/kabar_2k.jpg
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -278,6 +248,12 @@ fatboss/skins/sticker_bomb/kabar_1k
 	nocompress
 	{
 		map models/fatboss/skins/sticker_bomb/kabar_1k.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{

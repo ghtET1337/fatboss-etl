@@ -9,24 +9,9 @@ fatboss/skins/neon/colt_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.30 0.34 0.40 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-	{
-		map models/fatboss/skins/neon/colt_glow.jpg
-		blendFunc GL_ONE GL_ONE
-		rgbGen identity
-	}
-}
-
-fatboss/skins/neon/colt_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/neon/colt_2k.jpg
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -51,6 +36,12 @@ fatboss/skins/neon/colt_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.30 0.34 0.40 )
 		tcGen environment
@@ -67,24 +58,9 @@ fatboss/skins/neon/luger_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.30 0.34 0.40 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-	{
-		map models/fatboss/skins/neon/luger_glow.jpg
-		blendFunc GL_ONE GL_ONE
-		rgbGen identity
-	}
-}
-
-fatboss/skins/neon/luger_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/neon/luger_2k.jpg
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -109,6 +85,12 @@ fatboss/skins/neon/luger_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.30 0.34 0.40 )
 		tcGen environment
@@ -125,24 +107,9 @@ fatboss/skins/neon/thompson_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.30 0.34 0.40 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-	{
-		map models/fatboss/skins/neon/thompson_glow.jpg
-		blendFunc GL_ONE GL_ONE
-		rgbGen identity
-	}
-}
-
-fatboss/skins/neon/thompson_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/neon/thompson_2k.jpg
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -167,6 +134,12 @@ fatboss/skins/neon/thompson_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.30 0.34 0.40 )
 		tcGen environment
@@ -183,24 +156,9 @@ fatboss/skins/neon/mp40_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.30 0.34 0.40 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-	{
-		map models/fatboss/skins/neon/mp40_glow.jpg
-		blendFunc GL_ONE GL_ONE
-		rgbGen identity
-	}
-}
-
-fatboss/skins/neon/mp40_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/neon/mp40_2k.jpg
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -225,6 +183,12 @@ fatboss/skins/neon/mp40_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.30 0.34 0.40 )
 		tcGen environment
@@ -241,24 +205,9 @@ fatboss/skins/neon/knife_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.30 0.34 0.40 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-	{
-		map models/fatboss/skins/neon/knife_glow.jpg
-		blendFunc GL_ONE GL_ONE
-		rgbGen identity
-	}
-}
-
-fatboss/skins/neon/knife_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/neon/knife_2k.jpg
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -283,6 +232,12 @@ fatboss/skins/neon/knife_1k
 		rgbGen lightingDiffuse
 	}
 	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+	{
 		map models/fatboss/skins/env.jpg
 		rgbGen const ( 0.30 0.34 0.40 )
 		tcGen environment
@@ -299,24 +254,9 @@ fatboss/skins/neon/kabar_4k
 		rgbGen lightingDiffuse
 	}
 	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.30 0.34 0.40 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
-	{
-		map models/fatboss/skins/neon/kabar_glow.jpg
-		blendFunc GL_ONE GL_ONE
-		rgbGen identity
-	}
-}
-
-fatboss/skins/neon/kabar_2k
-{
-	nopicmip
-	nocompress
-	{
-		map models/fatboss/skins/neon/kabar_2k.jpg
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{
@@ -338,6 +278,12 @@ fatboss/skins/neon/kabar_1k
 	nocompress
 	{
 		map models/fatboss/skins/neon/kabar_1k.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
 		rgbGen lightingDiffuse
 	}
 	{

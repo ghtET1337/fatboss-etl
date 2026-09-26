@@ -15,9 +15,9 @@
 # (fatboss.lua and fatboss-start.sh).
 set -euo pipefail
 
-VER="${FB_VER:-b9}"
-SKINS="${FB_SKINS:-s5}"
-SERVER="${FB_SERVER:-0.8}"
+VER="${FB_VER:-b10}"
+SKINS="${FB_SKINS:-s6}"
+SERVER="${FB_SERVER:-0.9}"
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
 ETL_DIR="${ETL_DIR:-/root/etlserver}"
 FB_DIR="$ETL_DIR/fatboss"
@@ -30,6 +30,25 @@ fetch() { # <release tag> <file>...
 	for f in "$@"; do
 		curl -fsSL -o "$tmp/$f" "$REL/$tag/$f"
 		curl -fsSL -o "$tmp/$f.sha256" "$REL/$tag/$f.sha256"
+		(cd "$tmp" && sha256sum -c --quiet "$f.sha256") || { echo "STOP: $f does not match its sha256"; exit 1; }
+	done
+}
+
+# the skins pk3s: one already on this host with the right sha256 is not downloaded again
+fetch_skins() { # <release tag> <file>...
+	local tag=$1 d got
+	shift
+	for f in "$@"; do
+		curl -fsSL -o "$tmp/$f.sha256" "$REL/$tag/$f.sha256"
+		got=
+		for d in "$FB_DIR" "$WEB"; do
+			if [ -f "$d/$f" ] && [ "$(sha256sum < "$d/$f" | cut -c1-64)" = "$(cut -c1-64 "$tmp/$f.sha256")" ]; then
+				cp "$d/$f" "$tmp/$f" && got=1 && break
+			fi
+		done
+		if [ -z "$got" ]; then
+			curl -fsSL -o "$tmp/$f" "$REL/$tag/$f"
+		fi
 		(cd "$tmp" && sha256sum -c --quiet "$f.sha256") || { echo "STOP: $f does not match its sha256"; exit 1; }
 	done
 }
@@ -48,9 +67,9 @@ install_release() {
 	curl -fsSL -o "$tmp/$PK3.txt" "$REL/fatboss-$VER/$PK3.txt"
 	fetch "fatboss-server-$SERVER" fatboss.lua fatboss-start.sh
 	fetch "fatboss-skins-$SKINS" skins.txt
-	mapfile -t skins < <(grep -E '^zzz_fatboss_skins_[a-z0-9]+\.pk3$' "$tmp/skins.txt")
+	mapfile -t skins < <(grep -E '^zzz_fatboss_(skins?|wear)_[a-z0-9_]+\.pk3$' "$tmp/skins.txt")
 	[ "${#skins[@]}" -gt 0 ] || { echo "STOP: skins.txt lists no pk3"; exit 1; }
-	fetch "fatboss-skins-$SKINS" "${skins[@]}"
+	fetch_skins "fatboss-skins-$SKINS" "${skins[@]}"
 	# the ET: Legacy version the cgame was built for, from the release notes of the pk3
 	etl=$(sed -n 's/^et:legacy: *v\{0,1\}\([0-9][0-9.]*\).*/\1/p' "$tmp/$PK3.txt" | head -n 1)
 	[ -n "$etl" ] || { echo "STOP: $PK3.txt does not say which ET: Legacy it was built for"; exit 1; }

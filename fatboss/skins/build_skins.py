@@ -7,17 +7,26 @@ this repo), plus Codex's defender pk3 for his two finished skins:
   python fatboss/skins/build_skins.py --paks legacy_v2.86.0.pk3 pak0.pk3 --codex defender_v0_7.pk3
 
 Writes
-  fatboss/pk3-skins/          textures, shaders and .skin files; CI packs it as
-                              zzz_fatboss_skins_<fatboss/skins/VERSION>.pk3
+  fatboss/pk3-skins/          textures, shaders, .skin files and the wear masks; CI packs
+                              them per theme (see Packs below), released as fatboss-skins-<VERSION>
   src/cgame/cg_fatboss_skins.inc   the table the cgame finds them with
 
-Each finish comes in three sizes:
+Each finish comes in two sizes:
   4k  first person, your own weapon
-  2k  first person, the player you spectate
-  1k  third person, everybody else's weapon
-The cgame steps a first-person skin down to the next size when the player's
-hunk (com_hunkMegs) has no room for the upload, so first-person .skin files
-exist in all three sizes.
+  1k  third person, everybody else's weapon (and the player you spectate)
+The cgame steps a first-person skin down to 1k when the player's hunk
+(com_hunkMegs) has no room for the upload, so first-person .skin files exist
+in both sizes.
+
+Wear (CS2 style): fbs/wear/<texture>.png is one scratch mask per texture that
+every skin of it shares. Each skin shader has a stage that shows the mask where
+its alpha times the copy's wear (the cgame puts it in the entity alpha) passes
+128, so a worn copy shows bare steel on edges and scratches, a new one none.
+
+Packs: CI packs every theme into a pk3 of its own named after its contents
+(zzz_fatboss_skin_<theme>_<hash>.pk3) and the wear masks with env.jpg into
+zzz_fatboss_wear_<hash>.pk3, so a release that adds a theme leaves the other
+packs byte for byte the same: players download only what is new.
 All shaders are nopicmip + nocompress, so r_picmip and texture compression on
 the player's side never blur them.
 
@@ -36,6 +45,7 @@ import zlib
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+import gunspace
 import textskins
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -75,6 +85,8 @@ THEMES = {
     "knockoff": (ALL, (0.18, 0.14, 0.16)),
     "connection_interrupted": (ALL, (0.08, 0.08, 0.10)),
     "sale": (ALL, (0.10, 0.10, 0.08)),
+    # CS2-style finishes laid out on the gun's side view (gunspace.py), picked 2026-09-26
+    **{t: (ALL, (round(0.6 * e, 2),) * 3) for t, e in gunspace.ENV.items()},
 }
 TEXT_THEMES = ("skill_issue", "caution_noob", "sticker_bomb", "knockoff", "connection_interrupted", "sale")
 CODEX = {
@@ -102,7 +114,7 @@ WEAPONS = [
     ("WP_THOMPSON", "thompson", "thompson", "thompson"),
     ("WP_MP40", "mp40", "mp40", "mp40"),
 ]
-RES = {"4k": 1, "2k": 2, "1k": 4}   # divisor of the 4k size
+RES = {"4k": 1, "1k": 4}   # divisor of the 4k size (2k is gone: since cgame b8 nothing loads it)
 # The engine refuses a file or shader name of MAX_QPATH (64) characters or more: a .skin under
 # models/fatboss/skins/<long theme>/ did not load, so the gun kept its stock look. The .skin files
 # live under a short directory, and the build refuses any path that would not fit.
@@ -111,9 +123,9 @@ SKIN_DIR = "fbs"
 # The UDP download (the fallback when the web redirect fails) numbers its 1 KB
 # blocks with a signed 16-bit counter, so it stalls for good at 32 MiB. Every
 # skins pk3 stays under that with room to spare; CI refuses anything bigger.
-PART_LIMIT = 30 * 1024 * 1024
-PARTS = os.path.join(HERE, "parts.txt")
-JPEG_QUALITY = {"4k": 90, "2k": 92, "1k": 92}
+PACK_LIMIT = 30 * 1024 * 1024
+JPEG_QUALITY = {"4k": 90, "1k": 92}
+WEAR_SIZE = 2048          # the scratch masks: wider side
 
 
 # ---------------------------------------------------------------------------
@@ -285,9 +297,11 @@ def ramp(t, stops):
 
 def finish(paks, tex, theme, div=1):
     """4k finish of a stock texture (div > 1: smaller, for previews): (rgb float array, glow array or None)."""
-    if theme in TEXT_THEMES or theme in dict(textskins.THEMES):
+    if theme in TEXT_THEMES or theme in dict(textskins.THEMES) or theme in gunspace.GUN_THEMES:
         if textskins._READ is None:
             textskins.set_reader(paks.read)
+        if theme in gunspace.GUN_THEMES:
+            return gunspace.build(theme, tex, div), None
         return textskins.build(theme, tex, div), None
     stock, (w, h), _ = TEXTURES[tex]
     w, h = w // div, h // div
@@ -700,8 +714,10 @@ def save_jpg(arr_or_img, path, size, quality):
 
 # ---------------------------------------------------------------------------
 
-def stage_shader(name, image, env, glow):
+def stage_shader(name, image, env, glow, wear):
     lines = [name, "{", "\tnopicmip", "\tnocompress", "\t{", f"\t\tmap {image}", "\t\trgbGen lightingDiffuse", "\t}"]
+    # the copy's wear: the cgame sets the entity alpha from it, the mask's alpha says where paint is gone
+    lines += ["\t{", f"\t\tmap {wear}", "\t\talphaFunc GE128", "\t\talphaGen entity", "\t\trgbGen lightingDiffuse", "\t}"]
     lines += ["\t{", "\t\tmap models/fatboss/skins/env.jpg"]
     if env is None:
         lines += ["\t\trgbGen lightingDiffuse"]
@@ -742,6 +758,17 @@ def main():
         # environment map for the reflection stage
         env = Image.open(io.BytesIO(codex.read(CODEX_ENV))).convert("RGB")
         save_jpg(env, os.path.join(OUT, "models/fatboss/skins/env.jpg"), (256, 256), 92)
+        # the scratch masks, one per texture, shared by every skin of it
+        for tex in textures:
+            (w, h) = TEXTURES[tex][1]
+            wear_path = os.path.join(OUT, SKIN_DIR, "wear", f"{tex}.png")
+            os.makedirs(os.path.dirname(wear_path), exist_ok=True)
+            gunspace.wear_mask(tex, WEAR_SIZE, WEAR_SIZE * h // w).save(wear_path, optimize=True)
+        # 2k textures of earlier builds are not used any more
+        for p_, _, files in os.walk(os.path.join(OUT, "models", "fatboss", "skins")):
+            for f in files:
+                if f.endswith("_2k.jpg"):
+                    os.remove(os.path.join(p_, f))
         for theme, (covers, _) in THEMES.items():
             if args.themes and theme not in args.themes:
                 continue
@@ -763,11 +790,11 @@ def main():
                     src = tp if res == "1k" else fp
                     save_jpg(src, os.path.join(OUT, f"{d}/{tex}_{res}.jpg"), (w // div, h // div), JPEG_QUALITY[res])
                 print(theme, tex, flush=True)
-    else:
-        for p, _, files in os.walk(OUT):
-            for f in files:
-                if f.endswith(".skin"):
-                    os.remove(os.path.join(p, f))
+    # every .skin file is written again below: none of an earlier build may stay (sizes that are gone)
+    for p, _, files in os.walk(OUT):
+        for f in files:
+            if f.endswith(".skin"):
+                os.remove(os.path.join(p, f))
 
     # one shader file per theme, so a theme and its shaders always travel in the same pk3
     scripts = os.path.join(OUT, "scripts")
@@ -786,7 +813,7 @@ def main():
             for res in RES:
                 # no glow on third-person weapons: it would light players up in the dark
                 shaders.append(stage_shader(f"fatboss/skins/{theme}/{tex}_{res}", f"{d}/{tex}_{res}.jpg", env_strength,
-                                            glow_path if res != "1k" else None))
+                                            glow_path if res != "1k" else None, f"{SKIN_DIR}/wear/{tex}.png"))
         with open(os.path.join(scripts, f"fatboss_skins_{theme}.shader"), "w", newline="\n") as f:
             f.write("\n".join(shaders))
 
@@ -836,7 +863,7 @@ def main():
         f.write("// FatBoss weapon skins - generated by fatboss/skins/build_skins.py, do not edit\n\n")
         f.write("static const char *fbSkinSlotNames[FB_SKIN_SLOTS] = { %s };\n\n" % ", ".join(f'"{s}"' for s in SLOTS))
         f.write("static const char *fbSkinTexNames[FB_SKIN_TEXTURES] = { %s };\n\n" % ", ".join(f'"{t}"' for t in ALL))
-        f.write("// pixels of the 4k texture; the 2k and 1k ones have a quarter and a sixteenth\n")
+        f.write("// pixels of the 4k texture; the 1k one has a sixteenth\n")
         f.write("static const int fbSkinTexPixels[FB_SKIN_TEXTURES] = { %s };\n\n" % ", ".join(
             str(TEXTURES[t][1][0] * TEXTURES[t][1][1]) for t in ALL))
         f.write("static const fbSkinTheme_t fbSkinThemes[] =\n{\n")
@@ -853,7 +880,7 @@ def main():
         f.write("};\n")
     print(f"{len(rows)} models, {skin_files} .skin files -> {INC}")
     check_qpaths()
-    write_parts()
+    check_packs()
 
 
 def check_qpaths():
@@ -873,32 +900,16 @@ def check_qpaths():
         raise SystemExit("names of MAX_QPATH (64) characters or more, the game would not load them:\n  " + "\n  ".join(sorted(set(long))))
 
 
-def write_parts():
-    """Splits the themes into pk3 parts under PART_LIMIT (largest first, first fit)."""
-    sizes = {}
+def check_packs():
+    """CI packs each theme on its own: every theme must fit a pk3 under the UDP download limit."""
     for theme in THEMES:
         total = os.path.getsize(os.path.join(OUT, "scripts", f"fatboss_skins_{theme}.shader"))
         for d in (os.path.join(OUT, "models", "fatboss", "skins", theme), os.path.join(OUT, SKIN_DIR, theme)):
             for p, _, files in os.walk(d):
                 total += sum(os.path.getsize(os.path.join(p, f)) for f in files)
-        sizes[theme] = total
-    env = os.path.getsize(os.path.join(OUT, "models", "fatboss", "skins", "env.jpg"))
-    parts = []   # [size, [themes]]
-    for theme in sorted(sizes, key=lambda t: -sizes[t]):
-        if sizes[theme] + env > PART_LIMIT:
-            raise SystemExit(f"theme {theme} alone is {sizes[theme] / 1048576:.1f} MiB, over the part limit")
-        for part in parts:
-            if part[0] + sizes[theme] <= PART_LIMIT:
-                part[0] += sizes[theme]
-                part[1].append(theme)
-                break
-        else:
-            parts.append([env + sizes[theme], [theme]])
-    with open(PARTS, "w", newline="\n") as f:
-        f.write("# skins pk3 parts: <letter> <themes>; generated by build_skins.py\n")
-        for i, (size, themes) in enumerate(parts):
-            f.write(f"{chr(ord('a') + i)} {' '.join(themes)}\n")
-            print(f"part {chr(ord('a') + i)}: {size / 1048576:.1f} MiB  {' '.join(themes)}")
+        print(f"{theme}: {total / 1048576:.1f} MiB")
+        if total > PACK_LIMIT:
+            raise SystemExit(f"theme {theme} is {total / 1048576:.1f} MiB, over the pack limit")
 
 
 if __name__ == "__main__":

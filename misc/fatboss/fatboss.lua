@@ -1,27 +1,31 @@
 --[[
     fatboss.lua - FatBoss cosmetics on the official ET: Legacy server.
 
-    Works with the FatBoss cgame (zzz_fatboss_*.pk3) and its skins pack
-    (zzz_fatboss_skins_*.pk3), which draw everything; this module decides who
-    wears what and tells every client.
+    Works with the FatBoss cgame (zzz_fatboss_*.pk3) and its skins packs
+    (zzz_fatboss_skin_*.pk3, zzz_fatboss_wear_*.pk3), which draw everything;
+    this module decides who wears what and tells every client.
 
     Weapon skins: each player's FatBoss loadout picks a theme for the knife,
-    colt, luger, thompson and mp40. Everybody sees everybody's skins. The
+    colt, luger, thompson and mp40, and every copy has a CS2 wear (a float,
+    0 Factory New .. 1 Battle-Scarred) the cgame shows as scratches. Everybody
+    sees everybody's skins. The
     loadout (and the graffiti design) sits in a configstring of its own,
     FB_CS + client number, so it reaches every client with the gamestate and
     the cgame loads all textures on the loading screen; a change during the map
     is a configstring update the cgame applies at the intermission, on the next
     map or after /reconnect.
 
-    Graffiti: a player binds "spray" (bind t spray). One graffiti per life, and
-    each player's newest graffiti replaces the older one.
+    Graffiti: a player binds "spray" (bind t spray). Three graffiti per life
+    (FATBOSS_SPRAYS_PER_LIFE), a couple of seconds apart, and each player's
+    newest graffiti replaces the older one: one per player on the walls.
 
     Loadouts come from FatBoss. With FATBOSS_LOADOUT_URL set, the module
     fetches this every minute in the background (FATBOSS_API_TOKEN is sent as
     a bearer token):
         {"<cl_guid>": {"graffiti": "gg",
                        "skins": {"knife": "damascus", "colt": "gold", "luger": "neon",
-                                 "thompson": "wut", "mp40": "camo"}}, ...}
+                                 "thompson": "wut", "mp40": "camo"},
+                       "wear": {"knife": 0.031, "thompson": 0.512}}, ...}
     Without the URL, the same JSON is read from <fs_homepath>/legacy/fatboss_loadouts.json.
 
     Game link: the FatBoss profile shows "/fblink CODE"; a player pastes it in
@@ -33,7 +37,7 @@
     own spray that design (the FatBoss starter everybody gets).
 
     FATBOSS_TEST=1 (test servers only): everybody gets the "fatboss" graffiti,
-    and /fbequip <slot> <theme> tries any skin or graffiti without FatBoss.
+    and /fbequip <slot> <theme> [wear] tries any skin or graffiti without FatBoss.
 
     Runs next to Oksii's stats.lua and combinedfixes.lua in its own Lua VM and
     handles only its own commands ("spray", "fblink", "fbsync", and "fbequip" in test mode).
@@ -43,12 +47,16 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.8"
+local VERSION = "0.9"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 -- first configstring past CS_MAX of ET: Legacy 2.86 (bg_public.h); the FatBoss cgame reads FB_CS + client
 local FB_CS           = 943
-local THEMES_HELP     = "gold polska neon camo cyber plasma airstrike damascus (knives) defender (colt) wut (thompson, kabar)"
+local THEMES_HELP     = "fade nebula case redline frontier glacier pearl inferno emerald scales tiger marble skill_issue caution_noob "
+                     .. "sticker_bomb knockoff connection_interrupted sale gold polska neon camo cyber plasma airstrike "
+                     .. "damascus (knives) defender (colt) wut (thompson, kabar)"
+-- /fbequip wear by condition: the middle of each CS2 range
+local CONDITION_WEAR  = { fn = 0.035, mw = 0.11, ft = 0.265, ww = 0.415, bs = 0.72 }
 local SPRAY_RANGE     = 128
 local SPRAY_RADIUS    = 28      -- half the side of the graffiti square, in game units
 local SPRAY_SCALES    = { 1.0, 0.8, 0.6 }
@@ -66,18 +74,20 @@ local MESSAGE_GAP_MS  = 1500
 local LINK_WAIT_MS    = 15000   -- how long a /fblink waits for FatBoss to answer
 local LINK_GAP_MS     = 5000    -- one /fblink per player every few seconds
 local SYNC_GAP_MS     = 3000    -- one fbsync (a cgame restart) per player every few seconds
+local SPRAY_GAP_MS    = 2000    -- between two graffiti of one player
 
-local loadouts     = {}  -- cl_guid (upper case) -> { graffiti = design, skins = { slot = theme } }
+local loadouts     = {}  -- cl_guid (upper case) -> { graffiti = design, skins = { slot = theme }, wear = { slot = 0..1 } }
 local testLoadouts = {}  -- the same, set with /fbequip in test mode; wins over loadouts
 local setStrings   = {}  -- clientNum -> loadout configstring last set
 local synced       = {}  -- clientNum -> true once the client got the graffiti on the map
 local sprays       = {}  -- clientNum -> fbspray command without the sound flag
-local usedThisLife = {}  -- clientNum -> true once sprayed in the current life
+local sprayCount   = {}  -- clientNum -> graffiti sprayed in the current life
+local lastSpray    = {}  -- clientNum -> time of the last graffiti
 local lastMessage  = {}  -- clientNum -> level time of the last refusal
 local links        = {}  -- clientNum -> { file, guid, deadline } of a /fblink waiting for FatBoss
 local lastLink     = {}  -- clientNum -> time of the last /fblink
 local lastSync     = {}  -- clientNum -> time the client last got everything
-local loadoutPath, loadoutUrl, linkUrl, apiToken, testMode, defaultGraffiti, maxClients, homeDir
+local loadoutPath, loadoutUrl, linkUrl, apiToken, testMode, defaultGraffiti, maxClients, homeDir, spraysPerLife
 local nextFetch, nextRead, lastLoadoutText = 0, 0, nil
 
 local function shellQuote(s)
@@ -106,14 +116,19 @@ local function loadoutOf(clientNum)
     return testLoadouts[guid] or loadouts[guid] or {}
 end
 
--- "<knife> <colt> <luger> <thompson> <mp40> <graffiti>", "-" for stock; "" for nothing at all (a small gamestate)
+-- "<knife> <colt> <luger> <thompson> <mp40> <graffiti>", "-" for stock, "theme:NNN" with the copy's
+-- wear x 1000; "" for nothing at all (a small gamestate)
 local function loadoutString(clientNum)
     local loadout = loadoutOf(clientNum)
-    local skins = loadout.skins or {}
+    local skins, wear = loadout.skins or {}, loadout.wear or {}
     local parts, any = {}, false
     for _, slot in ipairs(SLOTS) do
-        parts[#parts + 1] = skins[slot] or "-"
-        any = any or skins[slot] ~= nil
+        local theme = skins[slot]
+        if theme and wear[slot] then
+            theme = string.format("%s:%d", theme, math.min(1000, math.floor(wear[slot] * 1000 + 0.5)))
+        end
+        parts[#parts + 1] = theme or "-"
+        any = any or theme ~= nil
     end
     local graffiti = loadout.graffiti or defaultGraffiti
     parts[#parts + 1] = graffiti or "-"
@@ -148,10 +163,15 @@ local function parseEntry(entry)
         out.graffiti = entry.graffiti
     end
     if type(entry.skins) == "table" then
-        out.skins = {}
+        out.skins, out.wear = {}, {}
+        local wear = type(entry.wear) == "table" and entry.wear or {}
         for _, slot in ipairs(SLOTS) do
             if validName(entry.skins[slot]) then
                 out.skins[slot] = entry.skins[slot]
+                local w = tonumber(wear[slot])
+                if w and w >= 0 and w <= 1 then
+                    out.wear[slot] = w
+                end
             end
         end
     end
@@ -268,8 +288,12 @@ local function spray(clientNum)
     if (et.gentity_get(clientNum, "health") or 0) <= 0 then
         return refuse(clientNum, levelTime, "you can spray only while alive.")
     end
-    if usedThisLife[clientNum] then
-        return refuse(clientNum, levelTime, "one graffiti per life.")
+    if (sprayCount[clientNum] or 0) >= spraysPerLife then
+        return refuse(clientNum, levelTime, spraysPerLife == 1 and "one graffiti per life."
+            or string.format("%d graffiti per life - the next ones after you respawn.", spraysPerLife))
+    end
+    if lastSpray[clientNum] and levelTime - lastSpray[clientNum] < SPRAY_GAP_MS then
+        return refuse(clientNum, levelTime, "shake the can a moment.")
     end
     local design = loadoutOf(clientNum).graffiti or defaultGraffiti
     if not design then
@@ -312,8 +336,10 @@ local function spray(clientNum)
     local cmd = string.format("fbspray %d %s %.1f %.1f %.1f %.4f %.4f %.4f %.4f %.4f %.4f %.1f",
         clientNum, design, center[1], center[2], center[3], n[1], n[2], n[3], up[1], up[2], up[3], half)
     et.trap_SendServerCommand(-1, cmd .. " 1")
+    -- the cgame keeps one graffiti per player: this one takes the place of the last
     sprays[clientNum] = cmd .. " 0"
-    usedThisLife[clientNum] = true
+    sprayCount[clientNum] = (sprayCount[clientNum] or 0) + 1
+    lastSpray[clientNum] = levelTime
     et.G_LogPrint(string.format("%s: spray %d %s %s\n", MODNAME, clientNum, guidOf(clientNum), design))
 end
 
@@ -386,11 +412,13 @@ local function checkLinks(now)
     end
 end
 
--- /fbequip <knife|colt|luger|thompson|mp40|graffiti> <name|->  (test servers only)
+-- /fbequip <knife|colt|luger|thompson|mp40|graffiti> <name|-> [wear 0..1 or fn|mw|ft|ww|bs]  (test servers only)
 local function equip(clientNum)
     local guid = guidOf(clientNum)
     local slot = string.lower(et.trap_Argv(1) or "")
     local name = string.lower(et.trap_Argv(2) or "")
+    local wearArg = string.lower(et.trap_Argv(3) or "")
+    local wear = CONDITION_WEAR[wearArg] or tonumber(wearArg)
     local say = function(text)
         et.trap_SendServerCommand(clientNum, string.format('print "^3FatBoss:^7 %s\n"', text))
     end
@@ -401,8 +429,9 @@ local function equip(clientNum)
     for _, s in ipairs(SLOTS) do
         valid = valid or s == slot
     end
-    if not valid or (name ~= "-" and not validName(name)) then
-        say("usage: /fbequip <knife|colt|luger|thompson|mp40> <theme|->   or   /fbequip graffiti <design>")
+    if not valid or (name ~= "-" and not validName(name)) or (wearArg ~= "" and (not wear or wear < 0 or wear > 1)) then
+        say("usage: /fbequip <knife|colt|luger|thompson|mp40> <theme|-> [wear]   or   /fbequip graffiti <design>")
+        say("wear: 0 (Factory New) .. 1 (Battle-Scarred), or fn mw ft ww bs")
         say("themes: " .. THEMES_HELP)
         return say("graffiti: fatboss poland_et gg ez gibbed noob nice_try cloudy skill_issue jebac_axis jebac_allies kurwa_mac wut_1112 sprzedam_opla nastepny_przystanek next_stop skill_404 rip_bozo lagging get_rekt")
     end
@@ -410,9 +439,12 @@ local function equip(clientNum)
     if not entry then
         -- start from the real loadout, so one slot changes at a time
         local base = loadouts[guid] or {}
-        entry = { graffiti = base.graffiti, skins = {} }
+        entry = { graffiti = base.graffiti, skins = {}, wear = {} }
         for k, v in pairs(base.skins or {}) do
             entry.skins[k] = v
+        end
+        for k, v in pairs(base.wear or {}) do
+            entry.wear[k] = v
         end
         testLoadouts[guid] = entry
     end
@@ -420,8 +452,10 @@ local function equip(clientNum)
         entry.graffiti = name ~= "-" and name or nil
     else
         entry.skins[slot] = name ~= "-" and name or nil
+        entry.wear[slot] = name ~= "-" and (wear or entry.wear[slot]) or nil
     end
-    say(string.format("%s = %s (shows after /reconnect, on the next map or at the intermission; fb_loadskins loads it now)", slot, name))
+    local worn = slot ~= "graffiti" and entry.wear[slot] and string.format(" (wear %.3f)", entry.wear[slot]) or ""
+    say(string.format("%s = %s%s (shows after /reconnect, on the next map or at the intermission; fb_loadskins loads it now)", slot, name, worn))
     setLoadout(clientNum, loadoutString(clientNum))
 end
 
@@ -459,8 +493,10 @@ function et_InitGame(levelTime, randomSeed, restart)
     if not validName(defaultGraffiti) then
         defaultGraffiti = testMode and "fatboss" or nil
     end
+    spraysPerLife = math.floor(tonumber(os.getenv("FATBOSS_SPRAYS_PER_LIFE") or "") or 3)
+    spraysPerLife = math.max(1, math.min(10, spraysPerLife))
     -- a new map starts with empty configstrings; a map_restart keeps them (setting the same value again sends nothing)
-    setStrings, synced, sprays, links, usedThisLife = {}, {}, {}, {}, {}
+    setStrings, synced, sprays, links, sprayCount, lastSpray = {}, {}, {}, {}, {}, {}
     readLoadouts()
     fetchLoadouts()
     nextFetch = levelTime + FETCH_MS
@@ -509,7 +545,7 @@ end
 -- a full respawn starts a new life; a revive does not
 function et_ClientSpawn(clientNum, revived, teamChange, restoreHealth)
     if revived ~= 1 then
-        usedThisLife[clientNum] = nil
+        sprayCount[clientNum] = nil
     end
 end
 
@@ -532,7 +568,8 @@ function et_ClientBegin(clientNum)
 end
 
 function et_ClientDisconnect(clientNum)
-    usedThisLife[clientNum] = nil
+    sprayCount[clientNum] = nil
+    lastSpray[clientNum] = nil
     lastMessage[clientNum] = nil
     synced[clientNum] = nil
     links[clientNum] = nil

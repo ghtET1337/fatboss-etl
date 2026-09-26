@@ -15,7 +15,7 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b9"
+#define FATBOSS_CGAME_VERSION "b10"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1196,19 +1196,21 @@ typedef struct
 
 typedef enum
 {
-	FB_RES_4K,
-	FB_RES_2K,
-	FB_RES_1K,
+	FB_RES_4K,              ///< first person, your own weapon
+	FB_RES_1K,              ///< third person, and everybody else's first-person weapon (spectating)
 	FB_RES_COUNT
 } fbSkinRes_t;
 
-static const char *fbSkinResNames[FB_RES_COUNT] = { "4k", "2k", "1k" };
+static const char *fbSkinResNames[FB_RES_COUNT] = { "4k", "1k" };
+static const int  fbSkinResShift[FB_RES_COUNT]  = { 0, 4 };      ///< pixels of the 4k texture >> shift
 
 #define FB_SKIN_HUNK_MARGIN (16 * 1024 * 1024)
 
 static int fbSkinLoadout[MAX_CLIENTS][FB_SKIN_SLOTS];                       ///< theme + 1, 0 = stock: what is drawn
 static int fbSkinWanted[MAX_CLIENTS][FB_SKIN_SLOTS];                        ///< theme + 1 the server asks for
 static qboolean fbSkinPending[MAX_CLIENTS];                                 ///< wanted differs from drawn
+static short fbSkinWear[MAX_CLIENTS][FB_SKIN_SLOTS];                        ///< CS2 float x 1000 of the copy drawn
+static short fbSkinWearWanted[MAX_CLIENTS][FB_SKIN_SLOTS];                  ///< the same for the copy the server asks for
 static int fbSkinSlotTextures[FB_SKIN_SLOTS];                               ///< bit per texture a slot uses
 static int fbSkinRow[WP_NUM_WEAPONS][W_NUM_TYPES][W_MAX_PARTS + 1];         ///< fbSkinModels index + 1
 static int fbSkinWeaponSlot[WP_NUM_WEAPONS];                                ///< slot + 1
@@ -1252,8 +1254,8 @@ static int CG_FatBoss_SkinRes(int theme, int tex, int res)
 	room = (int64_t)megs * 1024 * 1024 - used - FB_SKIN_HUNK_MARGIN;
 	for (r = res; r < FB_RES_1K; r++)
 	{
-		// 4 bytes a pixel; each size down has a quarter of the pixels
-		if (((int64_t)fbSkinTexPixels[tex] * 4 >> (2 * r)) <= room)
+		// 4 bytes a pixel
+		if (((int64_t)fbSkinTexPixels[tex] * 4 >> fbSkinResShift[r]) <= room)
 		{
 			break;
 		}
@@ -1363,6 +1365,9 @@ static qhandle_t CG_FatBoss_SkinFile(int row, int theme, int res, int team)
 
 /**
  * @brief Puts the player's skin on one weapon model (main model or a part) before it is drawn.
+ * The copy's wear goes into the entity alpha: the skin shader's scratch stage (alphaGen entity,
+ * alphaFunc GE128) shows the mask texels whose alpha times it reaches 128, so 127 (wear 0) shows
+ * none and 255 (wear 1) every one.
  */
 void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int view, int part, int team, int powerups)
 {
@@ -1397,14 +1402,7 @@ void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int vi
 	{
 		return;
 	}
-	if (view == W_TP_MODEL)
-	{
-		res = FB_RES_1K;
-	}
-	else
-	{
-		res = clientNum == cg.clientNum ? FB_RES_4K : FB_RES_2K;
-	}
+	res = view == W_FP_MODEL && clientNum == cg.clientNum ? FB_RES_4K : FB_RES_1K;
 	if (m->skin)
 	{
 		h = CG_FatBoss_SkinFile(row - 1, theme, res, team);
@@ -1421,19 +1419,25 @@ void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int vi
 			re->customShader = h;
 		}
 	}
+	if (h)
+	{
+		re->shaderRGBA[3] = (byte)MIN(255, 127 + (128 * fbSkinWear[clientNum][m->slot]) / 1000);
+	}
 }
 
 /**
- * @brief A player's loadout from their configstring: themes into wanted (theme + 1, 0 = stock), the graffiti design.
+ * @brief A player's loadout from their configstring: themes into wanted (theme + 1, 0 = stock), each copy's
+ * wear (float x 1000, "theme:NNN"; 0 without one), the graffiti design.
  */
-static void CG_FatBoss_ReadLoadout(int clientNum, int wanted[FB_SKIN_SLOTS], char *design, int designSize)
+static void CG_FatBoss_ReadLoadout(int clientNum, int wanted[FB_SKIN_SLOTS], short wear[FB_SKIN_SLOTS], char *design, int designSize)
 {
 	char buf[MAX_STRING_CHARS];
-	char *p = buf, *token;
+	char *p = buf, *token, *colon;
 	int  i;
 
 	Q_strncpyz(buf, CG_ConfigString(FB_CS_SKINS + clientNum), sizeof(buf));
 	Com_Memset(wanted, 0, sizeof(int) * FB_SKIN_SLOTS);
+	Com_Memset(wear, 0, sizeof(short) * FB_SKIN_SLOTS);
 	design[0] = 0;
 	for (i = 0; i <= FB_SKIN_SLOTS; i++)
 	{
@@ -1456,6 +1460,12 @@ static void CG_FatBoss_ReadLoadout(int clientNum, int wanted[FB_SKIN_SLOTS], cha
 		}
 		if (i < FB_SKIN_SLOTS)
 		{
+			colon = strchr(token, ':');
+			if (colon)
+			{
+				*colon  = 0;
+				wear[i] = (short)Com_Clamp(0, 1000, Q_atoi(colon + 1));
+			}
 			wanted[i] = CG_FatBoss_ThemeIndex(token) + 1;
 		}
 		else if (CG_FatBoss_ValidDesign(token))
@@ -1554,18 +1564,17 @@ static void CG_FatBoss_ApplyReady(void)
 		fbSkinPending[i] = qfalse;
 		for (s = 0; s < FB_SKIN_SLOTS; s++)
 		{
-			if (fbSkinLoadout[i][s] == fbSkinWanted[i][s])
+			if (fbSkinLoadout[i][s] != fbSkinWanted[i][s])
 			{
-				continue;
-			}
-			if (CG_FatBoss_SlotReady(i, s, fbSkinWanted[i][s] - 1))
-			{
+				if (!CG_FatBoss_SlotReady(i, s, fbSkinWanted[i][s] - 1))
+				{
+					fbSkinPending[i] = qtrue;
+					continue;
+				}
 				fbSkinLoadout[i][s] = fbSkinWanted[i][s];
 			}
-			else
-			{
-				fbSkinPending[i] = qtrue;
-			}
+			// another copy of the same skin loads nothing: its wear shows at once
+			fbSkinWear[i][s] = fbSkinWearWanted[i][s];
 		}
 	}
 }
@@ -1580,11 +1589,12 @@ void CG_FatBoss_LoadSkins(void)
 
 	for (i = 0; i < MAX_CLIENTS; i++)
 	{
-		CG_FatBoss_ReadLoadout(i, fbSkinWanted[i], design, sizeof(design));
+		CG_FatBoss_ReadLoadout(i, fbSkinWanted[i], fbSkinWearWanted[i], design, sizeof(design));
 		for (s = 0; s < FB_SKIN_SLOTS; s++)
 		{
 			textures            += CG_FatBoss_LoadSlot(i, s, fbSkinWanted[i][s] - 1, qfalse);
 			fbSkinLoadout[i][s]  = fbSkinWanted[i][s];
+			fbSkinWear[i][s]     = fbSkinWearWanted[i][s];
 		}
 		fbSkinPending[i] = qfalse;
 		if (design[0])
@@ -1607,7 +1617,7 @@ qboolean CG_FatBoss_ConfigStringModified(int num)
 	{
 		return qfalse;
 	}
-	CG_FatBoss_ReadLoadout(clientNum, fbSkinWanted[clientNum], design, sizeof(design));
+	CG_FatBoss_ReadLoadout(clientNum, fbSkinWanted[clientNum], fbSkinWearWanted[clientNum], design, sizeof(design));
 	fbSkinPending[clientNum] = qtrue;
 	CG_FatBoss_ApplyReady();
 	return qtrue;
@@ -1666,6 +1676,8 @@ static void CG_FatBoss_InitSkins(void)
 	Com_Memset(fbSkinLoadout, 0, sizeof(fbSkinLoadout));
 	Com_Memset(fbSkinWanted, 0, sizeof(fbSkinWanted));
 	Com_Memset(fbSkinPending, 0, sizeof(fbSkinPending));
+	Com_Memset(fbSkinWear, 0, sizeof(fbSkinWear));
+	Com_Memset(fbSkinWearWanted, 0, sizeof(fbSkinWearWanted));
 	Com_Memset(fbSkinSlotTextures, 0, sizeof(fbSkinSlotTextures));
 	Com_Memset(fbSkinRow, 0, sizeof(fbSkinRow));
 	Com_Memset(fbSkinWeaponSlot, 0, sizeof(fbSkinWeaponSlot));
@@ -1697,7 +1709,8 @@ void CG_FatBoss_Skins_f(void)
 		{
 			if (fbSkinLoadout[i][s])
 			{
-				Q_strcat(line, sizeof(line), va(" %s=%s", fbSkinSlotNames[s], fbSkinThemes[fbSkinLoadout[i][s] - 1].name));
+				Q_strcat(line, sizeof(line), va(" %s=%s(%.3f)", fbSkinSlotNames[s], fbSkinThemes[fbSkinLoadout[i][s] - 1].name,
+				                                (double)fbSkinWear[i][s] / 1000.0));
 			}
 			if (fbSkinWanted[i][s] != fbSkinLoadout[i][s])
 			{

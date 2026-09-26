@@ -4,7 +4,7 @@ static const char *fbSkinSlotNames[FB_SKIN_SLOTS] = { "knife", "colt", "luger", 
 
 static const char *fbSkinTexNames[FB_SKIN_TEXTURES] = { "colt", "luger", "thompson", "mp40", "knife", "kabar" };
 
-// pixels of the 4k texture; the 2k and 1k ones have a quarter and a sixteenth
+// pixels of the 4k texture; the 1k one has a sixteenth
 static const int fbSkinTexPixels[FB_SKIN_TEXTURES] = { 16777216, 16777216, 16777216, 16777216, 4194304, 8388608 };
 
 static const fbSkinTheme_t fbSkinThemes[] =
@@ -25,6 +25,18 @@ static const fbSkinTheme_t fbSkinThemes[] =
 	{ "knockoff", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
 	{ "connection_interrupted", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
 	{ "sale", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "fade", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "nebula", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "case", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "redline", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "frontier", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "glacier", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "pearl", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "inferno", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "emerald", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "scales", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "tiger", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
+	{ "marble", (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) },
 };
 
 // weapon, slot, texture, view, part (-1 main model), .skin id (NULL: custom shader on the whole model), per-team .skin
