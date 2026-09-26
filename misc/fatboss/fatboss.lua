@@ -47,7 +47,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.9"
+local VERSION = "0.10"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 -- first configstring past CS_MAX of ET: Legacy 2.86 (bg_public.h); the FatBoss cgame reads FB_CS + client
@@ -65,6 +65,9 @@ local SPRAY_SHIFTS    = { { 0, 0 }, { 0.35, 0 }, { -0.35, 0 }, { 0, 0.35 }, { 0,
 local ENTITYNUM_WORLD = (et.MAX_GENTITIES or 1024) - 2
 local SURF_SKY        = 0x4
 local SURF_NOMARKS    = 0x20
+-- invisible brushes (clip in front of a detailed wall): the trace hits them, but the
+-- client has no surface there to paint on, so the graffiti would silently not show
+local SURF_NODRAW     = 0x80
 local TEAM_AXIS       = 1
 local TEAM_ALLIES     = 2
 local CON_CONNECTED   = 2
@@ -254,7 +257,7 @@ local function squareFits(center, n, up, right, half, clientNum)
             local p = vma(vma(center, a * half, right), b * half, up)
             local tr = et.trap_Trace(vma(p, 8, n), nil, nil, vma(p, -8, n), clientNum, et.MASK_SOLID)
             if not tr or tr.fraction >= 1 or tr.startsolid or tr.entityNum ~= ENTITYNUM_WORLD
-                or (tr.surfaceFlags & (SURF_SKY | SURF_NOMARKS)) ~= 0 or dot(tr.plane.normal, n) < 0.7 then
+                or (tr.surfaceFlags & (SURF_SKY | SURF_NOMARKS | SURF_NODRAW)) ~= 0 or dot(tr.plane.normal, n) < 0.7 then
                 return false
             end
         end
@@ -315,7 +318,7 @@ local function spray(clientNum)
     if not tr or tr.fraction >= 1 or tr.startsolid then
         return refuse(clientNum, levelTime, "get closer to a wall or the floor.")
     end
-    if tr.entityNum ~= ENTITYNUM_WORLD or (tr.surfaceFlags & (SURF_SKY | SURF_NOMARKS)) ~= 0 then
+    if tr.entityNum ~= ENTITYNUM_WORLD or (tr.surfaceFlags & (SURF_SKY | SURF_NOMARKS | SURF_NODRAW)) ~= 0 then
         return refuse(clientNum, levelTime, "you can't spray here.")
     end
 
