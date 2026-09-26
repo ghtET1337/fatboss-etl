@@ -103,6 +103,11 @@ WEAPONS = [
     ("WP_MP40", "mp40", "mp40", "mp40"),
 ]
 RES = {"4k": 1, "2k": 2, "1k": 4}   # divisor of the 4k size
+# The engine refuses a file or shader name of MAX_QPATH (64) characters or more: a .skin under
+# models/fatboss/skins/<long theme>/ did not load, so the gun kept its stock look. The .skin files
+# live under a short directory, and the build refuses any path that would not fit.
+MAX_QPATH = 64
+SKIN_DIR = "fbs"
 # The UDP download (the fallback when the web redirect fails) numbers its 1 KB
 # blocks with a signed 16-bit counter, so it stalls for good at 32 MiB. Every
 # skins pk3 stays under that with room to spare; CI refuses anything bigger.
@@ -729,6 +734,7 @@ def main():
                 if theme not in THEMES:
                     raise SystemExit(f"unknown theme {theme}")
                 shutil.rmtree(os.path.join(OUT, "models", "fatboss", "skins", theme), ignore_errors=True)
+                shutil.rmtree(os.path.join(OUT, SKIN_DIR, theme), ignore_errors=True)
         else:
             if os.path.isdir(OUT):
                 shutil.rmtree(OUT)
@@ -819,7 +825,8 @@ def main():
                                     lines.append(f"{s},fatboss/skins/{theme}/{tex}_{res}")
                                 else:
                                     lines.append(f"{s},{team_map.get(s, sh)}")
-                            p = os.path.join(OUT, f"models/fatboss/skins/{theme}/{skin_id}_{res}{suffix}.skin")
+                            p = os.path.join(OUT, f"{SKIN_DIR}/{theme}/{skin_id}_{res}{suffix}.skin")
+                            os.makedirs(os.path.dirname(p), exist_ok=True)
                             with open(p, "w", newline="\n") as f:
                                 f.write("\n".join(lines) + "\n")
                             skin_files += 1
@@ -845,17 +852,35 @@ def main():
                 f'"{skin_id}"' if skin_id else "NULL", "qtrue" if team else "qfalse"))
         f.write("};\n")
     print(f"{len(rows)} models, {skin_files} .skin files -> {INC}")
+    check_qpaths()
     write_parts()
+
+
+def check_qpaths():
+    """Every file in the pk3 and every shader name in the scripts must be shorter than MAX_QPATH."""
+    long = []
+    for p, _, files in os.walk(OUT):
+        for f in files:
+            rel = os.path.relpath(os.path.join(p, f), OUT).replace(os.sep, "/")
+            if len(rel) >= MAX_QPATH:
+                long.append(rel)
+            if f.endswith((".shader", ".skin")):
+                with open(os.path.join(p, f), encoding="latin1") as fh:
+                    for word in re.findall(r"[A-Za-z0-9_/.]+", fh.read()):
+                        if "/" in word and len(word) >= MAX_QPATH:
+                            long.append(f"{rel}: {word}")
+    if long:
+        raise SystemExit("names of MAX_QPATH (64) characters or more, the game would not load them:\n  " + "\n  ".join(sorted(set(long))))
 
 
 def write_parts():
     """Splits the themes into pk3 parts under PART_LIMIT (largest first, first fit)."""
     sizes = {}
     for theme in THEMES:
-        d = os.path.join(OUT, "models", "fatboss", "skins", theme)
         total = os.path.getsize(os.path.join(OUT, "scripts", f"fatboss_skins_{theme}.shader"))
-        for p, _, files in os.walk(d):
-            total += sum(os.path.getsize(os.path.join(p, f)) for f in files)
+        for d in (os.path.join(OUT, "models", "fatboss", "skins", theme), os.path.join(OUT, SKIN_DIR, theme)):
+            for p, _, files in os.walk(d):
+                total += sum(os.path.getsize(os.path.join(p, f)) for f in files)
         sizes[theme] = total
     env = os.path.getsize(os.path.join(OUT, "models", "fatboss", "skins", "env.jpg"))
     parts = []   # [size, [themes]]

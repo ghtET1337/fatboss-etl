@@ -15,7 +15,7 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b8"
+#define FATBOSS_CGAME_VERSION "b9"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1324,7 +1324,8 @@ static void CG_FatBoss_LoadShader(int theme, int tex, int res)
 
 			if (!*f)
 			{
-				*f = trap_R_RegisterSkin(va("models/fatboss/skins/%s/%s_%s%s.skin", fbSkinThemes[theme].name, m->skin,
+				// fbs/, not models/fatboss/skins/: a name of 64 characters or more does not load
+				*f = trap_R_RegisterSkin(va("fbs/%s/%s_%s%s.skin", fbSkinThemes[theme].name, m->skin,
 				                            fbSkinResNames[res], m->teamSkin ? (t ? "_allied" : "_axis") : ""));
 				if (!*f)
 				{

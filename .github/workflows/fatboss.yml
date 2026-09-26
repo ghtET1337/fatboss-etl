@@ -186,6 +186,11 @@ jobs:
           fi
           limit=$((32 * 1024 * 1024))
           root=fatboss/pk3-skins
+          # the game refuses file names of MAX_QPATH (64) characters or more
+          long=$(cd "$root" && find . -type f | sed 's#^\./##' | awk 'length($0) >= 64')
+          if [ -n "$long" ]; then
+            echo "::error::paths the game would not load (64 characters or more):"; echo "$long"; exit 1
+          fi
           find "$root" -type f -exec touch -d '2026-01-01 00:00:00 UTC' {} +
           : > packed.txt
           : > skins.txt
@@ -197,6 +202,7 @@ jobs:
             echo models/fatboss/skins/env.jpg > "$list"
             for t in $themes; do
               (cd "$root" && find "models/fatboss/skins/$t" -type f) >> "$list"
+              if [ -d "$root/fbs/$t" ]; then (cd "$root" && find "fbs/$t" -type f) >> "$list"; fi
               echo "scripts/fatboss_skins_$t.shader" >> "$list"
             done
             # fixed order and timestamps: the same sources always give the same file
