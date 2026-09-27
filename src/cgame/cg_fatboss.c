@@ -15,7 +15,7 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b11"
+#define FATBOSS_CGAME_VERSION "b12"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1835,8 +1835,8 @@ typedef struct
 
 #define FB_PANEL_TABS     (FB_SKIN_SLOTS + 1)       ///< the five weapon slots, then graffiti
 #define FB_PANEL_GRAFFITI FB_SKIN_SLOTS
-#define FB_INV_MAX        160
-#define FB_PANEL_ROWS_MAX 64
+#define FB_INV_MAX        640                       ///< FatBoss sends at most 600
+#define FB_PANEL_ROWS_MAX FB_INV_MAX
 #define FB_PANEL_VISIBLE  13
 #define FB_PANEL_W        620.f
 #define FB_PANEL_H        380.f
@@ -1871,7 +1871,10 @@ static struct
 	qboolean receiving;
 	qboolean browseAll;
 	qboolean waiting;
+	qboolean wearing;           ///< the request on its way is a wear or take off
+	qboolean quiet;             ///< a reload after a refused wear: keep the refusal on screen
 	int requestTime;
+	int refreshAt;              ///< cg.time to reload the items at, 0 none
 	int tab;
 	int sel;
 	int scroll;
@@ -2031,11 +2034,17 @@ static void CG_FatBoss_PanelRows(void)
 	fbPanel.scroll = Com_Clamp(0, MAX(0, n - FB_PANEL_VISIBLE), fbPanel.scroll);
 }
 
-static void CG_FatBoss_PanelRequest(void)
+static void CG_FatBoss_PanelRequest(qboolean quiet)
 {
 	fbPanel.waiting     = qtrue;
+	fbPanel.wearing     = qfalse;
+	fbPanel.quiet       = quiet;
+	fbPanel.refreshAt   = 0;
 	fbPanel.requestTime = cg.time;
-	CG_FatBoss_PanelStatus("Loading your FatBoss items...");
+	if (!quiet)
+	{
+		CG_FatBoss_PanelStatus("Loading your FatBoss items...");
+	}
 	trap_SendClientCommand("fbinv");
 }
 
@@ -2059,7 +2068,7 @@ void CG_FatBoss_Menu_f(void)
 	cgs.cursorX    = Ccg_WideX(SCREEN_WIDTH) * 0.5f;
 	cgs.cursorY    = SCREEN_HEIGHT * 0.5f;
 	CG_FatBoss_PanelRows();
-	CG_FatBoss_PanelRequest();
+	CG_FatBoss_PanelRequest(qfalse);
 }
 
 /**
@@ -2147,7 +2156,11 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 		fbPanel.receiving = qfalse;
 		fbPanel.loaded    = qtrue;
 		fbPanel.waiting   = qfalse;
-		if (!fbPanel.numItems)
+		if (fbPanel.quiet)
+		{
+			fbPanel.quiet = qfalse;     // the refusal that caused the reload stays on screen
+		}
+		else if (!fbPanel.numItems)
 		{
 			CG_FatBoss_PanelStatus("No items yet: open Arsenal or Spray crates on your FatBoss profile.");
 		}
@@ -2166,7 +2179,14 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 	{
 		fbPanel.waiting   = qfalse;
 		fbPanel.receiving = qfalse;
+		fbPanel.quiet     = qfalse;
 		CG_FatBoss_PanelStatus(CG_Argv(1));
+		if (fbPanel.wearing)
+		{
+			// the panel showed the change at once: take the truth back from FatBoss
+			fbPanel.wearing   = qfalse;
+			fbPanel.refreshAt = cg.time + 1200;
+		}
 		return qtrue;
 	}
 	if (!Q_stricmp(cmd, "fbwear_ok"))
@@ -2174,6 +2194,7 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 		int tab = CG_FatBoss_TabIndex(CG_Argv(1));
 
 		fbPanel.waiting = qfalse;
+		fbPanel.wearing = qfalse;
 		for (i = 0; tab >= 0 && i < fbPanel.numItems; i++)
 		{
 			if (fbPanel.items[i].tab == tab)
@@ -2343,7 +2364,11 @@ void CG_FatBoss_Panel_Draw(void)
 	if (fbPanel.waiting && cg.time - fbPanel.requestTime > FB_PANEL_WAIT)
 	{
 		fbPanel.waiting = qfalse;
-		CG_FatBoss_PanelStatus("No answer from the server (it needs fatboss.lua 0.11). Close and try again.");
+		CG_FatBoss_PanelStatus("No answer from the server (it needs fatboss.lua 0.12). Close and try again.");
+	}
+	if (fbPanel.refreshAt && cg.time >= fbPanel.refreshAt && !fbPanel.waiting)
+	{
+		CG_FatBoss_PanelRequest(qtrue);
 	}
 	CG_FatBoss_PanelOrigin(&x0, &y0);
 
@@ -2377,8 +2402,9 @@ void CG_FatBoss_Panel_Draw(void)
 	CG_Text_Paint_Centred_Ext(x0 + 39, y + 14, 0.18f, 0.18f, fbPanelText, "MINE", 0, 0, 0, &cgs.media.limboFont1);
 	CG_FillRect(x0 + 72, y, 58, 20, fbPanel.browseAll ? fbPanelSel : fbPanelOff);
 	CG_Text_Paint_Centred_Ext(x0 + 101, y + 14, 0.18f, 0.18f, fbPanelText, "ALL", 0, 0, 0, &cgs.media.limboFont1);
-	CG_Text_Paint_Ext(x0 + 10, y + 40, 0.16f, 0.16f, fbPanelDim, "Wheel: scroll", 0, 0, 0, &cgs.media.limboFont2);
-	CG_Text_Paint_Ext(x0 + 10, y + 52, 0.16f, 0.16f, fbPanelDim, "ESC: close", 0, 0, 0, &cgs.media.limboFont2);
+	CG_Text_Paint_Ext(x0 + 10, y + 40, 0.16f, 0.16f, fbPanelDim, "1-6 / Left, Right: weapon", 0, 0, 0, &cgs.media.limboFont2);
+	CG_Text_Paint_Ext(x0 + 10, y + 52, 0.16f, 0.16f, fbPanelDim, "Up, Down, wheel: pick", 0, 0, 0, &cgs.media.limboFont2);
+	CG_Text_Paint_Ext(x0 + 10, y + 64, 0.16f, 0.16f, fbPanelDim, "Enter: wear   ESC: close", 0, 0, 0, &cgs.media.limboFont2);
 
 	// the list
 	x = x0 + 140;
@@ -2500,15 +2526,87 @@ void CG_FatBoss_Panel_Draw(void)
 	}
 
 	trap_R_SetColor(NULL);
-	CG_DrawCursor(cgs.cursorX - 14, cgs.cursorY - 14);
+	CG_DrawCursor(cgs.cursorX, cgs.cursorY);
+}
+
+static void CG_FatBoss_PanelTab(int tab)
+{
+	fbPanel.tab    = tab;
+	fbPanel.sel    = 0;
+	fbPanel.scroll = 0;
+	CG_FatBoss_PanelRows();
+	trap_S_StartLocalSound(cgs.media.sndLimboSelect, CHAN_LOCAL_SOUND);
+}
+
+static void CG_FatBoss_PanelSelect(int sel)
+{
+	if (!fbPanel.numRows)
+	{
+		return;
+	}
+	fbPanel.sel = Com_Clamp(0, fbPanel.numRows - 1, sel);
+	if (fbPanel.sel < fbPanel.scroll)
+	{
+		fbPanel.scroll = fbPanel.sel;
+	}
+	else if (fbPanel.sel >= fbPanel.scroll + FB_PANEL_VISIBLE)
+	{
+		fbPanel.scroll = fbPanel.sel - FB_PANEL_VISIBLE + 1;
+	}
+	trap_S_StartLocalSound(cgs.media.sndLimboFilter, CHAN_LOCAL_SOUND);
+}
+
+static fbInvItem_t *CG_FatBoss_PanelSelected(void)
+{
+	const fbPanelRow_t *row = fbPanel.sel < fbPanel.numRows ? &fbPanel.rows[fbPanel.sel] : NULL;
+
+	return (row && row->item >= 0) ? &fbPanel.items[row->item] : NULL;
+}
+
+/**
+ * @brief Wear a copy or take the slot off: shown at once, the server's answer confirms it (a refusal reloads the list).
+ */
+static void CG_FatBoss_PanelWear(fbInvItem_t *it, qboolean off)
+{
+	int i;
+
+	if (!it || fbPanel.waiting || (off ? !(it->flags & FB_INV_WORN) : (it->flags & (FB_INV_WORN | FB_INV_SALE))))
+	{
+		return;
+	}
+	for (i = 0; i < fbPanel.numItems; i++)
+	{
+		if (fbPanel.items[i].tab == it->tab)
+		{
+			fbPanel.items[i].flags &= ~FB_INV_WORN;
+		}
+	}
+	if (!off)
+	{
+		it->flags |= FB_INV_WORN;
+	}
+	fbPanel.wearId      = off ? 0 : it->id;
+	fbPanel.waiting     = qtrue;
+	fbPanel.wearing     = qtrue;
+	fbPanel.requestTime = cg.time;
+	CG_FatBoss_PanelStatus("Saving...");
+	CG_FatBoss_PanelRows();
+	trap_S_StartLocalSound(cgs.media.sndLimboSelect, CHAN_LOCAL_SOUND);
+	if (off)
+	{
+		trap_SendClientCommand(va("fbwear off %s", it->tab == FB_PANEL_GRAFFITI ? "graffiti" : fbSkinSlotNames[it->tab]));
+	}
+	else
+	{
+		trap_SendClientCommand(va("fbwear %i", it->id));
+	}
 }
 
 static void CG_FatBoss_PanelClick(void)
 {
-	float              x0, y0, x, y;
-	int                i;
-	const fbPanelRow_t *row;
-	const fbInvItem_t  *it;
+	float       x0, y0, x, y;
+	int         i;
+	fbInvItem_t *it;
 
 	CG_FatBoss_PanelOrigin(&x0, &y0);
 	if (CG_FatBoss_Inside(x0 + FB_PANEL_W - 26, y0 + 4, 20, 20))
@@ -2520,11 +2618,7 @@ static void CG_FatBoss_PanelClick(void)
 	{
 		if (CG_FatBoss_Inside(x0 + 10, y0 + 38 + i * 28, 120, 24))
 		{
-			fbPanel.tab    = i;
-			fbPanel.sel    = 0;
-			fbPanel.scroll = 0;
-			CG_FatBoss_PanelRows();
-			trap_S_StartLocalSound(cgs.media.sndLimboSelect, CHAN_LOCAL_SOUND);
+			CG_FatBoss_PanelTab(i);
 			return;
 		}
 	}
@@ -2542,35 +2636,27 @@ static void CG_FatBoss_PanelClick(void)
 	{
 		if (CG_FatBoss_Inside(x0 + 140, y0 + 38 + i * FB_PANEL_ROW_H, 220, FB_PANEL_ROW_H - 2))
 		{
-			fbPanel.sel = fbPanel.scroll + i;
+			CG_FatBoss_PanelSelect(fbPanel.scroll + i);
 			return;
 		}
 	}
-	x   = x0 + 372;
-	row = fbPanel.sel < fbPanel.numRows ? &fbPanel.rows[fbPanel.sel] : NULL;
-	it  = (row && row->item >= 0) ? &fbPanel.items[row->item] : NULL;
-	if (it && !fbPanel.waiting && CG_FatBoss_Inside(x, y0 + 292, 115, 24) && !(it->flags & (FB_INV_WORN | FB_INV_SALE)))
+	x  = x0 + 372;
+	it = CG_FatBoss_PanelSelected();
+	if (CG_FatBoss_Inside(x, y0 + 292, 115, 24))
 	{
-		fbPanel.wearId      = it->id;
-		fbPanel.waiting     = qtrue;
-		fbPanel.requestTime = cg.time;
-		CG_FatBoss_PanelStatus("Saving...");
-		trap_SendClientCommand(va("fbwear %i", it->id));
+		CG_FatBoss_PanelWear(it, qfalse);
 		return;
 	}
-	if (it && !fbPanel.waiting && CG_FatBoss_Inside(x + 123, y0 + 292, 115, 24) && (it->flags & FB_INV_WORN))
+	if (CG_FatBoss_Inside(x + 123, y0 + 292, 115, 24))
 	{
-		fbPanel.wearId      = 0;
-		fbPanel.waiting     = qtrue;
-		fbPanel.requestTime = cg.time;
-		CG_FatBoss_PanelStatus("Saving...");
-		trap_SendClientCommand(va("fbwear off %s", fbPanel.tab == FB_PANEL_GRAFFITI ? "graffiti" : fbSkinSlotNames[fbPanel.tab]));
+		CG_FatBoss_PanelWear(it, qtrue);
 		return;
 	}
 	if (fbSkinPending[cg.clientNum] && CG_FatBoss_Inside(x, y0 + 322, 238, 24))
 	{
 		CG_FatBoss_LoadPending_f();
 		CG_FatBoss_PanelStatus("Loaded: your weapons wear it now.");
+		trap_S_StartLocalSound(cgs.media.sndLimboSelect, CHAN_LOCAL_SOUND);
 	}
 }
 
@@ -2594,7 +2680,37 @@ void CG_FatBoss_Panel_Key(int key, qboolean down)
 	case K_MOUSE1:
 		CG_FatBoss_PanelClick();
 		break;
+	case K_UPARROW:
+	case K_KP_UPARROW:
+		CG_FatBoss_PanelSelect(fbPanel.sel - 1);
+		break;
+	case K_DOWNARROW:
+	case K_KP_DOWNARROW:
+		CG_FatBoss_PanelSelect(fbPanel.sel + 1);
+		break;
+	case K_PGUP:
+		CG_FatBoss_PanelSelect(fbPanel.sel - FB_PANEL_VISIBLE);
+		break;
+	case K_PGDN:
+		CG_FatBoss_PanelSelect(fbPanel.sel + FB_PANEL_VISIBLE);
+		break;
+	case K_ENTER:
+	case K_KP_ENTER:
+		CG_FatBoss_PanelWear(CG_FatBoss_PanelSelected(), qfalse);
+		break;
+	case K_LEFTARROW:
+	case K_KP_LEFTARROW:
+		CG_FatBoss_PanelTab((fbPanel.tab + FB_PANEL_TABS - 1) % FB_PANEL_TABS);
+		break;
+	case K_RIGHTARROW:
+	case K_KP_RIGHTARROW:
+		CG_FatBoss_PanelTab((fbPanel.tab + 1) % FB_PANEL_TABS);
+		break;
 	default:
+		if (key >= '1' && key < '1' + FB_PANEL_TABS)
+		{
+			CG_FatBoss_PanelTab(key - '1');
+		}
 		break;
 	}
 }

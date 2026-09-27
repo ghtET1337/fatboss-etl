@@ -55,7 +55,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.11"
+local VERSION = "0.12"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 -- first configstring past CS_MAX of ET: Legacy 2.86 (bg_public.h); the FatBoss cgame reads FB_CS + client
@@ -86,9 +86,12 @@ local LINK_WAIT_MS    = 15000   -- how long a /fblink waits for FatBoss to answe
 local LINK_GAP_MS     = 5000    -- one /fblink per player every few seconds
 local SYNC_GAP_MS     = 3000    -- one fbsync (a cgame restart) per player every few seconds
 local SPRAY_GAP_MS    = 2000    -- between two graffiti of one player
-local PANEL_GAP_MS    = 1000    -- one panel request (list, wear) per player a second
+local PANEL_GAP_MS    = 500     -- one panel request (list, wear) per player every half second
 local PANEL_WAIT_MS   = 15000   -- how long a panel request waits for FatBoss
 local PANEL_CHUNK     = 700     -- characters of items per fbinv_items command
+-- fbinv_items commands a frame for one player: ET drops a client that has 64 reliable commands
+-- it has not acknowledged, so a list of hundreds of items goes out over a few frames
+local PANEL_PER_FRAME = 4
 
 local loadouts     = {}  -- cl_guid (upper case) -> { graffiti = design, skins = { slot = theme }, wear = { slot = 0..1 } }
 local testLoadouts = {}  -- the same, set with /fbequip in test mode; wins over loadouts
@@ -103,6 +106,7 @@ local lastLink     = {}  -- clientNum -> time of the last /fblink
 local lastSync     = {}  -- clientNum -> time the client last got everything
 local requests     = {}  -- clientNum -> { file, guid, kind, deadline } of a panel request waiting for FatBoss
 local lastPanel    = {}  -- clientNum -> time of the last panel request
+local outbox       = {}  -- clientNum -> commands of an item list still to send
 local inventoryUrl, equipUrl
 local loadoutPath, loadoutUrl, linkUrl, apiToken, testMode, defaultGraffiti, maxClients, homeDir, spraysPerLife
 local nextFetch, nextRead, lastLoadoutText = 0, 0, nil
@@ -523,7 +527,7 @@ local function panelStart(clientNum, url)
         panelError(clientNum, "This server is not connected to FatBoss.")
         return nil
     end
-    if requests[clientNum] or (lastPanel[clientNum] and now - lastPanel[clientNum] < PANEL_GAP_MS) then
+    if requests[clientNum] or outbox[clientNum] or (lastPanel[clientNum] and now - lastPanel[clientNum] < PANEL_GAP_MS) then
         panelError(clientNum, "One moment, the last request is still on its way.")
         return nil
     end
@@ -597,21 +601,41 @@ local function sendInventory(clientNum, guid, answer)
             tokens[#tokens + 1] = string.format("%d,%s,%s,%d,%d,%d", math.floor(id), it.slot, it.value, wear, math.floor(serial), flags)
         end
     end
-    et.trap_SendServerCommand(clientNum, string.format('fbinv_begin %d %d "%s"', #tokens,
-        math.floor(tonumber(answer.total) or #tokens), plain(answer.name)))
+    local queue = { string.format('fbinv_begin %d %d "%s"', #tokens, math.floor(tonumber(answer.total) or #tokens), plain(answer.name)) }
     local line, len = {}, 0
     for _, tok in ipairs(tokens) do
         if len + #tok + 1 > PANEL_CHUNK then
-            et.trap_SendServerCommand(clientNum, "fbinv_items " .. table.concat(line, " "))
+            queue[#queue + 1] = "fbinv_items " .. table.concat(line, " ")
             line, len = {}, 0
         end
         line[#line + 1] = tok
         len = len + #tok + 1
     end
     if #line > 0 then
-        et.trap_SendServerCommand(clientNum, "fbinv_items " .. table.concat(line, " "))
+        queue[#queue + 1] = "fbinv_items " .. table.concat(line, " ")
     end
-    et.trap_SendServerCommand(clientNum, "fbinv_end")
+    queue[#queue + 1] = "fbinv_end"
+    outbox[clientNum] = queue
+end
+
+-- a few commands of each waiting item list, every frame
+local function drainOutbox()
+    for clientNum, queue in pairs(outbox) do
+        if not connected(clientNum) then
+            outbox[clientNum] = nil
+        else
+            for _ = 1, PANEL_PER_FRAME do
+                local cmd = table.remove(queue, 1)
+                if not cmd then
+                    break
+                end
+                et.trap_SendServerCommand(clientNum, cmd)
+            end
+            if #queue == 0 then
+                outbox[clientNum] = nil
+            end
+        end
+    end
 end
 
 local function checkRequests(now)
@@ -685,7 +709,7 @@ function et_InitGame(levelTime, randomSeed, restart)
     spraysPerLife = math.max(1, math.min(10, spraysPerLife))
     -- a new map starts with empty configstrings; a map_restart keeps them (setting the same value again sends nothing)
     setStrings, synced, sprays, links, sprayCount, lastSpray = {}, {}, {}, {}, {}, {}
-    requests, lastPanel = {}, {}
+    requests, lastPanel, outbox = {}, {}, {}
     readLoadouts()
     fetchLoadouts()
     nextFetch = levelTime + FETCH_MS
@@ -710,6 +734,9 @@ function et_RunFrame(levelTime)
     end
     if next(requests) then
         checkRequests(et.trap_Milliseconds())
+    end
+    if next(outbox) then
+        drainOutbox()
     end
 end
 
@@ -769,6 +796,7 @@ end
 
 function et_ClientDisconnect(clientNum)
     requests[clientNum] = nil
+    outbox[clientNum] = nil
     lastPanel[clientNum] = nil
     sprayCount[clientNum] = nil
     lastSpray[clientNum] = nil
