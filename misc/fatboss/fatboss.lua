@@ -33,6 +33,13 @@
     FATBOSS_LINK_URL (by default the loadout URL with /loadouts replaced by
     /link), then tells the player how it went.
 
+    In-game Arsenal panel (cgame b11, ESC -> FatBoss Arsenal): the panel sends
+    "fbinv"; the module asks FatBoss (/inventory, next to the loadout URL) for the
+    items of the account this computer is linked to and sends them back in a few
+    "fbinv_items" commands. "fbwear <id>" or "fbwear off <slot>" goes to /equip;
+    the new loadout comes back with the answer and is set at once. FatBoss only
+    ever touches the account the player's cl_guid is linked to.
+
     FATBOSS_DEFAULT_GRAFFITI=fatboss lets players without a graffiti of their
     own spray that design (the FatBoss starter everybody gets).
 
@@ -40,14 +47,15 @@
     and /fbequip <slot> <theme> [wear] tries any skin or graffiti without FatBoss.
 
     Runs next to Oksii's stats.lua and combinedfixes.lua in its own Lua VM and
-    handles only its own commands ("spray", "fblink", "fbsync", and "fbequip" in test mode).
+    handles only its own commands ("spray", "fblink", "fbsync", "fbinv", "fbwear",
+    and "fbequip" in test mode).
     fbsync (a cgame restart) gets the graffiti on the map again; skins need nothing.
 ]]
 
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.10"
+local VERSION = "0.11"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 -- first configstring past CS_MAX of ET: Legacy 2.86 (bg_public.h); the FatBoss cgame reads FB_CS + client
@@ -78,6 +86,9 @@ local LINK_WAIT_MS    = 15000   -- how long a /fblink waits for FatBoss to answe
 local LINK_GAP_MS     = 5000    -- one /fblink per player every few seconds
 local SYNC_GAP_MS     = 3000    -- one fbsync (a cgame restart) per player every few seconds
 local SPRAY_GAP_MS    = 2000    -- between two graffiti of one player
+local PANEL_GAP_MS    = 1000    -- one panel request (list, wear) per player a second
+local PANEL_WAIT_MS   = 15000   -- how long a panel request waits for FatBoss
+local PANEL_CHUNK     = 700     -- characters of items per fbinv_items command
 
 local loadouts     = {}  -- cl_guid (upper case) -> { graffiti = design, skins = { slot = theme }, wear = { slot = 0..1 } }
 local testLoadouts = {}  -- the same, set with /fbequip in test mode; wins over loadouts
@@ -90,6 +101,9 @@ local lastMessage  = {}  -- clientNum -> level time of the last refusal
 local links        = {}  -- clientNum -> { file, guid, deadline } of a /fblink waiting for FatBoss
 local lastLink     = {}  -- clientNum -> time of the last /fblink
 local lastSync     = {}  -- clientNum -> time the client last got everything
+local requests     = {}  -- clientNum -> { file, guid, kind, deadline } of a panel request waiting for FatBoss
+local lastPanel    = {}  -- clientNum -> time of the last panel request
+local inventoryUrl, equipUrl
 local loadoutPath, loadoutUrl, linkUrl, apiToken, testMode, defaultGraffiti, maxClients, homeDir, spraysPerLife
 local nextFetch, nextRead, lastLoadoutText = 0, 0, nil
 
@@ -462,6 +476,173 @@ local function equip(clientNum)
     setLoadout(clientNum, loadoutString(clientNum))
 end
 
+-- ------------------------------------------------------------------ in-game Arsenal panel
+
+-- text inside a quoted server command: no quotes, backslashes or line breaks
+local function plain(text)
+    return (tostring(text or ""):gsub('[%c"\\]', " "):sub(1, 200))
+end
+
+local function panelError(clientNum, text)
+    et.trap_SendServerCommand(clientNum, string.format('fbpanel_err "%s"', plain(text)))
+end
+
+local function isSlot(slot)
+    if slot == "graffiti" then
+        return true
+    end
+    for _, s in ipairs(SLOTS) do
+        if s == slot then
+            return true
+        end
+    end
+    return false
+end
+
+-- POSTs body to url in the background; the answer lands in <base>.res (FatBoss answers 400 with a reason, so no -f)
+local function postAsync(url, body, base)
+    local f = io.open(base .. ".req", "w")
+    if not f then
+        return false
+    end
+    f:write(json.encode(body))
+    f:close()
+    local auth = ""
+    if apiToken and apiToken ~= "" then
+        auth = " -H " .. shellQuote("Authorization: Bearer " .. apiToken)
+    end
+    os.execute(string.format("(curl -sS --max-time 10%s -H 'Content-Type: application/json' --data @%s -o %s.tmp %s; mv -f %s.tmp %s.res; rm -f %s) >/dev/null 2>&1 &",
+        auth, shellQuote(base .. ".req"), shellQuote(base), shellQuote(url), shellQuote(base), shellQuote(base), shellQuote(base .. ".req")))
+    return true
+end
+
+-- common checks of fbinv and fbwear; returns the player's cl_guid when the request may go out
+local function panelStart(clientNum, url)
+    local now = et.trap_Milliseconds()
+    if not url then
+        panelError(clientNum, "This server is not connected to FatBoss.")
+        return nil
+    end
+    if requests[clientNum] or (lastPanel[clientNum] and now - lastPanel[clientNum] < PANEL_GAP_MS) then
+        panelError(clientNum, "One moment, the last request is still on its way.")
+        return nil
+    end
+    local guid = guidOf(clientNum)
+    if not guid:match("^[0-9A-F]+$") or #guid ~= 32 then
+        panelError(clientNum, "Your game has no valid cl_guid. Restart the game and try again.")
+        return nil
+    end
+    lastPanel[clientNum] = now
+    return guid, now
+end
+
+local function panelSend(clientNum, url, body, kind)
+    local guid, now = panelStart(clientNum, url)
+    if not guid then
+        return
+    end
+    body.guid = guid
+    local base = string.format("%s/fatboss_panel_%d_%d", homeDir, clientNum, now)
+    if not postAsync(url, body, base) then
+        return panelError(clientNum, "The server could not write the request. Tell an admin.")
+    end
+    requests[clientNum] = { file = base .. ".res", guid = guid, kind = kind, deadline = now + PANEL_WAIT_MS }
+end
+
+-- fbinv: the panel opened, it wants the player's items
+local function panelInventory(clientNum)
+    panelSend(clientNum, inventoryUrl, {}, "inv")
+end
+
+-- fbwear <id> | fbwear off <slot>
+local function panelWear(clientNum)
+    local a1, a2 = string.lower(et.trap_Argv(1) or ""), string.lower(et.trap_Argv(2) or "")
+    if a1 == "off" then
+        if not isSlot(a2) then
+            return panelError(clientNum, "Unknown slot.")
+        end
+        return panelSend(clientNum, equipUrl, { slot = a2 }, "wear")
+    end
+    local id = tonumber(a1)
+    if not id or id < 1 or id ~= math.floor(id) then
+        return panelError(clientNum, "Unknown item.")
+    end
+    panelSend(clientNum, equipUrl, { id = math.floor(id) }, "wear")
+end
+
+-- a loadout FatBoss just sent for this player: set it now instead of waiting for the next fetch
+local function takeEntry(clientNum, guid, entry)
+    if type(entry) ~= "table" then
+        return
+    end
+    loadouts[guid] = parseEntry(entry) or {}
+    testLoadouts[guid] = nil          -- a real choice replaces an /fbequip test loadout
+    setLoadout(clientNum, loadoutString(clientNum))
+    nextFetch = 0                     -- and everybody's feed soon after
+end
+
+-- the items, a few per command (a reliable command holds about 1 KB): "id,slot,value,wear,serial,flags"
+-- wear is the float x 1000 or -1 (graffiti); flags: 1 worn, 2 on the market, 4 bound
+local function sendInventory(clientNum, guid, answer)
+    takeEntry(clientNum, guid, answer.entry)
+    local tokens = {}
+    for _, it in ipairs(type(answer.items) == "table" and answer.items or {}) do
+        local id, serial, wear
+        if type(it) == "table" then
+            id, serial, wear = tonumber(it.id), tonumber(it.serial) or 0, tonumber(it.wear)
+        end
+        if id and isSlot(it.slot) and validName(it.value) then
+            local flags = (it.worn and 1 or 0) + (it.sale and 2 or 0) + (it.bound and 4 or 0)
+            wear = wear and math.max(0, math.min(1000, math.floor(wear))) or -1
+            tokens[#tokens + 1] = string.format("%d,%s,%s,%d,%d,%d", math.floor(id), it.slot, it.value, wear, math.floor(serial), flags)
+        end
+    end
+    et.trap_SendServerCommand(clientNum, string.format('fbinv_begin %d %d "%s"', #tokens,
+        math.floor(tonumber(answer.total) or #tokens), plain(answer.name)))
+    local line, len = {}, 0
+    for _, tok in ipairs(tokens) do
+        if len + #tok + 1 > PANEL_CHUNK then
+            et.trap_SendServerCommand(clientNum, "fbinv_items " .. table.concat(line, " "))
+            line, len = {}, 0
+        end
+        line[#line + 1] = tok
+        len = len + #tok + 1
+    end
+    if #line > 0 then
+        et.trap_SendServerCommand(clientNum, "fbinv_items " .. table.concat(line, " "))
+    end
+    et.trap_SendServerCommand(clientNum, "fbinv_end")
+end
+
+local function checkRequests(now)
+    for clientNum, pending in pairs(requests) do
+        local f = io.open(pending.file, "r")
+        if f then
+            local text = f:read("*a")
+            f:close()
+            os.remove(pending.file)
+            requests[clientNum] = nil
+            local answer = json.decode(text or "")
+            if not connected(clientNum) or guidOf(clientNum) ~= pending.guid then
+                -- the player left, or somebody else has the slot now: nothing to tell
+            elseif type(answer) ~= "table" then
+                panelError(clientNum, "FatBoss did not answer properly. Try again in a minute.")
+            elseif not answer.ok then
+                panelError(clientNum, tostring(answer.error or "FatBoss said no."))
+            elseif pending.kind == "inv" then
+                sendInventory(clientNum, pending.guid, answer)
+            else
+                takeEntry(clientNum, pending.guid, answer.entry)
+                et.trap_SendServerCommand(clientNum, "fbwear_ok " .. (isSlot(answer.slot) and answer.slot or "-"))
+                et.G_LogPrint(string.format("%s: wear %d %s %s\n", MODNAME, clientNum, pending.guid, tostring(answer.label or answer.slot)))
+            end
+        elseif now > pending.deadline then
+            requests[clientNum] = nil
+            panelError(clientNum, "No answer from FatBoss. Try again in a minute.")
+        end
+    end
+end
+
 -- the graffiti already on the map, to one client (without the sound)
 local function syncClient(clientNum)
     for _, cmd in pairs(sprays) do
@@ -490,6 +671,10 @@ function et_InitGame(levelTime, randomSeed, restart)
     if (not linkUrl or linkUrl == "") and loadoutUrl and loadoutUrl:match("/loadouts$") then
         linkUrl = loadoutUrl:gsub("/loadouts$", "/link")
     end
+    -- the panel's two calls sit next to the loadout URL (or the link URL)
+    local apiBase = (loadoutUrl and loadoutUrl:match("^(.+)/loadouts$")) or (linkUrl and linkUrl:match("^(.+)/link$"))
+    inventoryUrl = apiBase and apiBase .. "/inventory" or nil
+    equipUrl = apiBase and apiBase .. "/equip" or nil
     apiToken = os.getenv("FATBOSS_API_TOKEN")
     testMode = os.getenv("FATBOSS_TEST") == "1"
     defaultGraffiti = os.getenv("FATBOSS_DEFAULT_GRAFFITI")
@@ -500,6 +685,7 @@ function et_InitGame(levelTime, randomSeed, restart)
     spraysPerLife = math.max(1, math.min(10, spraysPerLife))
     -- a new map starts with empty configstrings; a map_restart keeps them (setting the same value again sends nothing)
     setStrings, synced, sprays, links, sprayCount, lastSpray = {}, {}, {}, {}, {}, {}
+    requests, lastPanel = {}, {}
     readLoadouts()
     fetchLoadouts()
     nextFetch = levelTime + FETCH_MS
@@ -522,6 +708,9 @@ function et_RunFrame(levelTime)
     if next(links) then
         checkLinks(et.trap_Milliseconds())
     end
+    if next(requests) then
+        checkRequests(et.trap_Milliseconds())
+    end
 end
 
 function et_ClientCommand(clientNum, command)
@@ -536,6 +725,14 @@ function et_ClientCommand(clientNum, command)
     end
     if command == "fbsync" then
         resync(clientNum)
+        return 1
+    end
+    if command == "fbinv" then
+        panelInventory(clientNum)
+        return 1
+    end
+    if command == "fbwear" then
+        panelWear(clientNum)
         return 1
     end
     if command == "fbequip" and testMode then
@@ -571,6 +768,8 @@ function et_ClientBegin(clientNum)
 end
 
 function et_ClientDisconnect(clientNum)
+    requests[clientNum] = nil
+    lastPanel[clientNum] = nil
     sprayCount[clientNum] = nil
     lastSpray[clientNum] = nil
     lastMessage[clientNum] = nil

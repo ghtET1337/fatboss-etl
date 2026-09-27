@@ -4830,6 +4830,8 @@ void CG_DrawActive()
 		CG_NoiseGenerator();
 		CG_DrawHudEditor();
 	}
+
+	CG_FatBoss_Panel_Draw();
 }
 
 void CG_DrawMissileCamera(hudComponent_t *comp)

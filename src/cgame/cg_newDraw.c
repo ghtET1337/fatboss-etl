@@ -676,6 +676,7 @@ void CG_MouseEvent(int x, int y)
 	case CGAME_EVENT_SHOUTCAST:
 	case CGAME_EVENT_SPAWNPOINTMSG:
 	case CGAME_EVENT_HUDEDITOR:
+	case CGAME_EVENT_FATBOSS:
 
 #ifdef FEATURE_EDV
 		if (!cgs.demoCamera.renderingFreeCam)
@@ -967,6 +968,10 @@ void CG_EventHandling(int type, qboolean fForced)
 			cg.showSpawnpointsMenu = qfalse;
 			trap_Cvar_Set("cl_bypassmouseinput", "0");
 		}
+		else if (cgs.eventHandling == CGAME_EVENT_FATBOSS)
+		{
+			CG_FatBoss_Panel_Closed();
+		}
 		else if (cg.snap && cg.snap->ps.pm_type == PM_INTERMISSION && fForced)
 		{
 			trap_UI_Popup(UIMENU_INGAME);
@@ -1075,6 +1080,9 @@ void CG_KeyEvent(int key, qboolean down)
 		break;
 	case CGAME_EVENT_HUDEDITOR:
 		CG_HudEditor_KeyHandling(key, down);
+		break;
+	case CGAME_EVENT_FATBOSS:
+		CG_FatBoss_Panel_Key(key, down);
 		break;
 #ifdef FEATURE_MULTIVIEW
 	case  CGAME_EVENT_MULTIVIEW:

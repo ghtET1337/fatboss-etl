@@ -3507,6 +3507,7 @@ static consoleCommand_t commands[] =
 	{ "fb_version",             CG_FatBoss_Version_f         },
 	{ "fb_skins",               CG_FatBoss_Skins_f           },
 	{ "fb_loadskins",           CG_FatBoss_LoadPending_f     },
+	{ "fbmenu",                 CG_FatBoss_Menu_f            },
 	{ "+scores",                CG_ScoresDown_f              },
 	{ "-scores",                CG_ScoresUp_f                },
 	{ "zoomin",                 CG_ZoomIn_f                  },

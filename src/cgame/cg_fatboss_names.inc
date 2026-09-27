@@ -1,0 +1,58 @@
+// FatBoss display names - generated from FatBoss's catalog (fatboss_cosmetics.py), do not edit
+
+static const fbName_t fbSkinDisplayNames[] =
+{
+	{ "camo", "Woodland", "" },
+	{ "polska", "White-Red", "" },
+	{ "neon", "Night Neon", "" },
+	{ "gold", "Golden Boss", "" },
+	{ "damascus", "Damascus", "" },
+	{ "defender", "Defender", "" },
+	{ "wut", "WuT", "" },
+	{ "airstrike", "Airstrike", "" },
+	{ "cyber", "Circuit", "" },
+	{ "plasma", "Plasma", "" },
+	{ "caution_noob", "Caution: Noob", "" },
+	{ "sale", "Sale -90%", "" },
+	{ "skill_issue", "Skill Issue", "" },
+	{ "knockoff", "Knockoff", "" },
+	{ "connection_interrupted", "Connection Interrupted", "" },
+	{ "sticker_bomb", "Sticker Bomb", "" },
+	{ "fade", "Fade", "" },
+	{ "nebula", "Nebula", "" },
+	{ "case", "Case Hardened", "" },
+	{ "redline", "Red Line", "" },
+	{ "frontier", "Frontier", "" },
+	{ "glacier", "Glacier", "" },
+	{ "pearl", "Pearl Ink", "" },
+	{ "inferno", "Inferno", "" },
+	{ "emerald", "Emerald", "" },
+	{ "scales", "Dragon Scale", "" },
+	{ "tiger", "Tiger Gold", "" },
+	{ "marble", "Marble Fire", "" },
+};
+
+// every graffiti design, in the order FatBoss lists them
+static const fbName_t fbGraffitiNames[] =
+{
+	{ "fatboss", "FatBoss", "common" },
+	{ "gg", "GG", "common" },
+	{ "ez", "EZ", "common" },
+	{ "noob", "Noob", "rare" },
+	{ "nice_try", "Nice Try", "rare" },
+	{ "gibbed", "Gibbed", "rare" },
+	{ "poland_et", "Poland ET Legacy", "epic" },
+	{ "cloudy", "Cloudy", "legendary" },
+	{ "kurwa_mac", "Kurwa Mac", "common" },
+	{ "get_rekt", "Get Rekt", "common" },
+	{ "lagging", "I Was Lagging", "common" },
+	{ "skill_issue", "Skill Issue", "rare" },
+	{ "skill_404", "404 Skill Not Found", "rare" },
+	{ "rip_bozo", "RIP Bozo", "rare" },
+	{ "jebac_axis", "Jebac Axis", "rare" },
+	{ "jebac_allies", "Jebac Allies", "rare" },
+	{ "sprzedam_opla", "Sprzedam Opla", "epic" },
+	{ "nastepny_przystanek", "Nastepny przystanek", "epic" },
+	{ "next_stop", "Next Stop", "epic" },
+	{ "wut_1112", "WuT 11/12 ++", "legendary" },
+};

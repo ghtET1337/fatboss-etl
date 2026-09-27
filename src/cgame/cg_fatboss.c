@@ -15,7 +15,7 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b10"
+#define FATBOSS_CGAME_VERSION "b11"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1751,11 +1751,17 @@ void CG_FatBoss_Skins_f(void)
 	}
 }
 
+static qboolean CG_FatBoss_PanelCommand(const char *cmd);
+
 /**
  * @brief Server commands for FatBoss; returns qtrue when the command was ours.
  */
 qboolean CG_FatBoss_ServerCommand(const char *cmd)
 {
+	if (!Q_stricmpn(cmd, "fbinv", 5) || !Q_stricmp(cmd, "fbpanel_err") || !Q_stricmp(cmd, "fbwear_ok"))
+	{
+		return CG_FatBoss_PanelCommand(cmd);
+	}
 	if (!Q_stricmp(cmd, "fbskin"))
 	{
 		return qtrue;           // fatboss.lua before 0.8; loadouts come in configstrings now
@@ -1806,6 +1812,798 @@ void CG_FatBoss_ClearSprays(void)
 	Com_Memset(fbSprays, 0, sizeof(fbSprays));
 }
 
+/*
+ * In-game Arsenal panel
+ *
+ * ESC -> "FatBoss Arsenal" (ui/ingame_main.menu of the FatBoss pk3 shows the button while
+ * fb_arsenal is 1, which only this cgame sets) or /fbmenu opens it. The panel asks the server
+ * ("fbinv"); fatboss.lua asks FatBoss for the items of the account this computer is linked to
+ * and sends them back as "fbinv_begin", "fbinv_items" and "fbinv_end". "fbwear <id>" and
+ * "fbwear off <slot>" wear or take off; the server sets the new loadout configstring at once,
+ * and "Apply now" loads what it needs (fb_loadskins). The preview draws the third-person weapon
+ * with the skin at 1k and the copy's wear, turning slowly; graffiti show as their picture.
+ */
+
+typedef struct
+{
+	const char *key;
+	const char *name;
+	const char *rarity;
+} fbName_t;
+
+#include "cg_fatboss_names.inc"
+
+#define FB_PANEL_TABS     (FB_SKIN_SLOTS + 1)       ///< the five weapon slots, then graffiti
+#define FB_PANEL_GRAFFITI FB_SKIN_SLOTS
+#define FB_INV_MAX        160
+#define FB_PANEL_ROWS_MAX 64
+#define FB_PANEL_VISIBLE  13
+#define FB_PANEL_W        620.f
+#define FB_PANEL_H        380.f
+#define FB_PANEL_ROW_H    24.f
+#define FB_PANEL_WAIT     20000                     ///< ms a request may take before the panel gives up
+
+#define FB_INV_WORN  1
+#define FB_INV_SALE  2
+#define FB_INV_BOUND 4
+
+typedef struct
+{
+	int id;
+	int tab;            ///< weapon slot, or FB_PANEL_GRAFFITI
+	int value;          ///< theme index, or fbGraffitiNames index
+	int wear;           ///< float x 1000, -1 for graffiti
+	int serial;
+	int flags;
+} fbInvItem_t;
+
+typedef struct
+{
+	int item;           ///< fbInvItem_t index, -1 when not owned (browsing everything)
+	int value;
+	int owned;          ///< copies owned (browsing everything)
+} fbPanelRow_t;
+
+static struct
+{
+	qboolean open;
+	qboolean loaded;
+	qboolean receiving;
+	qboolean browseAll;
+	qboolean waiting;
+	int requestTime;
+	int tab;
+	int sel;
+	int scroll;
+	int wearId;
+	int numItems;
+	int total;
+	int numRows;
+	char account[48];
+	char status[160];
+	fbInvItem_t items[FB_INV_MAX];
+	fbPanelRow_t rows[FB_PANEL_ROWS_MAX];
+} fbPanel;
+
+static qhandle_t fbGraffitiShaders[ARRAY_LEN(fbGraffitiNames)];     ///< 0 not tried, -1 missing
+static vmCvar_t  fb_arsenal;                                        ///< 1 while this cgame runs: the ESC menu shows its button
+static const char *fbPanelTabNames[FB_PANEL_TABS] = { "KNIFE", "COLT", "LUGER", "THOMPSON", "MP 40", "GRAFFITI" };
+static const char *fbPanelSlotTitles[FB_SKIN_SLOTS] = { "Knife", "Colt", "Luger", "Thompson", "MP 40" };
+
+static vec4_t fbPanelBack   = { 0.05f, 0.06f, 0.05f, 0.94f };
+static vec4_t fbPanelLine   = { 0.78f, 0.64f, 0.30f, 1.f };
+static vec4_t fbPanelGold   = { 0.95f, 0.80f, 0.40f, 1.f };
+static vec4_t fbPanelText   = { 0.92f, 0.92f, 0.88f, 1.f };
+static vec4_t fbPanelDim    = { 0.55f, 0.56f, 0.52f, 1.f };
+static vec4_t fbPanelHover  = { 1.f, 1.f, 1.f, 0.08f };
+static vec4_t fbPanelSel    = { 0.78f, 0.64f, 0.30f, 0.28f };
+static vec4_t fbPanelGreen  = { 0.55f, 0.85f, 0.45f, 1.f };
+static vec4_t fbPanelRed    = { 0.95f, 0.45f, 0.40f, 1.f };
+static vec4_t fbPanelButton = { 0.78f, 0.64f, 0.30f, 0.85f };
+static vec4_t fbPanelOff    = { 0.3f, 0.3f, 0.28f, 0.6f };
+static vec4_t fbPanelBox    = { 0.02f, 0.02f, 0.02f, 1.f };
+
+static const char *CG_FatBoss_ThemeName(int theme)
+{
+	int i;
+
+	for (i = 0; i < (int)ARRAY_LEN(fbSkinDisplayNames); i++)
+	{
+		if (!Q_stricmp(fbSkinDisplayNames[i].key, fbSkinThemes[theme].name))
+		{
+			return fbSkinDisplayNames[i].name;
+		}
+	}
+	return fbSkinThemes[theme].name;
+}
+
+static int CG_FatBoss_GraffitiIndex(const char *design)
+{
+	int i;
+
+	for (i = 0; i < (int)ARRAY_LEN(fbGraffitiNames); i++)
+	{
+		if (!Q_stricmp(fbGraffitiNames[i].key, design))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+static int CG_FatBoss_TabIndex(const char *slot)
+{
+	int i;
+
+	for (i = 0; i < FB_SKIN_SLOTS; i++)
+	{
+		if (!Q_stricmp(fbSkinSlotNames[i], slot))
+		{
+			return i;
+		}
+	}
+	return Q_stricmp(slot, "graffiti") ? -1 : FB_PANEL_GRAFFITI;
+}
+
+static const char *CG_FatBoss_ConditionName(int wear)
+{
+	return wear < 70 ? "Factory New" : wear < 150 ? "Minimal Wear" : wear < 380 ? "Field-Tested" : wear < 450 ? "Well-Worn" : "Battle-Scarred";
+}
+
+static const char *CG_FatBoss_ConditionShort(int wear)
+{
+	return wear < 70 ? "FN" : wear < 150 ? "MW" : wear < 380 ? "FT" : wear < 450 ? "WW" : "BS";
+}
+
+static qboolean CG_FatBoss_Inside(float x, float y, float w, float h)
+{
+	return cgs.cursorX >= x && cgs.cursorX < x + w && cgs.cursorY >= y && cgs.cursorY < y + h;
+}
+
+static void CG_FatBoss_PanelOrigin(float *x0, float *y0)
+{
+	*x0 = (Ccg_WideX(SCREEN_WIDTH) - FB_PANEL_W) * 0.5f;
+	*y0 = (SCREEN_HEIGHT - FB_PANEL_H) * 0.5f;
+}
+
+static void CG_FatBoss_PanelStatus(const char *text)
+{
+	Q_strncpyz(fbPanel.status, text, sizeof(fbPanel.status));
+}
+
+/**
+ * @brief The rows of the open tab: the items owned, or everything there is with what is owned of it.
+ */
+static void CG_FatBoss_PanelRows(void)
+{
+	int i, j, n = 0, best;
+
+	if (!fbPanel.browseAll)
+	{
+		for (i = 0; i < fbPanel.numItems && n < FB_PANEL_ROWS_MAX; i++)
+		{
+			if (fbPanel.items[i].tab == fbPanel.tab)
+			{
+				fbPanel.rows[n].item  = i;
+				fbPanel.rows[n].value = fbPanel.items[i].value;
+				fbPanel.rows[n].owned = 1;
+				n++;
+			}
+		}
+	}
+	else
+	{
+		int count = fbPanel.tab == FB_PANEL_GRAFFITI ? (int)ARRAY_LEN(fbGraffitiNames) : FB_SKIN_THEMES;
+
+		for (j = 0; j < count && n < FB_PANEL_ROWS_MAX; j++)
+		{
+			if (fbPanel.tab != FB_PANEL_GRAFFITI && !(fbSkinThemes[j].textures & fbSkinSlotTextures[fbPanel.tab]))
+			{
+				continue;
+			}
+			// the copy to wear: the one worn, else the least worn
+			best                  = -1;
+			fbPanel.rows[n].owned = 0;
+			for (i = 0; i < fbPanel.numItems; i++)
+			{
+				const fbInvItem_t *it = &fbPanel.items[i];
+
+				if (it->tab != fbPanel.tab || it->value != j)
+				{
+					continue;
+				}
+				fbPanel.rows[n].owned++;
+				if (best < 0 || (it->flags & FB_INV_WORN) || (!(fbPanel.items[best].flags & FB_INV_WORN) && it->wear < fbPanel.items[best].wear))
+				{
+					best = i;
+				}
+			}
+			fbPanel.rows[n].item  = best;
+			fbPanel.rows[n].value = j;
+			n++;
+		}
+	}
+	fbPanel.numRows = n;
+	if (fbPanel.sel >= n)
+	{
+		fbPanel.sel = n ? n - 1 : 0;
+	}
+	fbPanel.scroll = Com_Clamp(0, MAX(0, n - FB_PANEL_VISIBLE), fbPanel.scroll);
+}
+
+static void CG_FatBoss_PanelRequest(void)
+{
+	fbPanel.waiting     = qtrue;
+	fbPanel.requestTime = cg.time;
+	CG_FatBoss_PanelStatus("Loading your FatBoss items...");
+	trap_SendClientCommand("fbinv");
+}
+
+/**
+ * @brief fbmenu: open the Arsenal panel (the ESC menu button runs it too).
+ */
+void CG_FatBoss_Menu_f(void)
+{
+	if (cg.demoPlayback || !cg.snap)
+	{
+		return;
+	}
+	if (cgs.eventHandling != CGAME_EVENT_NONE)
+	{
+		CG_EventHandling(CGAME_EVENT_NONE, qfalse);
+	}
+	CG_EventHandling(CGAME_EVENT_FATBOSS, qfalse);
+	fbPanel.open   = qtrue;
+	fbPanel.sel    = 0;
+	fbPanel.scroll = 0;
+	cgs.cursorX    = Ccg_WideX(SCREEN_WIDTH) * 0.5f;
+	cgs.cursorY    = SCREEN_HEIGHT * 0.5f;
+	CG_FatBoss_PanelRows();
+	CG_FatBoss_PanelRequest();
+}
+
+/**
+ * @brief The event handling left the panel (ESC, the close button, another menu).
+ */
+void CG_FatBoss_Panel_Closed(void)
+{
+	fbPanel.open = qfalse;
+}
+
+static void CG_FatBoss_PanelParseItem(const char *token)
+{
+	char        buf[128], *field[6], *p;
+	int         n = 0, tab, value;
+	fbInvItem_t *it;
+
+	if (fbPanel.numItems >= FB_INV_MAX)
+	{
+		return;
+	}
+	Q_strncpyz(buf, token, sizeof(buf));
+	field[n++] = buf;
+	for (p = buf; *p && n < 6; p++)
+	{
+		if (*p == ',')
+		{
+			*p         = 0;
+			field[n++] = p + 1;
+		}
+	}
+	if (n != 6 || (tab = CG_FatBoss_TabIndex(field[1])) < 0)
+	{
+		return;
+	}
+	if (tab == FB_PANEL_GRAFFITI)
+	{
+		value = CG_FatBoss_GraffitiIndex(field[2]);
+	}
+	else
+	{
+		value = CG_FatBoss_ThemeIndex(field[2]);
+		if (value >= 0 && !(fbSkinThemes[value].textures & fbSkinSlotTextures[tab]))
+		{
+			value = -1;
+		}
+	}
+	if (value < 0)
+	{
+		return;     // an item this cgame does not know (a newer skin): the website still shows it
+	}
+	it         = &fbPanel.items[fbPanel.numItems++];
+	it->id     = Q_atoi(field[0]);
+	it->tab    = tab;
+	it->value  = value;
+	it->wear   = Q_atoi(field[3]);
+	it->serial = Q_atoi(field[4]);
+	it->flags  = Q_atoi(field[5]);
+}
+
+/**
+ * @brief The panel's server commands (fatboss.lua 0.11).
+ */
+static qboolean CG_FatBoss_PanelCommand(const char *cmd)
+{
+	int i;
+
+	if (!Q_stricmp(cmd, "fbinv_begin"))
+	{
+		fbPanel.numItems  = 0;
+		fbPanel.receiving = qtrue;
+		fbPanel.total     = Q_atoi(CG_Argv(2));
+		Q_strncpyz(fbPanel.account, CG_Argv(3), sizeof(fbPanel.account));
+		return qtrue;
+	}
+	if (!Q_stricmp(cmd, "fbinv_items"))
+	{
+		for (i = 1; fbPanel.receiving && i < trap_Argc(); i++)
+		{
+			CG_FatBoss_PanelParseItem(CG_Argv(i));
+		}
+		return qtrue;
+	}
+	if (!Q_stricmp(cmd, "fbinv_end"))
+	{
+		fbPanel.receiving = qfalse;
+		fbPanel.loaded    = qtrue;
+		fbPanel.waiting   = qfalse;
+		if (!fbPanel.numItems)
+		{
+			CG_FatBoss_PanelStatus("No items yet: open Arsenal or Spray crates on your FatBoss profile.");
+		}
+		else if (fbPanel.total > fbPanel.numItems)
+		{
+			CG_FatBoss_PanelStatus(va("Showing %i of your %i items; the FatBoss profile has them all.", fbPanel.numItems, fbPanel.total));
+		}
+		else
+		{
+			fbPanel.status[0] = 0;
+		}
+		CG_FatBoss_PanelRows();
+		return qtrue;
+	}
+	if (!Q_stricmp(cmd, "fbpanel_err"))
+	{
+		fbPanel.waiting   = qfalse;
+		fbPanel.receiving = qfalse;
+		CG_FatBoss_PanelStatus(CG_Argv(1));
+		return qtrue;
+	}
+	if (!Q_stricmp(cmd, "fbwear_ok"))
+	{
+		int tab = CG_FatBoss_TabIndex(CG_Argv(1));
+
+		fbPanel.waiting = qfalse;
+		for (i = 0; tab >= 0 && i < fbPanel.numItems; i++)
+		{
+			if (fbPanel.items[i].tab == tab)
+			{
+				fbPanel.items[i].flags &= ~FB_INV_WORN;
+				if (fbPanel.wearId && fbPanel.items[i].id == fbPanel.wearId)
+				{
+					fbPanel.items[i].flags |= FB_INV_WORN;
+				}
+			}
+		}
+		CG_FatBoss_PanelStatus(tab == FB_PANEL_GRAFFITI ? "Saved. Your next graffiti uses it." : "Saved. APPLY NOW to see it here, or it shows on the next map.");
+		CG_FatBoss_PanelRows();
+		return qtrue;
+	}
+	return qfalse;
+}
+
+/**
+ * @brief The third-person weapon of a slot with a skin at 1k and a wear, turning, in a box of the panel.
+ */
+static void CG_FatBoss_PanelPreview(float x, float y, float w, float h, int tab, int theme, int wear)
+{
+	refdef_t            refdef;
+	refEntity_t         ent;
+	vec3_t              mins, maxs, center, angles;
+	float               radius, dist, bx = x, by = y, bw = w, bh = h;
+	int                 wp, row, team = cgs.clientinfo[cg.clientNum].team, k;
+	const fbSkinModel_t *m;
+	qhandle_t           handle;
+	static const int    slotWeapons[FB_SKIN_SLOTS] = { WP_KNIFE, WP_COLT, WP_LUGER, WP_THOMPSON, WP_MP40 };
+
+	wp = slotWeapons[tab];
+	if (tab == 0 && team == TEAM_ALLIES)
+	{
+		wp = WP_KNIFE_KABAR;
+	}
+	row = fbSkinRow[wp][W_TP_MODEL][0];
+	// a knife skin made for one of the two knives only: show that one
+	if (tab == 0 && row && !(fbSkinThemes[theme].textures & (1 << fbSkinModels[row - 1].tex)))
+	{
+		wp  = wp == WP_KNIFE ? WP_KNIFE_KABAR : WP_KNIFE;
+		row = fbSkinRow[wp][W_TP_MODEL][0];
+	}
+	if (!row || !cg_weapons[wp].weaponModel[W_TP_MODEL].model)
+	{
+		CG_Text_Paint_Ext(x + 10, y + h * 0.5f, 0.2f, 0.2f, fbPanelDim, "no preview", 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+		return;
+	}
+	m = &fbSkinModels[row - 1];
+	CG_FatBoss_LoadShader(theme, m->tex, FB_RES_1K);     // a 1k texture: loads in a blink
+
+	Com_Memset(&ent, 0, sizeof(ent));
+	ent.hModel = cg_weapons[wp].weaponModel[W_TP_MODEL].model;
+	if (m->skin)
+	{
+		handle = CG_FatBoss_SkinFile(row - 1, theme, FB_RES_1K, team);
+		if (handle)
+		{
+			ent.customSkin = handle;
+		}
+	}
+	else if (fbSkinShaders[theme][m->tex][FB_RES_1K] > 0)
+	{
+		ent.customShader = fbSkinShaders[theme][m->tex][FB_RES_1K];
+	}
+	ent.shaderRGBA[0] = ent.shaderRGBA[1] = ent.shaderRGBA[2] = 255;
+	ent.shaderRGBA[3] = (byte)MIN(255, 127 + (128 * MAX(0, wear)) / 1000);
+	ent.renderfx      = RF_NOSHADOW | RF_FORCENOLOD | RF_MINLIGHT;
+
+	// turn about the model's centre, seen a little from above
+	trap_R_ModelBounds(ent.hModel, mins, maxs);
+	VectorAdd(mins, maxs, center);
+	VectorScale(center, 0.5f, center);
+	radius = 0.5f * VectorDistance(mins, maxs);
+	if (radius < 1.f)
+	{
+		radius = 1.f;
+	}
+	angles[PITCH] = 12.f;
+	angles[YAW]   = 90.f + (float)(cg.time % 12000) * 0.03f;
+	angles[ROLL]  = 0.f;
+	AnglesToAxis(angles, ent.axis);
+	dist = radius / (float)tan(DEG2RAD(26.f) * 0.5f) * 1.02f;
+	for (k = 0; k < 3; k++)
+	{
+		ent.origin[k] = (k == 0 ? dist : 0.f) - (center[0] * ent.axis[0][k] + center[1] * ent.axis[1][k] + center[2] * ent.axis[2][k]);
+	}
+	VectorCopy(ent.origin, ent.oldorigin);
+	VectorCopy(ent.origin, ent.lightingOrigin);
+
+	CG_AdjustFrom640(&bx, &by, &bw, &bh);
+	Com_Memset(&refdef, 0, sizeof(refdef));
+	refdef.rdflags = RDF_NOWORLDMODEL;
+	AxisClear(refdef.viewaxis);
+	refdef.x      = (int)bx;
+	refdef.y      = (int)by;
+	refdef.width  = (int)bw;
+	refdef.height = (int)bh;
+	refdef.fov_y  = 26.f;
+	refdef.fov_x  = RAD2DEG(2.f * (float)atan(tan(DEG2RAD(refdef.fov_y) * 0.5f) * bw / MAX(1.f, bh)));
+	refdef.time   = cg.time;
+
+	trap_R_SaveViewParms();
+	trap_R_ClearScene();
+	trap_R_AddRefEntityToScene(&ent);
+	trap_R_RenderScene(&refdef);
+	trap_R_RestoreViewParms();
+}
+
+static qboolean CG_FatBoss_PanelButton(float x, float y, float w, float h, const char *label, qboolean enabled)
+{
+	qboolean hover = enabled && CG_FatBoss_Inside(x, y, w, h);
+
+	CG_FillRect(x, y, w, h, enabled ? fbPanelButton : fbPanelOff);
+	if (hover)
+	{
+		CG_FillRect(x, y, w, h, fbPanelHover);
+	}
+	CG_Text_Paint_Centred_Ext(x + w * 0.5f, y + h * 0.5f + 4.f, 0.22f, 0.22f, enabled ? colorBlack : fbPanelDim, label, 0, 0, 0,
+	                          &cgs.media.limboFont1);
+	return hover;
+}
+
+/**
+ * @brief Row label: "Pearl Ink", and for a copy its condition and float, or its graffiti rarity.
+ */
+static void CG_FatBoss_PanelRowText(const fbPanelRow_t *r, char *name, int nameSize, char *detail, int detailSize)
+{
+	const fbInvItem_t *it = r->item >= 0 ? &fbPanel.items[r->item] : NULL;
+
+	if (fbPanel.tab == FB_PANEL_GRAFFITI)
+	{
+		Q_strncpyz(name, fbGraffitiNames[r->value].name, nameSize);
+		Q_strncpyz(detail, fbGraffitiNames[r->value].rarity, detailSize);
+	}
+	else
+	{
+		Q_strncpyz(name, CG_FatBoss_ThemeName(r->value), nameSize);
+		if (it && !fbPanel.browseAll)
+		{
+			Com_sprintf(detail, detailSize, "%s %.3f", CG_FatBoss_ConditionShort(it->wear), it->wear / 1000.0);
+		}
+		else
+		{
+			detail[0] = 0;
+		}
+	}
+	if (fbPanel.browseAll)
+	{
+		Q_strcat(detail, detailSize, r->owned ? va("%s x%i", detail[0] ? "  " : "", r->owned) : (detail[0] ? "  -" : "-"));
+	}
+}
+
+void CG_FatBoss_Panel_Draw(void)
+{
+	float              x0, y0, x, y;
+	int                i;
+	const fbPanelRow_t *row;
+	const fbInvItem_t  *it;
+	char               name[64], detail[64];
+
+	if (!fbPanel.open)
+	{
+		return;
+	}
+	if (fbPanel.waiting && cg.time - fbPanel.requestTime > FB_PANEL_WAIT)
+	{
+		fbPanel.waiting = qfalse;
+		CG_FatBoss_PanelStatus("No answer from the server (it needs fatboss.lua 0.11). Close and try again.");
+	}
+	CG_FatBoss_PanelOrigin(&x0, &y0);
+
+	CG_FillRect(x0, y0, FB_PANEL_W, FB_PANEL_H, fbPanelBack);
+	CG_DrawRect_FixedBorder(x0, y0, FB_PANEL_W, FB_PANEL_H, 1, fbPanelLine);
+	CG_FillRect(x0, y0, FB_PANEL_W, 28, fbPanelSel);
+	CG_Text_Paint_Ext(x0 + 10, y0 + 19, 0.3f, 0.3f, fbPanelGold, "FATBOSS ARSENAL", 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
+	if (fbPanel.account[0])
+	{
+		CG_Text_Paint_Ext(x0 + 200, y0 + 18, 0.2f, 0.2f, fbPanelText, fbPanel.account, 0, 32, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+	}
+	CG_FatBoss_PanelButton(x0 + FB_PANEL_W - 26, y0 + 4, 20, 20, "X", qtrue);
+
+	// tabs, and mine / everything
+	for (i = 0; i < FB_PANEL_TABS; i++)
+	{
+		y = y0 + 38 + i * 28;
+		if (i == fbPanel.tab)
+		{
+			CG_FillRect(x0 + 10, y, 120, 24, fbPanelSel);
+		}
+		else if (CG_FatBoss_Inside(x0 + 10, y, 120, 24))
+		{
+			CG_FillRect(x0 + 10, y, 120, 24, fbPanelHover);
+		}
+		CG_Text_Paint_Ext(x0 + 18, y + 16, 0.22f, 0.22f, i == fbPanel.tab ? fbPanelGold : fbPanelText, fbPanelTabNames[i], 0, 0,
+		                  ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
+	}
+	y = y0 + 38 + FB_PANEL_TABS * 28 + 8;
+	CG_FillRect(x0 + 10, y, 58, 20, fbPanel.browseAll ? fbPanelOff : fbPanelSel);
+	CG_Text_Paint_Centred_Ext(x0 + 39, y + 14, 0.18f, 0.18f, fbPanelText, "MINE", 0, 0, 0, &cgs.media.limboFont1);
+	CG_FillRect(x0 + 72, y, 58, 20, fbPanel.browseAll ? fbPanelSel : fbPanelOff);
+	CG_Text_Paint_Centred_Ext(x0 + 101, y + 14, 0.18f, 0.18f, fbPanelText, "ALL", 0, 0, 0, &cgs.media.limboFont1);
+	CG_Text_Paint_Ext(x0 + 10, y + 40, 0.16f, 0.16f, fbPanelDim, "Wheel: scroll", 0, 0, 0, &cgs.media.limboFont2);
+	CG_Text_Paint_Ext(x0 + 10, y + 52, 0.16f, 0.16f, fbPanelDim, "ESC: close", 0, 0, 0, &cgs.media.limboFont2);
+
+	// the list
+	x = x0 + 140;
+	CG_DrawRect_FixedBorder(x - 2, y0 + 36, 224, FB_PANEL_VISIBLE * FB_PANEL_ROW_H + 4, 1, fbPanelOff);
+	if (!fbPanel.numRows)
+	{
+		CG_Text_Paint_Ext(x + 6, y0 + 56, 0.2f, 0.2f, fbPanelDim, fbPanel.waiting ? "Loading..." : (fbPanel.browseAll ? "Nothing here." : "You have none of these yet."),
+		                  0, 0, 0, &cgs.media.limboFont2);
+	}
+	for (i = 0; i < FB_PANEL_VISIBLE && fbPanel.scroll + i < fbPanel.numRows; i++)
+	{
+		int r = fbPanel.scroll + i;
+
+		row = &fbPanel.rows[r];
+		it  = row->item >= 0 ? &fbPanel.items[row->item] : NULL;
+		y   = y0 + 38 + i * FB_PANEL_ROW_H;
+		if (r == fbPanel.sel)
+		{
+			CG_FillRect(x, y, 220, FB_PANEL_ROW_H - 2, fbPanelSel);
+		}
+		else if (CG_FatBoss_Inside(x, y, 220, FB_PANEL_ROW_H - 2))
+		{
+			CG_FillRect(x, y, 220, FB_PANEL_ROW_H - 2, fbPanelHover);
+		}
+		CG_FatBoss_PanelRowText(row, name, sizeof(name), detail, sizeof(detail));
+		CG_Text_Paint_Ext(x + 6, y + 15, 0.2f, 0.2f, (fbPanel.browseAll && !row->owned) ? fbPanelDim : fbPanelText, name, 0, 22,
+		                  ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+		CG_Text_Paint_Ext(x + 138, y + 15, 0.17f, 0.17f, fbPanelDim, detail, 0, 16, 0, &cgs.media.limboFont2);
+		if (it && (it->flags & FB_INV_WORN))
+		{
+			CG_Text_Paint_Ext(x + 190, y + 15, 0.16f, 0.16f, fbPanelGreen, "WORN", 0, 0, 0, &cgs.media.limboFont1);
+		}
+		else if (it && (it->flags & FB_INV_SALE) && !fbPanel.browseAll)
+		{
+			CG_Text_Paint_Ext(x + 190, y + 15, 0.16f, 0.16f, fbPanelDim, "SALE", 0, 0, 0, &cgs.media.limboFont1);
+		}
+	}
+	if (fbPanel.numRows > FB_PANEL_VISIBLE)
+	{
+		CG_Text_Paint_Ext(x, y0 + 38 + FB_PANEL_VISIBLE * FB_PANEL_ROW_H + 14, 0.16f, 0.16f, fbPanelDim,
+		                  va("%i-%i of %i", fbPanel.scroll + 1, MIN(fbPanel.numRows, fbPanel.scroll + FB_PANEL_VISIBLE), fbPanel.numRows),
+		                  0, 0, 0, &cgs.media.limboFont2);
+	}
+
+	// preview and details of the selected row
+	x = x0 + 372;
+	CG_FillRect(x, y0 + 38, 238, 180, fbPanelBox);
+	CG_DrawRect_FixedBorder(x, y0 + 38, 238, 180, 1, fbPanelOff);
+	row = fbPanel.sel < fbPanel.numRows ? &fbPanel.rows[fbPanel.sel] : NULL;
+	it  = (row && row->item >= 0) ? &fbPanel.items[row->item] : NULL;
+	if (row)
+	{
+		if (fbPanel.tab == FB_PANEL_GRAFFITI)
+		{
+			qhandle_t *sh = &fbGraffitiShaders[row->value];
+
+			if (!*sh)
+			{
+				*sh = trap_R_RegisterShader(va("fatboss/graffiti/%s", fbGraffitiNames[row->value].key));
+				if (!*sh)
+				{
+					*sh = -1;
+				}
+			}
+			if (*sh > 0)
+			{
+				trap_R_SetColor(NULL);
+				CG_DrawPic(x + 119 - 80, y0 + 48, 160, 160, *sh);
+			}
+		}
+		else
+		{
+			CG_FatBoss_PanelPreview(x + 1, y0 + 39, 236, 178, fbPanel.tab, row->value, it ? it->wear : 0);
+		}
+
+		y = y0 + 238;
+		if (fbPanel.tab == FB_PANEL_GRAFFITI)
+		{
+			Com_sprintf(name, sizeof(name), "Graffiti | %s", fbGraffitiNames[row->value].name);
+		}
+		else
+		{
+			Com_sprintf(name, sizeof(name), "%s | %s", fbPanelSlotTitles[fbPanel.tab], CG_FatBoss_ThemeName(row->value));
+		}
+		CG_Text_Paint_Ext(x, y, 0.24f, 0.24f, fbPanelGold, name, 0, 34, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+		y += 16;
+		if (it)
+		{
+			if (it->wear >= 0)
+			{
+				CG_Text_Paint_Ext(x, y, 0.19f, 0.19f, fbPanelText, va("%s   float %.4f", CG_FatBoss_ConditionName(it->wear), it->wear / 1000.0), 0, 0, 0,
+				                  &cgs.media.limboFont2);
+				y += 13;
+			}
+			CG_Text_Paint_Ext(x, y, 0.17f, 0.17f, fbPanelDim, it->serial ? va("#%i%s", it->serial, (it->flags & FB_INV_SALE) ? "   on the market" : "")
+			                  : ((it->flags & FB_INV_BOUND) ? "bound to you" : ""), 0, 0, 0, &cgs.media.limboFont2);
+		}
+		else
+		{
+			CG_Text_Paint_Ext(x, y, 0.18f, 0.18f, fbPanelDim, "Not yours yet: get it from the Arsenal or Spray", 0, 0, 0, &cgs.media.limboFont2);
+			y += 12;
+			CG_Text_Paint_Ext(x, y, 0.18f, 0.18f, fbPanelDim, "crates on your FatBoss profile.", 0, 0, 0, &cgs.media.limboFont2);
+		}
+
+		y = y0 + 292;
+		CG_FatBoss_PanelButton(x, y, 115, 24, "WEAR", it && !(it->flags & (FB_INV_WORN | FB_INV_SALE)) && !fbPanel.waiting);
+		CG_FatBoss_PanelButton(x + 123, y, 115, 24, "TAKE OFF", it && (it->flags & FB_INV_WORN) && !fbPanel.waiting);
+	}
+	if (fbSkinPending[cg.clientNum])
+	{
+		CG_FatBoss_PanelButton(x, y0 + 322, 238, 24, "APPLY NOW (short freeze)", qtrue);
+	}
+
+	// status line
+	if (fbPanel.status[0])
+	{
+		CG_Text_Paint_Ext(x0 + 10, y0 + FB_PANEL_H - 10, 0.18f, 0.18f, fbPanel.loaded ? fbPanelText : fbPanelRed, fbPanel.status, 0, 90, 0,
+		                  &cgs.media.limboFont2);
+	}
+
+	trap_R_SetColor(NULL);
+	CG_DrawCursor(cgs.cursorX - 14, cgs.cursorY - 14);
+}
+
+static void CG_FatBoss_PanelClick(void)
+{
+	float              x0, y0, x, y;
+	int                i;
+	const fbPanelRow_t *row;
+	const fbInvItem_t  *it;
+
+	CG_FatBoss_PanelOrigin(&x0, &y0);
+	if (CG_FatBoss_Inside(x0 + FB_PANEL_W - 26, y0 + 4, 20, 20))
+	{
+		CG_EventHandling(CGAME_EVENT_NONE, qfalse);
+		return;
+	}
+	for (i = 0; i < FB_PANEL_TABS; i++)
+	{
+		if (CG_FatBoss_Inside(x0 + 10, y0 + 38 + i * 28, 120, 24))
+		{
+			fbPanel.tab    = i;
+			fbPanel.sel    = 0;
+			fbPanel.scroll = 0;
+			CG_FatBoss_PanelRows();
+			trap_S_StartLocalSound(cgs.media.sndLimboSelect, CHAN_LOCAL_SOUND);
+			return;
+		}
+	}
+	y = y0 + 38 + FB_PANEL_TABS * 28 + 8;
+	if (CG_FatBoss_Inside(x0 + 10, y, 58, 20) || CG_FatBoss_Inside(x0 + 72, y, 58, 20))
+	{
+		fbPanel.browseAll = CG_FatBoss_Inside(x0 + 72, y, 58, 20);
+		fbPanel.sel       = 0;
+		fbPanel.scroll    = 0;
+		CG_FatBoss_PanelRows();
+		trap_S_StartLocalSound(cgs.media.sndLimboFilter, CHAN_LOCAL_SOUND);
+		return;
+	}
+	for (i = 0; i < FB_PANEL_VISIBLE && fbPanel.scroll + i < fbPanel.numRows; i++)
+	{
+		if (CG_FatBoss_Inside(x0 + 140, y0 + 38 + i * FB_PANEL_ROW_H, 220, FB_PANEL_ROW_H - 2))
+		{
+			fbPanel.sel = fbPanel.scroll + i;
+			return;
+		}
+	}
+	x   = x0 + 372;
+	row = fbPanel.sel < fbPanel.numRows ? &fbPanel.rows[fbPanel.sel] : NULL;
+	it  = (row && row->item >= 0) ? &fbPanel.items[row->item] : NULL;
+	if (it && !fbPanel.waiting && CG_FatBoss_Inside(x, y0 + 292, 115, 24) && !(it->flags & (FB_INV_WORN | FB_INV_SALE)))
+	{
+		fbPanel.wearId      = it->id;
+		fbPanel.waiting     = qtrue;
+		fbPanel.requestTime = cg.time;
+		CG_FatBoss_PanelStatus("Saving...");
+		trap_SendClientCommand(va("fbwear %i", it->id));
+		return;
+	}
+	if (it && !fbPanel.waiting && CG_FatBoss_Inside(x + 123, y0 + 292, 115, 24) && (it->flags & FB_INV_WORN))
+	{
+		fbPanel.wearId      = 0;
+		fbPanel.waiting     = qtrue;
+		fbPanel.requestTime = cg.time;
+		CG_FatBoss_PanelStatus("Saving...");
+		trap_SendClientCommand(va("fbwear off %s", fbPanel.tab == FB_PANEL_GRAFFITI ? "graffiti" : fbSkinSlotNames[fbPanel.tab]));
+		return;
+	}
+	if (fbSkinPending[cg.clientNum] && CG_FatBoss_Inside(x, y0 + 322, 238, 24))
+	{
+		CG_FatBoss_LoadPending_f();
+		CG_FatBoss_PanelStatus("Loaded: your weapons wear it now.");
+	}
+}
+
+void CG_FatBoss_Panel_Key(int key, qboolean down)
+{
+	if (!down)
+	{
+		return;
+	}
+	switch (key)
+	{
+	case K_ESCAPE:
+		CG_EventHandling(CGAME_EVENT_NONE, qfalse);
+		break;
+	case K_MWHEELUP:
+		fbPanel.scroll = MAX(0, fbPanel.scroll - 1);
+		break;
+	case K_MWHEELDOWN:
+		fbPanel.scroll = MIN(MAX(0, fbPanel.numRows - FB_PANEL_VISIBLE), fbPanel.scroll + 1);
+		break;
+	case K_MOUSE1:
+		CG_FatBoss_PanelClick();
+		break;
+	default:
+		break;
+	}
+}
+
+void CG_FatBoss_Shutdown(void)
+{
+	trap_Cvar_Set("fb_arsenal", "0");
+}
+
 void CG_FatBoss_Version_f(void)
 {
 	CG_Printf("FatBoss cgame %s on %s %s\n", FATBOSS_CGAME_VERSION, MODNAME, ETLEGACY_VERSION);
@@ -1821,6 +2619,11 @@ void CG_FatBoss_Init(void)
 	fbSyncAsked = qfalse;
 	fbSpraySound = trap_S_RegisterSound("sound/fatboss/spray.wav", qfalse);
 	trap_Cvar_Register(&fb_inspectshots, "fb_inspectshots", "0", CVAR_TEMP);
+	// the ESC menu's "FatBoss Arsenal" button shows while this is 1 (CG_FatBoss_Shutdown puts it back)
+	trap_Cvar_Register(&fb_arsenal, "fb_arsenal", "0", CVAR_TEMP);
+	trap_Cvar_Set("fb_arsenal", "1");
+	Com_Memset(&fbPanel, 0, sizeof(fbPanel));
+	Com_Memset(fbGraffitiShaders, 0, sizeof(fbGraffitiShaders));
 	for (i = 0; i < (int)ARRAY_LEN(fbInspectProfiles); i++)
 	{
 		for (j = 0; j < 2; j++)

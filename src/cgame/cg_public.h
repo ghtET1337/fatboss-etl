@@ -92,7 +92,8 @@ typedef enum cgameEvent_e
 	CGAME_EVENT_SHOUTCAST,
 	CGAME_EVENT_SPAWNPOINTMSG,
 	CGAME_EVENT_MULTIVIEW,
-	CGAME_EVENT_HUDEDITOR
+	CGAME_EVENT_HUDEDITOR,
+	CGAME_EVENT_FATBOSS             ///< the FatBoss Arsenal panel (cgame only, the engine never sends it)
 } cgameEvent_t;
 
 #define CGAME_IMPORT_API_VERSION    3
