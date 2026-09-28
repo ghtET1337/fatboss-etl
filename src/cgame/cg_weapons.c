@@ -1824,6 +1824,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 
 	// add gun
 	trap_R_AddRefEntityToScene(&gun);
+	CG_FatBoss_WeaponExtras(&gun, clientNum, weaponNum, modelViewType);
 	// and for akimbo add the gun to the other hand again
 	if ((!ps || cg.renderingThirdPerson) && GetWeaponTableData(weaponNum)->attributes & WEAPON_ATTRIBUT_AKIMBO)
 	{
@@ -1843,6 +1844,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 			VectorMA(gun.origin, -0.3f, up, gun.origin);
 		}
 		trap_R_AddRefEntityToScene(&gun);
+		CG_FatBoss_WeaponExtras(&gun, clientNum, weaponNum, modelViewType);
 	}
 	// }}} add the gun model
 	// {{{ add barrel models
