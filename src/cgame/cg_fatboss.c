@@ -15,8 +15,8 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b13"
-#define FATBOSS_CGAME_BUILD   13        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
+#define FATBOSS_CGAME_VERSION "b14"
+#define FATBOSS_CGAME_BUILD   14        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1230,8 +1230,10 @@ static signed char fbSkinResUsed[FB_SKIN_THEMES][FB_SKIN_TEXTURES][FB_RES_COUNT]
  * build_stickers.py: a shader that lays one image on a rectangle of the gun's texture (so it sits on
  * the first- and third-person model alike), or, for a model that also carries hands, a .skin file that
  * sends every other surface to fbk/nodraw. Everybody sees the stickers; the display shows on your own
- * first-person gun (and the one you spectate). The count changes at once; stickers change with the
- * skin. Their images are small: they load on the loading screen, or the first time they show.
+ * first-person gun (and the one you spectate). Like the skins, nothing of it registers while you play:
+ * the passes load on the loading screen (everybody's stickers, and all ten digits in every place of your
+ * own StatTrak displays), at the intermission or with fb_loadskins; a new sticker or a new StatTrak copy
+ * waits till then. The count of a display that is loaded changes at once.
  */
 #include "cg_fatboss_stickers.inc"
 
@@ -1510,7 +1512,7 @@ static qboolean CG_FatBoss_StickerModel(const fbSkinModel_t *m)
  * @brief One pass (s<place><code>, p, d<pos>_<digit>) for a model row: a .skin file for models with hands
  * in them, else the texture's shader. Registered the first time it is asked for; 0 when there is none.
  */
-static qhandle_t CG_FatBoss_Pass(int row, int *skinHandle, int *shaderHandle, const char *pass, qboolean *isSkin)
+static qhandle_t CG_FatBoss_Pass(int row, int *skinHandle, int *shaderHandle, const char *pass, qboolean *isSkin, qboolean load)
 {
 	const fbSkinModel_t *m = &fbSkinModels[row];
 
@@ -1521,7 +1523,7 @@ static qhandle_t CG_FatBoss_Pass(int row, int *skinHandle, int *shaderHandle, co
 		{
 			return 0;           // its other surfaces would get the sticker too
 		}
-		if (!*skinHandle)
+		if (!*skinHandle && load)
 		{
 			*skinHandle = trap_R_RegisterSkin(va("fbk/%s/%s.skin", m->skin, pass));
 			if (!*skinHandle)
@@ -1532,7 +1534,7 @@ static qhandle_t CG_FatBoss_Pass(int row, int *skinHandle, int *shaderHandle, co
 		return *skinHandle > 0 ? *skinHandle : 0;
 	}
 	*isSkin = qfalse;
-	if (!*shaderHandle)
+	if (!*shaderHandle && load)
 	{
 		*shaderHandle = trap_R_RegisterShader(va("fbk/%s/%s", fbSkinTexNames[m->tex], pass));
 		if (!*shaderHandle)
@@ -1543,20 +1545,114 @@ static qhandle_t CG_FatBoss_Pass(int row, int *skinHandle, int *shaderHandle, co
 	return *shaderHandle > 0 ? *shaderHandle : 0;
 }
 
-static qhandle_t CG_FatBoss_StickerPass(int row, int place, int code, qboolean *isSkin)
+static qhandle_t CG_FatBoss_StickerPass(int row, int place, int code, qboolean *isSkin, qboolean load)
 {
 	return CG_FatBoss_Pass(row, &fbStickerSkins[row][place][code], &fbStickerShaders[fbSkinModels[row].tex][place][code],
-	                       va("s%i%c", place, fbStickerChars[code]), isSkin);
+	                       va("s%i%c", place, fbStickerChars[code]), isSkin, load);
 }
 
-static qhandle_t CG_FatBoss_DigitPass(int row, int pos, int digit, qboolean *isSkin)
+static qhandle_t CG_FatBoss_DigitPass(int row, int pos, int digit, qboolean *isSkin, qboolean load)
 {
 	if (pos == FB_STATTRAK_DIGITS)
 	{
-		return CG_FatBoss_Pass(row, &fbDigitSkins[row][pos][0], &fbDigitShaders[fbSkinModels[row].tex][pos][0], "p", isSkin);
+		return CG_FatBoss_Pass(row, &fbDigitSkins[row][pos][0], &fbDigitShaders[fbSkinModels[row].tex][pos][0], "p", isSkin, load);
 	}
 	return CG_FatBoss_Pass(row, &fbDigitSkins[row][pos][digit], &fbDigitShaders[fbSkinModels[row].tex][pos][digit],
-	                       va("d%i_%i", pos, digit), isSkin);
+	                       va("d%i_%i", pos, digit), isSkin, load);
+}
+
+static qhandle_t CG_FatBoss_GraffitiIcon(int index, qboolean load);
+static qboolean CG_FatBoss_GraffitiIconKnown(int index);
+static int CG_FatBoss_LoadAllGraffiti(void);
+
+/// the handle slot a pass of a row uses: its .skin file, or its texture's shader
+static int *CG_FatBoss_StickerHandle(int row, int place, int code)
+{
+	return fbSkinModels[row].skin ? &fbStickerSkins[row][place][code] : &fbStickerShaders[fbSkinModels[row].tex][place][code];
+}
+
+static int *CG_FatBoss_DigitHandle(int row, int pos, int digit)
+{
+	return fbSkinModels[row].skin ? &fbDigitSkins[row][pos][digit] : &fbDigitShaders[fbSkinModels[row].tex][pos][digit];
+}
+
+/**
+ * @brief The passes a slot's wanted stickers need (third person for everybody, first person for you) and, on
+ * your own guns, the StatTrak display with every digit in every place. With load, registers up to limit of
+ * them (0: all) and returns how many it registered; without, returns how many are not registered yet.
+ */
+static int CG_FatBoss_SlotPasses(int clientNum, int slot, qboolean load, int limit)
+{
+	int      row, p, code, pos, d, n = 0;
+	qboolean isSkin;
+
+	for (row = 0; row < FB_SKIN_MODELS; row++)
+	{
+		const fbSkinModel_t *m  = &fbSkinModels[row];
+		qboolean            fp = m->view == W_FP_MODEL;
+
+		if (m->slot != slot || m->part != -1 || !fbStickerTex[m->tex] || (fp && clientNum != cg.clientNum)
+		    || (m->skin && !CG_FatBoss_StickerModel(m)))
+		{
+			continue;
+		}
+		for (p = 0; p < FB_STICKER_PLACES; p++)
+		{
+			code = fbStickersWanted[clientNum][slot][p];
+			if (code <= 0 || *CG_FatBoss_StickerHandle(row, p, code))
+			{
+				continue;
+			}
+			if (load)
+			{
+				CG_FatBoss_StickerPass(row, p, code, &isSkin, qtrue);
+			}
+			if (++n == limit)
+			{
+				return n;
+			}
+		}
+		if (!fp || fbStattrakWanted[clientNum][slot] < 0)
+		{
+			continue;
+		}
+		for (pos = 0; pos <= FB_STATTRAK_DIGITS; pos++)
+		{
+			for (d = 0; d < (pos == FB_STATTRAK_DIGITS ? 1 : 10); d++)
+			{
+				if (*CG_FatBoss_DigitHandle(row, pos, d))
+				{
+					continue;
+				}
+				if (load)
+				{
+					CG_FatBoss_DigitPass(row, pos, d, &isSkin, qtrue);
+				}
+				if (++n == limit)
+				{
+					return n;
+				}
+			}
+		}
+	}
+	// your own stickers' pictures, for the inspect card
+	for (p = 0; clientNum == cg.clientNum && p < FB_STICKER_PLACES; p++)
+	{
+		code = fbStickersWanted[clientNum][slot][p];
+		if (code <= 0 || CG_FatBoss_GraffitiIconKnown(code))
+		{
+			continue;
+		}
+		if (load)
+		{
+			CG_FatBoss_GraffitiIcon(code, qtrue);
+		}
+		if (++n == limit)
+		{
+			return n;
+		}
+	}
+	return n;
 }
 
 static void CG_FatBoss_AddPass(refEntity_t *re, qhandle_t h, qboolean isSkin)
@@ -1599,7 +1695,7 @@ void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNu
 		code = fbStickers[clientNum][slot][p];
 		if (code > 0)
 		{
-			CG_FatBoss_AddPass(&re, CG_FatBoss_StickerPass(row, p, code, &isSkin), isSkin);
+			CG_FatBoss_AddPass(&re, CG_FatBoss_StickerPass(row, p, code, &isSkin, qfalse), isSkin);
 		}
 	}
 	count = fbStattrak[clientNum][slot];
@@ -1607,48 +1703,19 @@ void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNu
 	{
 		return;
 	}
-	CG_FatBoss_AddPass(&re, CG_FatBoss_DigitPass(row, FB_STATTRAK_DIGITS, 0, &isSkin), isSkin);
+	if (!CG_FatBoss_DigitPass(row, FB_STATTRAK_DIGITS, 0, &isSkin, qfalse))
+	{
+		return;         // not loaded (a display you spectate): nothing, rather than a stall
+	}
+	CG_FatBoss_AddPass(&re, CG_FatBoss_DigitPass(row, FB_STATTRAK_DIGITS, 0, &isSkin, qfalse), isSkin);
 	Com_sprintf(text, sizeof(text), "%0*i", FB_STATTRAK_DIGITS, MIN(count, 999999));
 	for (first = 0; first < FB_STATTRAK_DIGITS - 1 && text[first] == '0'; first++)
 	{
 	}
 	for (p = first; p < FB_STATTRAK_DIGITS; p++)
 	{
-		CG_FatBoss_AddPass(&re, CG_FatBoss_DigitPass(row, p, text[p] - '0', &isSkin), isSkin);
+		CG_FatBoss_AddPass(&re, CG_FatBoss_DigitPass(row, p, text[p] - '0', &isSkin, qfalse), isSkin);
 	}
-}
-
-/**
- * @brief The stickers of a slot, on the loading screen: third-person passes for everybody, first-person
- * ones and the StatTrak display for your own guns.
- */
-static int CG_FatBoss_LoadPasses(int clientNum, int slot)
-{
-	int      row, p, code, loaded = 0;
-	qboolean isSkin;
-
-	for (row = 0; row < FB_SKIN_MODELS; row++)
-	{
-		const fbSkinModel_t *m = &fbSkinModels[row];
-
-		if (m->slot != slot || m->part != -1 || !fbStickerTex[m->tex] || (m->view == W_FP_MODEL && clientNum != cg.clientNum))
-		{
-			continue;
-		}
-		for (p = 0; p < FB_STICKER_PLACES; p++)
-		{
-			code = fbStickersWanted[clientNum][slot][p];
-			if (code > 0 && CG_FatBoss_StickerPass(row, p, code, &isSkin))
-			{
-				loaded++;
-			}
-		}
-		if (m->view == W_FP_MODEL && fbStattrakWanted[clientNum][slot] >= 0 && CG_FatBoss_DigitPass(row, FB_STATTRAK_DIGITS, 0, &isSkin))
-		{
-			loaded++;
-		}
-	}
-	return loaded;
 }
 
 /**
@@ -1831,16 +1898,27 @@ static void CG_FatBoss_ApplyReady(void)
 		{
 			if (fbSkinLoadout[i][s] != fbSkinWanted[i][s])
 			{
-				if (!CG_FatBoss_SlotReady(i, s, fbSkinWanted[i][s] - 1))
+				if (!CG_FatBoss_SlotReady(i, s, fbSkinWanted[i][s] - 1) || CG_FatBoss_SlotPasses(i, s, qfalse, 1))
 				{
 					fbSkinPending[i] = qtrue;
 					continue;
 				}
 				fbSkinLoadout[i][s] = fbSkinWanted[i][s];
 			}
-			// another copy of the same skin loads nothing: its wear, count and stickers show at once
-			fbSkinWear[i][s]     = fbSkinWearWanted[i][s];
-			fbStattrak[i][s]     = fbStattrakWanted[i][s];
+			// another copy of the same skin loads nothing: its wear shows at once
+			fbSkinWear[i][s] = fbSkinWearWanted[i][s];
+			if (CG_FatBoss_SlotPasses(i, s, qfalse, 1))
+			{
+				// new stickers or a new StatTrak display wait for their images; a count on a display that is
+				// drawn goes on
+				fbSkinPending[i] = qtrue;
+				if (fbStattrak[i][s] >= 0 && fbStattrakWanted[i][s] >= 0)
+				{
+					fbStattrak[i][s] = fbStattrakWanted[i][s];
+				}
+				continue;
+			}
+			fbStattrak[i][s] = fbStattrakWanted[i][s];
 			Com_Memcpy(fbStickers[i][s], fbStickersWanted[i][s], sizeof(fbStickers[i][s]));
 		}
 	}
@@ -1860,18 +1938,17 @@ void CG_FatBoss_LoadSkins(void)
 		for (s = 0; s < FB_SKIN_SLOTS; s++)
 		{
 			textures            += CG_FatBoss_LoadSlot(i, s, fbSkinWanted[i][s] - 1, qfalse);
-			textures            += CG_FatBoss_LoadPasses(i, s);
+			textures            += CG_FatBoss_SlotPasses(i, s, qtrue, 0);
 			fbSkinLoadout[i][s]  = fbSkinWanted[i][s];
 			fbSkinWear[i][s]     = fbSkinWearWanted[i][s];
 			fbStattrak[i][s]     = fbStattrakWanted[i][s];
 			Com_Memcpy(fbStickers[i][s], fbStickersWanted[i][s], sizeof(fbStickers[i][s]));
 		}
 		fbSkinPending[i] = qfalse;
-		if (design[0])
-		{
-			trap_R_RegisterShader(va("fatboss/graffiti/%s", design));
-		}
 	}
+	// every design, not only the ones worn now: a graffiti somebody picks during the map must not load
+	// (and stall the game) the first time it is sprayed; they are small, and the stickers' icons too
+	textures += CG_FatBoss_LoadAllGraffiti();
 	CG_DPrintf("FatBoss: %i skin textures loaded\n", textures);
 }
 
@@ -1917,6 +1994,10 @@ static void CG_FatBoss_SkinPump(void)
 			{
 				return;
 			}
+			if (CG_FatBoss_SlotPasses(i, s, qtrue, 4))
+			{
+				return;         // a few small images a frame
+			}
 		}
 		CG_FatBoss_ApplyReady();
 	}
@@ -1934,6 +2015,7 @@ void CG_FatBoss_LoadPending_f(void)
 		for (s = 0; fbSkinPending[i] && s < FB_SKIN_SLOTS; s++)
 		{
 			textures += CG_FatBoss_LoadSlot(i, s, fbSkinWanted[i][s] - 1, qfalse);
+			CG_FatBoss_SlotPasses(i, s, qtrue, 0);
 		}
 	}
 	CG_FatBoss_ApplyReady();
@@ -2655,7 +2737,7 @@ static void CG_FatBoss_PanelPreview(float x, float y, float w, float h, int tab,
 
 		if (stickers[k] > 0)
 		{
-			CG_FatBoss_AddPass(&ent, CG_FatBoss_StickerPass(row - 1, k, stickers[k], &isSkin), isSkin);
+			CG_FatBoss_AddPass(&ent, CG_FatBoss_StickerPass(row - 1, k, stickers[k], &isSkin, qtrue), isSkin);
 		}
 	}
 	trap_R_RenderScene(&refdef);
@@ -2707,9 +2789,9 @@ static void CG_FatBoss_PanelRowText(const fbPanelRow_t *r, char *name, int nameS
 }
 
 /**
- * @brief The picture of a graffiti design (a sticker's icon); 0 when missing.
+ * @brief The picture of a graffiti design (a sticker's icon); 0 when missing or, without load, not registered yet.
  */
-static qhandle_t CG_FatBoss_GraffitiIcon(int index)
+static qhandle_t CG_FatBoss_GraffitiIcon(int index, qboolean load)
 {
 	qhandle_t *sh;
 
@@ -2718,7 +2800,7 @@ static qhandle_t CG_FatBoss_GraffitiIcon(int index)
 		return 0;
 	}
 	sh = &fbGraffitiShaders[index];
-	if (!*sh)
+	if (!*sh && load)
 	{
 		*sh = trap_R_RegisterShader(va("fatboss/graffiti/%s", fbGraffitiNames[index].key));
 		if (!*sh)
@@ -2729,16 +2811,60 @@ static qhandle_t CG_FatBoss_GraffitiIcon(int index)
 	return *sh > 0 ? *sh : 0;
 }
 
+static int CG_FatBoss_LoadAllGraffiti(void)
+{
+	int i;
+
+	for (i = 0; i < (int)ARRAY_LEN(fbGraffitiNames); i++)
+	{
+		CG_FatBoss_GraffitiIcon(i, qtrue);
+	}
+	return i;
+}
+
+static qboolean CG_FatBoss_GraffitiIconKnown(int index)
+{
+	return index < 0 || index >= (int)ARRAY_LEN(fbGraffitiNames) || fbGraffitiShaders[index] != 0;
+}
+
 /**
- * @brief While you inspect a weapon with a skin: its card, like CS2's (StatTrak, name, wear, kills, stickers).
+ * @brief 25061 -> "25,061".
+ */
+static const char *CG_FatBoss_Thousands(int n)
+{
+	static char out[16];
+	char        digits[16];
+	int         len, i, o = 0;
+
+	Com_sprintf(digits, sizeof(digits), "%i", MAX(0, n));
+	len = (int)strlen(digits);
+	for (i = 0; i < len; i++)
+	{
+		if (i && (len - i) % 3 == 0)
+		{
+			out[o++] = ',';
+		}
+		out[o++] = digits[i];
+	}
+	out[o] = 0;
+	return out;
+}
+
+#define FB_CARD_TITLE 0.16f
+#define FB_CARD_TEXT  0.13f
+#define FB_CARD_ICON  12.f
+
+/**
+ * @brief While you inspect a weapon with a skin: a small see-through card at the bottom, in the middle
+ * (StatTrak, the weapon and skin, its name, wear and float, kills, stickers).
  */
 static void CG_FatBoss_DrawInspectCard(void)
 {
-	float       a, x, y, w = 260.f, h, tw;
+	float       a, x, y, w, h, tw, lw;
 	int         slot, theme, count, wear, i, icons = 0;
 	vec4_t      back, orange, white, gold, dim;
 	const char  *weapon;
-	char        title[96];
+	char        title[96], wearLine[48], kills[32], tag[32];
 
 	if (fbPanel.open || !fbInspect.active || !fbInspect.profile || !cg.snap || cg.snap->ps.clientNum != cg.clientNum || cg.renderingThirdPerson)
 	{
@@ -2757,53 +2883,62 @@ static void CG_FatBoss_DrawInspectCard(void)
 	{
 		icons += fbStickers[cg.clientNum][slot][i] > 0;
 	}
-	Vector4Set(back, 0.02f, 0.03f, 0.03f, 0.78f * a);
-	Vector4Set(orange, 0.93f, 0.52f, 0.16f, a);
-	Vector4Set(white, 1.f, 1.f, 1.f, a);
-	Vector4Set(gold, 1.f, 0.84f, 0.36f, a);
-	Vector4Set(dim, 0.74f, 0.76f, 0.78f, a);
-	h = 12 + 16 + (fbTags[slot][0] ? 13 : 0) + 13 + (count >= 0 ? 13 : 0) + (icons ? 24 : 0) + 4;
-	x = (Ccg_WideX(SCREEN_WIDTH) - w) * 0.5f;
-	y = SCREEN_HEIGHT - 96 - h;
-	CG_FillRect(x, y, w, h, back);
-	CG_FillRect(x, y, 3, h, count >= 0 ? orange : gold);
-	x += 12;
-	y += 20;
+	Vector4Set(back, 0.f, 0.f, 0.f, 0.38f * a);
+	Vector4Set(orange, 0.95f, 0.55f, 0.18f, 0.95f * a);
+	Vector4Set(white, 1.f, 1.f, 1.f, 0.95f * a);
+	Vector4Set(gold, 1.f, 0.84f, 0.36f, 0.95f * a);
+	Vector4Set(dim, 0.80f, 0.82f, 0.84f, 0.85f * a);
+
+	// what it says, then how wide that is
 	Com_sprintf(title, sizeof(title), "%s | %s", weapon, CG_FatBoss_ThemeName(theme));
-	tw = 0;
-	if (count >= 0)
-	{
-		CG_Text_Paint_Ext(x, y, 0.24f, 0.24f, orange, "StatTrak", 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
-		tw = CG_Text_Width_Ext("StatTrak ", 0.24f, 0, &cgs.media.limboFont2);
-	}
-	CG_Text_Paint_Ext(x + tw, y, 0.24f, 0.24f, white, title, 0, 36, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+	Com_sprintf(wearLine, sizeof(wearLine), "%s  %.4f", CG_FatBoss_ConditionName(wear), wear / 1000.0);
+	Com_sprintf(kills, sizeof(kills), count >= 0 ? "   %s kills" : "%s", count >= 0 ? CG_FatBoss_Thousands(count) : "");
+	Com_sprintf(tag, sizeof(tag), "\"%s\"", fbTags[slot]);
+	tw       = count >= 0 ? CG_Text_Width_Ext("StatTrak ", FB_CARD_TITLE, 0, &cgs.media.limboFont2) : 0;
+	w        = tw + CG_Text_Width_Ext(title, FB_CARD_TITLE, 0, &cgs.media.limboFont2);
+	lw       = CG_Text_Width_Ext(wearLine, FB_CARD_TEXT, 0, &cgs.media.limboFont2) + CG_Text_Width_Ext(kills, FB_CARD_TEXT, 0, &cgs.media.limboFont2);
+	w        = MAX(w, lw);
 	if (fbTags[slot][0])
 	{
-		y += 13;
-		CG_Text_Paint_Ext(x, y, 0.19f, 0.19f, gold, va("\"%s\"", fbTags[slot]), 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+		w = MAX(w, CG_Text_Width_Ext(tag, FB_CARD_TEXT, 0, &cgs.media.limboFont2));
 	}
+	w = MAX(w, icons * (FB_CARD_ICON + 3)) + 14;
+	h = 6 + 10 + (fbTags[slot][0] ? 9 : 0) + 9 + (icons ? FB_CARD_ICON + 3 : 0) + 4;
+	x = (Ccg_WideX(SCREEN_WIDTH) - w) * 0.5f;
+	y = SCREEN_HEIGHT - 6 - h;
+	CG_FillRect(x, y, w, h, back);
+	CG_FillRect(x, y, 2, h, count >= 0 ? orange : gold);
+	x += 7;
 	y += 13;
-	CG_Text_Paint_Ext(x, y, 0.18f, 0.18f, dim, va("%s   float %.4f", CG_FatBoss_ConditionName(wear), wear / 1000.0), 0, 0, 0,
-	                  &cgs.media.limboFont2);
 	if (count >= 0)
 	{
-		y += 13;
-		CG_Text_Paint_Ext(x, y, 0.18f, 0.18f, dim, "StatTrak confirmed kills:", 0, 0, 0, &cgs.media.limboFont2);
-		CG_Text_Paint_Ext(x + CG_Text_Width_Ext("StatTrak confirmed kills: ", 0.18f, 0, &cgs.media.limboFont2), y, 0.18f, 0.18f, orange,
-		                  va("%i", count), 0, 0, 0, &cgs.media.limboFont2);
+		CG_Text_Paint_Ext(x, y, FB_CARD_TITLE, FB_CARD_TITLE, orange, "StatTrak", 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+	}
+	CG_Text_Paint_Ext(x + tw, y, FB_CARD_TITLE, FB_CARD_TITLE, white, title, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+	if (fbTags[slot][0])
+	{
+		y += 9;
+		CG_Text_Paint_Ext(x, y, FB_CARD_TEXT, FB_CARD_TEXT, gold, tag, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+	}
+	y += 9;
+	CG_Text_Paint_Ext(x, y, FB_CARD_TEXT, FB_CARD_TEXT, dim, wearLine, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+	if (count >= 0)
+	{
+		CG_Text_Paint_Ext(x + CG_Text_Width_Ext(wearLine, FB_CARD_TEXT, 0, &cgs.media.limboFont2), y, FB_CARD_TEXT, FB_CARD_TEXT, orange, kills, 0, 0,
+		                  ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
 	}
 	if (icons)
 	{
-		y += 6;
+		y += 3;
+		trap_R_SetColor(white);
 		for (i = 0; i < FB_STICKER_PLACES; i++)
 		{
-			qhandle_t icon = fbStickers[cg.clientNum][slot][i] > 0 ? CG_FatBoss_GraffitiIcon(fbStickers[cg.clientNum][slot][i]) : 0;
+			qhandle_t icon = fbStickers[cg.clientNum][slot][i] > 0 ? CG_FatBoss_GraffitiIcon(fbStickers[cg.clientNum][slot][i], qfalse) : 0;
 
 			if (icon)
 			{
-				trap_R_SetColor(white);
-				CG_DrawPic(x, y, 20, 20, icon);
-				x += 24;
+				CG_DrawPic(x, y, FB_CARD_ICON, FB_CARD_ICON, icon);
+				x += FB_CARD_ICON + 3;
 			}
 		}
 		trap_R_SetColor(NULL);
@@ -2942,7 +3077,7 @@ void CG_FatBoss_Panel_Draw(void)
 			CG_FatBoss_PanelPreview(x + 1, y0 + 39, 236, 178, fbPanel.tab, row->value, it ? it->wear : 0, it ? it->stickers : NULL);
 			for (i = 0; it && i < FB_STICKER_PLACES; i++)
 			{
-				qhandle_t icon = it->stickers[i] > 0 ? CG_FatBoss_GraffitiIcon(it->stickers[i]) : 0;
+				qhandle_t icon = it->stickers[i] > 0 ? CG_FatBoss_GraffitiIcon(it->stickers[i], qtrue) : 0;
 
 				if (icon)
 				{
