@@ -5,7 +5,17 @@ fatboss/skins/wut/thompson_4k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/wut/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/wut/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -13,12 +23,6 @@ fatboss/skins/wut/thompson_4k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen lightingDiffuse
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }
 
@@ -27,7 +31,17 @@ fatboss/skins/wut/thompson_1k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/wut/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/wut/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -36,12 +50,6 @@ fatboss/skins/wut/thompson_1k
 		alphaGen entity
 		rgbGen lightingDiffuse
 	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen lightingDiffuse
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
 }
 
 fatboss/skins/wut/kabar_4k
@@ -49,7 +57,17 @@ fatboss/skins/wut/kabar_4k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/wut/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/wut/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -57,12 +75,6 @@ fatboss/skins/wut/kabar_4k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen lightingDiffuse
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }
 
@@ -71,7 +83,17 @@ fatboss/skins/wut/kabar_1k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/wut/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/wut/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -79,11 +101,5 @@ fatboss/skins/wut/kabar_1k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen lightingDiffuse
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }

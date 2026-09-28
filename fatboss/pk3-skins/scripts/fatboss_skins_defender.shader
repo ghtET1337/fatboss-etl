@@ -5,7 +5,17 @@ fatboss/skins/defender/colt_4k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/defender/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/defender/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -13,12 +23,6 @@ fatboss/skins/defender/colt_4k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen lightingDiffuse
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }
 
@@ -27,7 +31,17 @@ fatboss/skins/defender/colt_1k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/defender/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/defender/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -35,11 +49,5 @@ fatboss/skins/defender/colt_1k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen lightingDiffuse
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }

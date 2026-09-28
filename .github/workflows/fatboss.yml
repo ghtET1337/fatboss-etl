@@ -161,21 +161,18 @@ jobs:
           if-no-files-found: error
 
   # The weapon skins change rarely and are big, so they have their own version
-  # (fatboss/skins/VERSION) and release; players keep their copies across
-  # cgame releases. Every theme is a pk3 of its own named after its contents
-  # (zzz_fatboss_skin_<theme>_<hash>.pk3), the scratch masks with env.jpg
-  # another (zzz_fatboss_wear_<hash>.pk3): a release that adds or changes one
-  # theme leaves every other pk3 name the same, so players download only what
-  # is new. A pk3 an earlier release already has is taken from that release
-  # byte for byte: the same name must always be the same file, or players'
-  # cached copies stop matching. A published release is never rebuilt.
+  # (fatboss/skins/VERSION) and release; players keep their copy across cgame
+  # releases. All of them go into one pk3, zzz_fatboss_skins_<VERSION>.pk3. It is
+  # far over the 32 MiB the UDP download manages, so players get it from the
+  # server's web download, like the official legacy_v*.pk3. A published skins
+  # release is never rebuilt: the same name must always be the same file.
   skins:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: fatboss
-      - name: Pack and publish the skins pk3s
+      - name: Pack and publish the skins pk3
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -187,74 +184,35 @@ jobs:
             echo "$tag is already published, not rebuilding it"
             exit 0
           fi
-          # each pk3 under 32 MiB: the UDP download fallback stalls for good past that
-          limit=$((32 * 1024 * 1024))
           root=fatboss/pk3-skins
           # the game refuses file names of MAX_QPATH (64) characters or more
           long=$(cd "$root" && find . -type f | sed 's#^\./##' | awk 'length($0) >= 64')
           if [ -n "$long" ]; then
             echo "::error::paths the game would not load (64 characters or more):"; echo "$long"; exit 1
           fi
-          # pk3s of earlier skins releases, by name
-          declare -A known=()
-          for rel in $(gh release list -R "$GITHUB_REPOSITORY" --limit 200 --json tagName -q '.[].tagName' | grep '^fatboss-skins-' || true); do
-            for a in $(gh release view "$rel" -R "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -E '^zzz_fatboss_(skin|wear)_.*\.pk3$' || true); do
-              known[$a]=$rel
+          # every image a shader maps is in the pack
+          missing=0
+          for f in "$root"/scripts/*.shader; do
+            for img in $(grep -oE '^\s*map\s+\S+' "$f" | awk '{print $2}' | sort -u); do
+              if [ ! -f "$root/$img" ]; then echo "::error::$(basename "$f") maps $img, which is not in the pack"; missing=1; fi
             done
           done
+          [ "$missing" = 0 ]
           find "$root" -type f -exec touch -d '2026-01-01 00:00:00 UTC' {} +
-          : > packed.txt
-          : > skins.txt
-          assets=()
-          pack() { # <prefix> <list file>
-            local list=$2 hash pk3
-            LC_ALL=C sort -u -o "$list" "$list"
-            hash=$(cd "$root" && xargs -d '\n' sha256sum < "$list" | sha256sum | cut -c1-10)
-            pk3="${1}_${hash}.pk3"
-            if [ -n "${known[$pk3]:-}" ]; then
-              gh release download "${known[$pk3]}" -R "$GITHUB_REPOSITORY" -p "$pk3" -p "$pk3.sha256"
-              sha256sum -c --quiet "$pk3.sha256"
-              echo "$pk3: the same as in ${known[$pk3]}"
-            else
-              # fixed order and timestamps
-              (cd "$root" && zip -q -X -9 "../../$pk3" -@) < "$list"
-              sha256sum "$pk3" > "$pk3.sha256"
-              echo "$pk3: new"
-            fi
-            size=$(stat -c %s "$pk3")
-            if [ "$size" -ge "$limit" ]; then
-              echo "::error::$pk3 is $size bytes; players could never finish it over UDP (limit $limit)"
-              exit 1
-            fi
-            cat "$list" >> packed.txt
-            echo "$pk3" >> skins.txt
-            assets+=("$pk3" "$pk3.sha256")
-            echo "  $size bytes"
-          }
-          # the scratch masks every skin shares, and the reflection map
-          list=$(mktemp)
-          (cd "$root" && find fbs/wear -type f) > "$list"
-          echo models/fatboss/skins/env.jpg >> "$list"
-          pack zzz_fatboss_wear "$list"
-          for shader in "$root"/scripts/fatboss_skins_*.shader; do
-            t=$(basename "$shader" .shader)
-            t=${t#fatboss_skins_}
-            list=$(mktemp)
-            echo "scripts/fatboss_skins_$t.shader" > "$list"
-            (cd "$root" && find "models/fatboss/skins/$t" -type f) >> "$list"
-            if [ -d "$root/fbs/$t" ]; then (cd "$root" && find "fbs/$t" -type f) >> "$list"; fi
-            pack "zzz_fatboss_skin_$t" "$list"
-          done
-          # every file of the skins tree must be in a pk3
-          missing=$(comm -23 <(cd "$root" && find . -type f | sed 's#^\./##' | LC_ALL=C sort) <(LC_ALL=C sort -u packed.txt))
-          if [ -n "$missing" ]; then
-            echo "::error::files in no skins pk3:"; echo "$missing"; exit 1
+          pk3="zzz_fatboss_skins_${ver}.pk3"
+          # fixed order and timestamps: the same sources always give the same file
+          (cd "$root" && find . -type f | sed 's#^\./##' | LC_ALL=C sort | zip -q -X -9 "../../$pk3" -@)
+          size=$(stat -c %s "$pk3")
+          echo "$pk3: $size bytes"
+          if [ "$size" -ge $((450 * 1024 * 1024)) ]; then
+            echo "::error::$pk3 is $size bytes, far more than a skins pack should be"; exit 1
           fi
+          sha256sum "$pk3" > "$pk3.sha256"
+          echo "$pk3" > skins.txt
           sha256sum skins.txt > skins.txt.sha256
-          cat skins.txt
           gh release create "$tag" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease \
-            --title "FatBoss skins ${ver}" --notes "FatBoss weapon skins ${ver}, built from ${GITHUB_SHA}: one pk3 per theme plus the wear masks, see skins.txt" \
-            "${assets[@]}" skins.txt skins.txt.sha256
+            --title "FatBoss skins ${ver}" --notes "FatBoss weapon skins ${ver} (one pk3, over the web download), built from ${GITHUB_SHA}" \
+            "$pk3" "$pk3.sha256" skins.txt skins.txt.sha256
 
   package:
     runs-on: ubuntu-24.04

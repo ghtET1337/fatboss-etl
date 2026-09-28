@@ -5,7 +5,17 @@ fatboss/skins/emerald/colt_4k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -13,12 +23,6 @@ fatboss/skins/emerald/colt_4k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }
 
@@ -27,7 +31,17 @@ fatboss/skins/emerald/colt_1k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -36,12 +50,6 @@ fatboss/skins/emerald/colt_1k
 		alphaGen entity
 		rgbGen lightingDiffuse
 	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
 }
 
 fatboss/skins/emerald/luger_4k
@@ -49,7 +57,17 @@ fatboss/skins/emerald/luger_4k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -57,12 +75,6 @@ fatboss/skins/emerald/luger_4k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }
 
@@ -71,7 +83,17 @@ fatboss/skins/emerald/luger_1k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -80,12 +102,6 @@ fatboss/skins/emerald/luger_1k
 		alphaGen entity
 		rgbGen lightingDiffuse
 	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
 }
 
 fatboss/skins/emerald/thompson_4k
@@ -93,7 +109,17 @@ fatboss/skins/emerald/thompson_4k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -101,12 +127,6 @@ fatboss/skins/emerald/thompson_4k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }
 
@@ -115,7 +135,17 @@ fatboss/skins/emerald/thompson_1k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -124,12 +154,6 @@ fatboss/skins/emerald/thompson_1k
 		alphaGen entity
 		rgbGen lightingDiffuse
 	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
 }
 
 fatboss/skins/emerald/mp40_4k
@@ -137,7 +161,17 @@ fatboss/skins/emerald/mp40_4k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -145,12 +179,6 @@ fatboss/skins/emerald/mp40_4k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }
 
@@ -159,7 +187,17 @@ fatboss/skins/emerald/mp40_1k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -168,12 +206,6 @@ fatboss/skins/emerald/mp40_1k
 		alphaGen entity
 		rgbGen lightingDiffuse
 	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
 }
 
 fatboss/skins/emerald/knife_4k
@@ -181,7 +213,17 @@ fatboss/skins/emerald/knife_4k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -189,12 +231,6 @@ fatboss/skins/emerald/knife_4k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }
 
@@ -203,7 +239,17 @@ fatboss/skins/emerald/knife_1k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -212,12 +258,6 @@ fatboss/skins/emerald/knife_1k
 		alphaGen entity
 		rgbGen lightingDiffuse
 	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
-	}
 }
 
 fatboss/skins/emerald/kabar_4k
@@ -225,7 +265,17 @@ fatboss/skins/emerald/kabar_4k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -233,12 +283,6 @@ fatboss/skins/emerald/kabar_4k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }
 
@@ -247,7 +291,17 @@ fatboss/skins/emerald/kabar_1k
 	nopicmip
 	nocompress
 	{
+		map models/fatboss/skins/emerald/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map models/fatboss/skins/studio.jpg
+		tcGen environment
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
 		map models/fatboss/skins/emerald/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
 		rgbGen lightingDiffuse
 	}
 	{
@@ -255,11 +309,5 @@ fatboss/skins/emerald/kabar_1k
 		alphaFunc GE128
 		alphaGen entity
 		rgbGen lightingDiffuse
-	}
-	{
-		map models/fatboss/skins/env.jpg
-		rgbGen const ( 0.36 0.36 0.36 )
-		tcGen environment
-		blendFunc GL_DST_COLOR GL_ONE
 	}
 }

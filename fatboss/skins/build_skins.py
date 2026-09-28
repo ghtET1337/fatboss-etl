@@ -23,10 +23,16 @@ every skin of it shares. Each skin shader has a stage that shows the mask where
 its alpha times the copy's wear (the cgame puts it in the entity alpha) passes
 128, so a worn copy shows bare steel on edges and scratches, a new one none.
 
-Packs: CI packs every theme into a pk3 of its own named after its contents
-(zzz_fatboss_skin_<theme>_<hash>.pk3) and the wear masks with env.jpg into
-zzz_fatboss_wear_<hash>.pk3, so a release that adds a theme leaves the other
-packs byte for byte the same: players download only what is new.
+Materials (skins s7): every finish has a gloss map (<texture>_gloss.jpg, 1k). The
+shader draws the gloss map lit by the map, multiplies it by a studio reflection
+(studio.jpg, tcGen environment) and adds the paint on top: metal parts mirror the
+studio lights, lacquer a little, wood and grips nothing. The paint has brighter
+edges baked in and is darker where it reflects, so the two add up. How glossy and
+how metallic each finish is: MATERIALS.
+
+Pack: CI packs the whole tree into one pk3, zzz_fatboss_skins_<VERSION>.pk3. It
+is far over the 32 MiB the UDP download manages, so players get it from the
+server's web download (the official legacy_v2.86.0.pk3 needs that too).
 All shaders are nopicmip + nocompress, so r_picmip and texture compression on
 the player's side never blur them.
 
@@ -115,6 +121,17 @@ WEAPONS = [
     ("WP_MP40", "mp40", "mp40", "mp40"),
 ]
 RES = {"4k": 1, "1k": 4}   # divisor of the 4k size (2k is gone: since cgame b8 nothing loads it)
+# B: how glossy each finish is (0..1) and how much its reflection takes the paint's colour (metal)
+MATERIALS = {
+    "gold": (1.0, 0.9), "tiger": (0.85, 0.8), "damascus": (0.9, 0.6), "case": (0.9, 0.6), "fade": (0.85, 0.7),
+    "marble": (0.8, 0.5), "emerald": (0.8, 0.6), "scales": (0.8, 0.6), "pearl": (0.7, 0.15), "glacier": (0.65, 0.3),
+    "inferno": (0.6, 0.4), "nebula": (0.6, 0.3), "plasma": (0.6, 0.3), "defender": (0.6, 0.4), "redline": (0.55, 0.1),
+    "neon": (0.5, 0.2), "cyber": (0.5, 0.2), "polska": (0.4, 0.1), "frontier": (0.4, 0.1), "wut": (0.4, 0.1),
+    "airstrike": (0.35, 0.1), "camo": (0.18, 0.0),
+}
+DEFAULT_MATERIAL = (0.35, 0.05)     # the text skins: a lacquered print
+GLOSS_DIV = 4                       # gloss maps at 1k: the reflection is soft anyway
+STUDIO = "models/fatboss/skins/studio.jpg"
 # The engine refuses a file or shader name of MAX_QPATH (64) characters or more: a .skin under
 # models/fatboss/skins/<long theme>/ did not load, so the gun kept its stock look. The .skin files
 # live under a short directory, and the build refuses any path that would not fit.
@@ -122,8 +139,8 @@ MAX_QPATH = 64
 SKIN_DIR = "fbs"
 # The UDP download (the fallback when the web redirect fails) numbers its 1 KB
 # blocks with a signed 16-bit counter, so it stalls for good at 32 MiB. Every
-# skins pk3 stays under that with room to spare; CI refuses anything bigger.
-PACK_LIMIT = 30 * 1024 * 1024
+# the one skins pk3 comes over the web download, so no UDP limit; this only catches a runaway build
+PACK_LIMIT = 450 * 1024 * 1024
 JPEG_QUALITY = {"4k": 90, "1k": 92}
 WEAR_SIZE = 2048          # the scratch masks: wider side
 
@@ -714,16 +731,42 @@ def save_jpg(arr_or_img, path, size, quality):
 
 # ---------------------------------------------------------------------------
 
-def stage_shader(name, image, env, glow, wear):
-    lines = [name, "{", "\tnopicmip", "\tnocompress", "\t{", f"\t\tmap {image}", "\t\trgbGen lightingDiffuse", "\t}"]
+def materials(theme, tex, rgb):
+    """B: the paint (brighter edges, darker where it reflects) and its gloss map, both float RGB."""
+    level, metal = MATERIALS.get(theme, DEFAULT_MATERIAL)
+    h, w = rgb.shape[:2]
+    _shade, e = gunspace.stock_shade(tex, w, h)
+    edge = np.clip(gunspace.blur(e, w / 4096.0 * 4.8) * 2.2, 0, 1)[..., None]
+    # wood and grips of the stock texture stay matte
+    stock = Image.open(io.BytesIO(textskins.read_file(TEXTURES[tex][0]))).convert("RGB").resize((w, h), Image.BILINEAR)
+    hsv = np.asarray(stock.convert("HSV"), np.float32) / 255.0
+    wood = (hsv[..., 0] > 0.02) & (hsv[..., 0] < 0.13) & (hsv[..., 1] > 0.3) & (hsv[..., 2] > 0.12)
+    wood = gunspace.blur(wood.astype(np.float32), w / 1024.0)[..., None]
+    tint = (1 - metal) + metal * rgb / np.maximum(rgb.max(-1, keepdims=True), 0.05)
+    gloss = np.clip(level * tint * (0.75 + 0.5 * edge) * (1 - 0.65 * wood), 0, 1)
+    paint = np.clip(rgb * (1 + 0.28 * edge) + 0.05 * edge, 0, 1) * (1 - 0.55 * gloss.mean(-1, keepdims=True))
+    return paint.astype(np.float32), gloss.astype(np.float32)
+
+
+def studio_env(n=512):
+    """The reflection: a dark studio, a big soft light above-left, a strip light right, a floor bounce."""
+    yy, xx = np.mgrid[0:n, 0:n].astype(np.float32) / (n - 1)
+    img = 0.06 + 0.10 * (1 - yy)
+    soft = np.exp(-(((xx - 0.30) / 0.16) ** 2 + ((yy - 0.18) / 0.10) ** 2) ** 2)
+    strip = np.exp(-(((xx - 0.86) / 0.035) ** 2)) * (yy > 0.12) * (yy < 0.75)
+    bounce = 0.12 * np.exp(-((yy - 0.92) / 0.06) ** 2)
+    v = np.clip(img + 1.1 * soft + 0.8 * strip + bounce, 0, 1)
+    return np.dstack([v * 0.98, v, v * 1.03]).clip(0, 1)
+
+
+def stage_shader(name, image, gloss, glow, wear):
+    # B: the studio reflection where the gloss map allows (lit by the map), then the paint added on top
+    lines = [name, "{", "\tnopicmip", "\tnocompress",
+             "\t{", f"\t\tmap {gloss}", "\t\trgbGen lightingDiffuse", "\t}",
+             "\t{", f"\t\tmap {STUDIO}", "\t\ttcGen environment", "\t\tblendFunc GL_DST_COLOR GL_ZERO", "\t}",
+             "\t{", f"\t\tmap {image}", "\t\tblendFunc GL_ONE GL_ONE", "\t\trgbGen lightingDiffuse", "\t}"]
     # the copy's wear: the cgame sets the entity alpha from it, the mask's alpha says where paint is gone
     lines += ["\t{", f"\t\tmap {wear}", "\t\talphaFunc GE128", "\t\talphaGen entity", "\t\trgbGen lightingDiffuse", "\t}"]
-    lines += ["\t{", "\t\tmap models/fatboss/skins/env.jpg"]
-    if env is None:
-        lines += ["\t\trgbGen lightingDiffuse"]
-    else:
-        lines += ["\t\trgbGen const ( %.2f %.2f %.2f )" % env]
-    lines += ["\t\ttcGen environment", "\t\tblendFunc GL_DST_COLOR GL_ONE", "\t}"]
     if glow:
         lines += ["\t{", f"\t\tmap {glow}", "\t\tblendFunc GL_ONE GL_ONE", "\t\trgbGen identity", "\t}"]
     lines += ["}", ""]
@@ -755,9 +798,11 @@ def main():
             if os.path.isdir(OUT):
                 shutil.rmtree(OUT)
             os.makedirs(OUT)
-        # environment map for the reflection stage
-        env = Image.open(io.BytesIO(codex.read(CODEX_ENV))).convert("RGB")
-        save_jpg(env, os.path.join(OUT, "models/fatboss/skins/env.jpg"), (256, 256), 92)
+        # the studio the reflection stage mirrors (env.jpg of skins s1-s6 is not used any more)
+        save_jpg(Image.fromarray((studio_env() * 255 + 0.5).astype(np.uint8)), os.path.join(OUT, STUDIO), (512, 512), 92)
+        old_env = os.path.join(OUT, "models/fatboss/skins/env.jpg")
+        if os.path.isfile(old_env):
+            os.remove(old_env)
         # the scratch masks, one per texture, shared by every skin of it
         for tex in textures:
             (w, h) = TEXTURES[tex][1]
@@ -779,13 +824,20 @@ def main():
                 d = f"models/fatboss/skins/{theme}"
                 if (theme, tex) in CODEX:
                     fp_src, tp_src = CODEX[(theme, tex)]
-                    fp = Image.open(io.BytesIO(codex.read(fp_src))).convert("RGB")
-                    tp = Image.open(io.BytesIO(codex.read(tp_src))).convert("RGB")
+                    fp_img = Image.open(io.BytesIO(codex.read(fp_src))).convert("RGB").resize((w, h), Image.LANCZOS)
+                    tp_img = Image.open(io.BytesIO(codex.read(tp_src))).convert("RGB").resize((w, h), Image.LANCZOS)
+                    fp_arr, gloss = materials(theme, tex, np.asarray(fp_img, np.float32) / 255.0)
+                    tp_arr, _ = materials(theme, tex, np.asarray(tp_img, np.float32) / 255.0)
+                    fp = Image.fromarray((fp_arr * 255 + 0.5).astype(np.uint8))
+                    tp = Image.fromarray((tp_arr * 255 + 0.5).astype(np.uint8))
                 else:
                     arr, glow = finish(paks, tex, theme)
+                    arr, gloss = materials(theme, tex, arr)
                     fp = tp = Image.fromarray((arr * 255 + 0.5).astype(np.uint8))
                     if glow is not None:
                         save_jpg(glow, os.path.join(OUT, f"{d}/{tex}_glow.jpg"), (w // 4, h // 4), 90)
+                save_jpg(Image.fromarray((gloss * 255 + 0.5).astype(np.uint8)), os.path.join(OUT, f"{d}/{tex}_gloss.jpg"),
+                         (w // GLOSS_DIV, h // GLOSS_DIV), 90)
                 for res, div in RES.items():
                     src = tp if res == "1k" else fp
                     save_jpg(src, os.path.join(OUT, f"{d}/{tex}_{res}.jpg"), (w // div, h // div), JPEG_QUALITY[res])
@@ -812,7 +864,7 @@ def main():
                 glow_path = None
             for res in RES:
                 # no glow on third-person weapons: it would light players up in the dark
-                shaders.append(stage_shader(f"fatboss/skins/{theme}/{tex}_{res}", f"{d}/{tex}_{res}.jpg", env_strength,
+                shaders.append(stage_shader(f"fatboss/skins/{theme}/{tex}_{res}", f"{d}/{tex}_{res}.jpg", f"{d}/{tex}_gloss.jpg",
                                             glow_path if res != "1k" else None, f"{SKIN_DIR}/wear/{tex}.png"))
         with open(os.path.join(scripts, f"fatboss_skins_{theme}.shader"), "w", newline="\n") as f:
             f.write("\n".join(shaders))
@@ -901,15 +953,24 @@ def check_qpaths():
 
 
 def check_packs():
-    """CI packs each theme on its own: every theme must fit a pk3 under the UDP download limit."""
+    """One skins pk3: every image a shader maps must be in the tree; print the size per theme and in all."""
+    total = 0
+    for p, _, files in os.walk(OUT):
+        total += sum(os.path.getsize(os.path.join(p, f)) for f in files)
     for theme in THEMES:
-        total = os.path.getsize(os.path.join(OUT, "scripts", f"fatboss_skins_{theme}.shader"))
+        size = 0
         for d in (os.path.join(OUT, "models", "fatboss", "skins", theme), os.path.join(OUT, SKIN_DIR, theme)):
             for p, _, files in os.walk(d):
-                total += sum(os.path.getsize(os.path.join(p, f)) for f in files)
-        print(f"{theme}: {total / 1048576:.1f} MiB")
-        if total > PACK_LIMIT:
-            raise SystemExit(f"theme {theme} is {total / 1048576:.1f} MiB, over the pack limit")
+                size += sum(os.path.getsize(os.path.join(p, f)) for f in files)
+        print(f"{theme}: {size / 1048576:.1f} MiB")
+    for name in os.listdir(os.path.join(OUT, "scripts")):
+        text = open(os.path.join(OUT, "scripts", name), encoding="latin1").read()
+        for img in re.findall(r"\bmap\s+(\S+)", text):
+            if not os.path.isfile(os.path.join(OUT, img)):
+                raise SystemExit(f"{name} maps {img}, which is not in the pack")
+    print(f"skins pk3: {total / 1048576:.1f} MiB")
+    if total > PACK_LIMIT:
+        raise SystemExit(f"the skins pk3 would be {total / 1048576:.1f} MiB, over {PACK_LIMIT / 1048576:.0f}")
 
 
 if __name__ == "__main__":
