@@ -40,11 +40,23 @@
     the new loadout comes back with the answer and is set at once. FatBoss only
     ever touches the account the player's cl_guid is linked to.
 
+    StatTrak, stickers, name tags (cgame b13): the feed also gives, per slot, the
+    worn copy's id ("ids"), its StatTrak count ("st", StatTrak copies only), its
+    stickers ("stk", four base-36 design codes, "." for an empty place) and its
+    name ("tags"). An enemy killed with a StatTrak copy's weapon in a real game
+    (gamestate playing, not a teammate, not yourself) adds one to its count at
+    once (the configstring shows it) and goes to FatBoss (/stattrak, next to the
+    loadout URL) in a report every 30 seconds and when the map ends; FatBoss only
+    counts copies the killer's linked account still owns. Name tags go to the
+    owner's cgame alone ("fbtags"), once it said it knows them ("fbsync 13").
+
     FATBOSS_DEFAULT_GRAFFITI=fatboss lets players without a graffiti of their
     own spray that design (the FatBoss starter everybody gets).
 
     FATBOSS_TEST=1 (test servers only): everybody gets the "fatboss" graffiti,
-    and /fbequip <slot> <theme> [wear] tries any skin or graffiti without FatBoss.
+    and /fbequip <slot> <theme> [wear] [st or st=N] [k=abcd] [n=Name] tries any skin
+    or graffiti without FatBoss, as a StatTrak copy with stickers and a name if
+    asked (its kills count on the server, nothing is reported).
 
     Runs next to Oksii's stats.lua and combinedfixes.lua in its own Lua VM and
     handles only its own commands ("spray", "fblink", "fbsync", "fbinv", "fbwear",
@@ -55,7 +67,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.12"
+local VERSION = "0.13"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 -- first configstring past CS_MAX of ET: Legacy 2.86 (bg_public.h); the FatBoss cgame reads FB_CS + client
@@ -92,6 +104,17 @@ local PANEL_CHUNK     = 700     -- characters of items per fbinv_items command
 -- fbinv_items commands a frame for one player: ET drops a client that has 64 reliable commands
 -- it has not acknowledged, so a list of hundreds of items goes out over a few frames
 local PANEL_PER_FRAME = 4
+local REPORT_MS       = 30000   -- StatTrak kills go to FatBoss every half minute (and when the map ends)
+local REPORT_WAIT_MS  = 15000
+local GS_PLAYING      = "0"
+local CGAME_TAGS      = 13      -- the first FatBoss cgame that shows name tags ("fbsync 13")
+-- means of death -> the slot whose StatTrak copy counts the kill (bg_public.h of ET: Legacy 2.86)
+local MOD_SLOT        = {
+    [5] = "knife", [61] = "knife", [65] = "knife",                       -- knife, KA-BAR, backstab
+    [6] = "luger", [12] = "luger", [54] = "luger", [56] = "luger",       -- luger, silenced, akimbo, akimbo silenced
+    [7] = "colt", [45] = "colt", [53] = "colt", [55] = "colt",           -- colt, silenced, akimbo, akimbo silenced
+    [8] = "mp40", [9] = "thompson",
+}
 
 local loadouts     = {}  -- cl_guid (upper case) -> { graffiti = design, skins = { slot = theme }, wear = { slot = 0..1 } }
 local testLoadouts = {}  -- the same, set with /fbequip in test mode; wins over loadouts
@@ -107,7 +130,12 @@ local lastSync     = {}  -- clientNum -> time the client last got everything
 local requests     = {}  -- clientNum -> { file, guid, kind, deadline } of a panel request waiting for FatBoss
 local lastPanel    = {}  -- clientNum -> time of the last panel request
 local outbox       = {}  -- clientNum -> commands of an item list still to send
-local inventoryUrl, equipUrl
+local stPending    = {}  -- copy id -> { guid, n }: StatTrak kills not reported yet
+local stInflight   = nil -- { file, deadline, ids = { copy id -> n } } of the report on its way
+local stFloor      = {}  -- copy id -> count FatBoss confirmed (a feed read before the report stays below it)
+local cgameBuild   = {}  -- clientNum -> the FatBoss cgame build it announced with fbsync
+local sentTags     = {}  -- clientNum -> fbtags command last sent
+local inventoryUrl, equipUrl, stattrakUrl, nextReport
 local loadoutPath, loadoutUrl, linkUrl, apiToken, testMode, defaultGraffiti, maxClients, homeDir, spraysPerLife
 local nextFetch, nextRead, lastLoadoutText = 0, 0, nil
 
@@ -137,16 +165,38 @@ local function loadoutOf(clientNum)
     return testLoadouts[guid] or loadouts[guid] or {}
 end
 
--- "<knife> <colt> <luger> <thompson> <mp40> <graffiti>", "-" for stock, "theme:NNN" with the copy's
--- wear x 1000; "" for nothing at all (a small gamestate)
+-- the StatTrak count a slot shows: FatBoss's (or the higher one it confirmed to a report since),
+-- plus the kills on their way to it; nil for a copy without StatTrak
+local function stattrakCount(loadout, slot)
+    local count = loadout.st and loadout.st[slot]
+    local id = loadout.ids and loadout.ids[slot]
+    if not count or not id then
+        return count
+    end
+    count = math.max(count, stFloor[id] or 0) + (stPending[id] and stPending[id].n or 0)
+    return count + (stInflight and stInflight.ids[id] or 0)
+end
+
+-- "<knife> <colt> <luger> <thompson> <mp40> <graffiti>", "-" for stock; a skin is "theme:NNN" with the
+-- copy's wear x 1000, then ":sN" for a StatTrak count and ":kabcd" for its stickers (cgame b12 reads the
+-- theme and the wear and skips the rest); "" for nothing at all (a small gamestate)
 local function loadoutString(clientNum)
     local loadout = loadoutOf(clientNum)
-    local skins, wear = loadout.skins or {}, loadout.wear or {}
+    local skins, wear, stk = loadout.skins or {}, loadout.wear or {}, loadout.stk or {}
     local parts, any = {}, false
     for _, slot in ipairs(SLOTS) do
         local theme = skins[slot]
-        if theme and wear[slot] then
-            theme = string.format("%s:%d", theme, math.min(1000, math.floor(wear[slot] * 1000 + 0.5)))
+        if theme then
+            if wear[slot] then
+                theme = string.format("%s:%d", theme, math.min(1000, math.floor(wear[slot] * 1000 + 0.5)))
+            end
+            local count = stattrakCount(loadout, slot)
+            if count then
+                theme = string.format("%s:s%d", theme, math.min(count, 999999))
+            end
+            if stk[slot] and slot ~= "knife" then
+                theme = theme .. ":k" .. stk[slot]
+            end
         end
         parts[#parts + 1] = theme or "-"
         any = any or theme ~= nil
@@ -166,13 +216,42 @@ local function setLoadout(clientNum, value)
     end
 end
 
+-- the names of a player's worn copies, to their own cgame only (the inspect card shows them);
+-- cgames before b13 do not know the command, they never get it
+local function sendTags(clientNum)
+    if (cgameBuild[clientNum] or 0) < CGAME_TAGS then
+        return
+    end
+    local tags = loadoutOf(clientNum).tags or {}
+    local parts = {}
+    for _, slot in ipairs(SLOTS) do
+        parts[#parts + 1] = '"' .. (tags[slot] or "") .. '"'
+    end
+    local cmd = "fbtags " .. table.concat(parts, " ")
+    if sentTags[clientNum] ~= cmd then
+        sentTags[clientNum] = cmd
+        et.trap_SendServerCommand(clientNum, cmd)
+    end
+end
+
 -- every connected player's loadout into its configstring (only the changed ones go out)
 local function publishLoadouts()
     for clientNum = 0, maxClients - 1 do
         if connected(clientNum) then
             setLoadout(clientNum, loadoutString(clientNum))
+            sendTags(clientNum)
         end
     end
+end
+
+-- a name tag as FatBoss allows it: 1-20 of letters, digits, spaces and . , ! ? ' _ -
+local function validTag(tag)
+    return type(tag) == "string" and #tag >= 1 and #tag <= 20 and tag:match("^[%w .,!?'_%-]+$") ~= nil
+end
+
+-- four sticker places, a base-36 design code each or "." for none
+local function validStickers(codes)
+    return type(codes) == "string" and codes:match("^[0-9a-z%.][0-9a-z%.][0-9a-z%.][0-9a-z%.]$") ~= nil and codes ~= "...."
 end
 
 local function parseEntry(entry)
@@ -184,14 +263,31 @@ local function parseEntry(entry)
         out.graffiti = entry.graffiti
     end
     if type(entry.skins) == "table" then
-        out.skins, out.wear = {}, {}
-        local wear = type(entry.wear) == "table" and entry.wear or {}
+        out.skins, out.wear, out.ids, out.st, out.stk, out.tags = {}, {}, {}, {}, {}, {}
+        local function map(t)
+            return type(t) == "table" and t or {}
+        end
+        local wear, ids, st, stk, tags = map(entry.wear), map(entry.ids), map(entry.st), map(entry.stk), map(entry.tags)
         for _, slot in ipairs(SLOTS) do
             if validName(entry.skins[slot]) then
                 out.skins[slot] = entry.skins[slot]
                 local w = tonumber(wear[slot])
                 if w and w >= 0 and w <= 1 then
                     out.wear[slot] = w
+                end
+                local id = tonumber(ids[slot])
+                if id and id >= 1 and id == math.floor(id) then
+                    out.ids[slot] = id
+                end
+                local n = tonumber(st[slot])
+                if n and n >= 0 then
+                    out.st[slot] = math.floor(n)
+                end
+                if validStickers(stk[slot]) then
+                    out.stk[slot] = stk[slot]
+                end
+                if validTag(tags[slot]) then
+                    out.tags[slot] = tags[slot]
                 end
             end
         end
@@ -440,6 +536,25 @@ local function equip(clientNum)
     local name = string.lower(et.trap_Argv(2) or "")
     local wearArg = string.lower(et.trap_Argv(3) or "")
     local wear = CONDITION_WEAR[wearArg] or tonumber(wearArg)
+    -- the extras after the wear: st or st=N (StatTrak), k=abcd (stickers), n=Name_with_underscores
+    local st, stk, tag, extrasOk = nil, nil, nil, true
+    for i = 4, 6 do
+        local a = et.trap_Argv(i) or ""
+        if a ~= "" then
+            local low = string.lower(a)
+            if low == "st" then
+                st = 0
+            elseif low:match("^st=%d+$") then
+                st = math.min(999999, tonumber(low:sub(4)))
+            elseif low:match("^k=") and validStickers(low:sub(3)) then
+                stk = low:sub(3)
+            elseif low:match("^n=") and validTag((a:sub(3):gsub("_", " "))) then
+                tag = a:sub(3):gsub("_", " ")
+            else
+                extrasOk = false
+            end
+        end
+    end
     local say = function(text)
         et.trap_SendServerCommand(clientNum, string.format('print "^3FatBoss:^7 %s\n"', text))
     end
@@ -450,9 +565,10 @@ local function equip(clientNum)
     for _, s in ipairs(SLOTS) do
         valid = valid or s == slot
     end
-    if not valid or (name ~= "-" and not validName(name)) or (wearArg ~= "" and (not wear or wear < 0 or wear > 1)) then
-        say("usage: /fbequip <knife|colt|luger|thompson|mp40> <theme|-> [wear]   or   /fbequip graffiti <design>")
-        say("wear: 0 (Factory New) .. 1 (Battle-Scarred), or fn mw ft ww bs")
+    if not valid or (name ~= "-" and not validName(name)) or (wearArg ~= "" and (not wear or wear < 0 or wear > 1)) or not extrasOk then
+        say("usage: /fbequip <knife|colt|luger|thompson|mp40> <theme|-> [wear] [st[=N]] [k=abcd] [n=Name]   or   /fbequip graffiti <design>")
+        say("wear: 0 (Factory New) .. 1 (Battle-Scarred), or fn mw ft ww bs; st: a StatTrak copy (N kills);")
+        say("k=abcd: stickers on the four places (a design code each, . for none); n=Name: a name tag (_ for spaces)")
         say("themes: " .. THEMES_HELP)
         return say("graffiti: fatboss poland_et gg ez gibbed noob nice_try cloudy skill_issue jebac_axis jebac_allies kurwa_mac wut_1112 sprzedam_opla nastepny_przystanek next_stop skill_404 rip_bozo lagging get_rekt")
     end
@@ -460,12 +576,11 @@ local function equip(clientNum)
     if not entry then
         -- start from the real loadout, so one slot changes at a time
         local base = loadouts[guid] or {}
-        entry = { graffiti = base.graffiti, skins = {}, wear = {} }
-        for k, v in pairs(base.skins or {}) do
-            entry.skins[k] = v
-        end
-        for k, v in pairs(base.wear or {}) do
-            entry.wear[k] = v
+        entry = { graffiti = base.graffiti, skins = {}, wear = {}, st = {}, stk = {}, tags = {} }
+        for _, key in ipairs({ "skins", "wear", "st", "stk", "tags" }) do
+            for k, v in pairs(base[key] or {}) do
+                entry[key][k] = v
+            end
         end
         testLoadouts[guid] = entry
     end
@@ -474,10 +589,15 @@ local function equip(clientNum)
     else
         entry.skins[slot] = name ~= "-" and name or nil
         entry.wear[slot] = name ~= "-" and (wear or entry.wear[slot]) or nil
+        -- a test copy has no id: its kills count here and are never reported
+        entry.st[slot] = name ~= "-" and st or nil
+        entry.stk[slot] = name ~= "-" and stk or nil
+        entry.tags[slot] = name ~= "-" and tag or nil
     end
     local worn = slot ~= "graffiti" and entry.wear[slot] and string.format(" (wear %.3f)", entry.wear[slot]) or ""
     say(string.format("%s = %s%s (shows after /reconnect, on the next map or at the intermission; fb_loadskins loads it now)", slot, name, worn))
     setLoadout(clientNum, loadoutString(clientNum))
+    sendTags(clientNum)
 end
 
 -- ------------------------------------------------------------------ in-game Arsenal panel
@@ -582,11 +702,24 @@ local function takeEntry(clientNum, guid, entry)
     loadouts[guid] = parseEntry(entry) or {}
     testLoadouts[guid] = nil          -- a real choice replaces an /fbequip test loadout
     setLoadout(clientNum, loadoutString(clientNum))
+    sendTags(clientNum)
     nextFetch = 0                     -- and everybody's feed soon after
 end
 
--- the items, a few per command (a reliable command holds about 1 KB): "id,slot,value,wear,serial,flags"
--- wear is the float x 1000 or -1 (graffiti); flags: 1 worn, 2 on the market, 4 bound
+-- a name inside an item token: nothing but [A-Za-z0-9_.!?'-] as it is, the rest as %XX
+local function encodeTag(tag)
+    if not validTag(tag) then
+        return "-"
+    end
+    return (tag:gsub("[^%w_%.!%?'%-]", function(c)
+        return string.format("%%%02X", c:byte())
+    end))
+end
+
+-- the items, a few per command (a reliable command holds about 1 KB):
+-- "id,slot,value,wear,serial,flags,stattrak,stickers,name" - wear is the float x 1000 or -1 (graffiti);
+-- flags: 1 worn, 2 on the market, 4 bound; stattrak the count or -1; stickers four codes or "-";
+-- name %-encoded or "-". Cgame b12 reads the first six and skips the rest.
 local function sendInventory(clientNum, guid, answer)
     takeEntry(clientNum, guid, answer.entry)
     local tokens = {}
@@ -598,7 +731,11 @@ local function sendInventory(clientNum, guid, answer)
         if id and isSlot(it.slot) and validName(it.value) then
             local flags = (it.worn and 1 or 0) + (it.sale and 2 or 0) + (it.bound and 4 or 0)
             wear = wear and math.max(0, math.min(1000, math.floor(wear))) or -1
-            tokens[#tokens + 1] = string.format("%d,%s,%s,%d,%d,%d", math.floor(id), it.slot, it.value, wear, math.floor(serial), flags)
+            local st = tonumber(it.stattrak)
+            st = st and st >= 0 and math.min(999999, math.floor(st)) or -1
+            local stk = validStickers(it.stickers) and it.stickers or "-"
+            tokens[#tokens + 1] = string.format("%d,%s,%s,%d,%d,%d,%d,%s,%s", math.floor(id), it.slot, it.value, wear,
+                math.floor(serial), flags, st, stk, encodeTag(it.name_tag))
         end
     end
     local queue = { string.format('fbinv_begin %d %d "%s"', #tokens, math.floor(tonumber(answer.total) or #tokens), plain(answer.name)) }
@@ -667,6 +804,91 @@ local function checkRequests(now)
     end
 end
 
+-- ------------------------------------------------------------------ StatTrak
+
+-- an enemy killed with the weapon of a StatTrak copy the killer wears, in a real game
+local function countKill(victim, killer, meansOfDeath)
+    local slot = MOD_SLOT[meansOfDeath]
+    if not slot or killer == victim or killer < 0 or killer >= maxClients or victim < 0 or victim >= maxClients then
+        return
+    end
+    if et.trap_Cvar_Get("gamestate") ~= GS_PLAYING then
+        return
+    end
+    local kt, vt = et.gentity_get(killer, "sess.sessionTeam"), et.gentity_get(victim, "sess.sessionTeam")
+    if kt == vt or (kt ~= TEAM_AXIS and kt ~= TEAM_ALLIES) or (vt ~= TEAM_AXIS and vt ~= TEAM_ALLIES) then
+        return
+    end
+    local guid = guidOf(killer)
+    if guid == "" then
+        return
+    end
+    local loadout = testLoadouts[guid] or loadouts[guid]
+    if not loadout or not loadout.st or not loadout.st[slot] then
+        return
+    end
+    local id = loadout.ids and loadout.ids[slot]
+    if id and not testLoadouts[guid] then
+        local p = stPending[id]
+        if not p or p.guid ~= guid then
+            p = { guid = guid, n = 0 }
+            stPending[id] = p
+        end
+        p.n = p.n + 1
+    else
+        loadout.st[slot] = loadout.st[slot] + 1      -- a test copy: counted here only
+    end
+    setLoadout(killer, loadoutString(killer))
+end
+
+-- the kills since the last report to FatBoss, in the background; final: the map ends, nobody waits for the answer
+local function reportKills(now, final)
+    if not next(stPending) or testMode or not stattrakUrl or (stInflight and not final) then
+        return
+    end
+    local kills, ids = {}, {}
+    for id, p in pairs(stPending) do
+        kills[#kills + 1] = { guid = p.guid, id = id, n = p.n }
+        ids[id] = p.n
+    end
+    local base = string.format("%s/fatboss_stattrak%s", homeDir, final and "_end" or "")
+    if not postAsync(stattrakUrl, { kills = kills }, base) then
+        return
+    end
+    stPending = {}
+    if not final then
+        stInflight = { file = base .. ".res", deadline = now + REPORT_WAIT_MS, ids = ids }
+    end
+end
+
+-- FatBoss's answer: the counts it has now; a report without an answer is lost (never counted twice)
+local function checkReport(now)
+    local f = io.open(stInflight.file, "r")
+    if f then
+        local text = f:read("*a")
+        f:close()
+        os.remove(stInflight.file)
+        local answer = json.decode(text or "")
+        if type(answer) == "table" and answer.ok and type(answer.counts) == "table" then
+            for id, count in pairs(answer.counts) do
+                id, count = tonumber(id), tonumber(count)
+                if id and count then
+                    stFloor[id] = math.max(stFloor[id] or 0, count)
+                end
+            end
+        else
+            et.G_LogPrint(string.format("%s: FatBoss refused a StatTrak report: %s\n", MODNAME,
+                plain(type(answer) == "table" and answer.error or text)))
+        end
+        stInflight = nil
+        publishLoadouts()
+    elseif now > stInflight.deadline then
+        et.G_LogPrint(string.format("%s: no answer to a StatTrak report\n", MODNAME))
+        stInflight = nil
+        publishLoadouts()
+    end
+end
+
 -- the graffiti already on the map, to one client (without the sound)
 local function syncClient(clientNum)
     for _, cmd in pairs(sprays) do
@@ -677,6 +899,12 @@ end
 -- The FatBoss cgame asks for the graffiti again when it restarts (vid_restart
 -- forgets what the server sent when the player joined).
 local function resync(clientNum)
+    local build = tonumber(et.trap_Argv(1) or "")
+    if build and build >= 1 and build == math.floor(build) then
+        cgameBuild[clientNum] = build
+        sentTags[clientNum] = nil
+        sendTags(clientNum)
+    end
     local now = et.trap_Milliseconds()
     if not synced[clientNum] or (lastSync[clientNum] and now - lastSync[clientNum] < SYNC_GAP_MS) then
         return
@@ -699,6 +927,7 @@ function et_InitGame(levelTime, randomSeed, restart)
     local apiBase = (loadoutUrl and loadoutUrl:match("^(.+)/loadouts$")) or (linkUrl and linkUrl:match("^(.+)/link$"))
     inventoryUrl = apiBase and apiBase .. "/inventory" or nil
     equipUrl = apiBase and apiBase .. "/equip" or nil
+    stattrakUrl = apiBase and apiBase .. "/stattrak" or nil
     apiToken = os.getenv("FATBOSS_API_TOKEN")
     testMode = os.getenv("FATBOSS_TEST") == "1"
     defaultGraffiti = os.getenv("FATBOSS_DEFAULT_GRAFFITI")
@@ -710,6 +939,9 @@ function et_InitGame(levelTime, randomSeed, restart)
     -- a new map starts with empty configstrings; a map_restart keeps them (setting the same value again sends nothing)
     setStrings, synced, sprays, links, sprayCount, lastSpray = {}, {}, {}, {}, {}, {}
     requests, lastPanel, outbox = {}, {}, {}
+    stPending, stInflight, stFloor, cgameBuild, sentTags = {}, nil, {}, {}, {}
+    os.remove(homeDir .. "/fatboss_stattrak.res")
+    nextReport = levelTime + REPORT_MS
     readLoadouts()
     fetchLoadouts()
     nextFetch = levelTime + FETCH_MS
@@ -738,6 +970,23 @@ function et_RunFrame(levelTime)
     if next(outbox) then
         drainOutbox()
     end
+    if levelTime >= nextReport then
+        nextReport = levelTime + REPORT_MS
+        reportKills(et.trap_Milliseconds(), false)
+    end
+    if stInflight then
+        checkReport(et.trap_Milliseconds())
+    end
+end
+
+-- the kills of the last seconds go to FatBoss before the map (and this Lua VM) ends
+function et_ShutdownGame(restart)
+    reportKills(et.trap_Milliseconds(), true)
+end
+
+-- returns nothing: a string would replace the game's obituary message
+function et_Obituary(victim, killer, meansOfDeath)
+    countKill(victim, killer, meansOfDeath)
 end
 
 function et_ClientCommand(clientNum, command)
@@ -805,6 +1054,8 @@ function et_ClientDisconnect(clientNum)
     links[clientNum] = nil
     lastLink[clientNum] = nil
     lastSync[clientNum] = nil
+    cgameBuild[clientNum] = nil
+    sentTags[clientNum] = nil
     setLoadout(clientNum, "")
 end
 
