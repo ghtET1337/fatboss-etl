@@ -46,7 +46,8 @@
     name ("tags"). An enemy killed with a StatTrak copy's weapon in a real game
     (gamestate playing, not a teammate, not yourself) adds one to its count at
     once (the configstring shows it) and goes to FatBoss (/stattrak, next to the
-    loadout URL) in a report every 30 seconds and when the map ends; FatBoss only
+    loadout URL) with the minute's loadout download (the same background shell,
+    so the server starts no extra process) and when the map ends; FatBoss only
     counts copies the killer's linked account still owns. Name tags go to the
     owner's cgame alone ("fbtags"), once it said it knows them ("fbsync 13").
 
@@ -67,7 +68,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.13"
+local VERSION = "0.14"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 -- first configstring past CS_MAX of ET: Legacy 2.86 (bg_public.h); the FatBoss cgame reads FB_CS + client
@@ -104,8 +105,7 @@ local PANEL_CHUNK     = 700     -- characters of items per fbinv_items command
 -- fbinv_items commands a frame for one player: ET drops a client that has 64 reliable commands
 -- it has not acknowledged, so a list of hundreds of items goes out over a few frames
 local PANEL_PER_FRAME = 4
-local REPORT_MS       = 30000   -- StatTrak kills go to FatBoss every half minute (and when the map ends)
-local REPORT_WAIT_MS  = 15000
+local REPORT_WAIT_MS  = 15000   -- StatTrak kills go to FatBoss with the minute's download (and when the map ends)
 local GS_PLAYING      = "0"
 local CGAME_TAGS      = 13      -- the first FatBoss cgame that shows name tags ("fbsync 13")
 -- means of death -> the slot whose StatTrak copy counts the kill (bg_public.h of ET: Legacy 2.86)
@@ -135,7 +135,7 @@ local stInflight   = nil -- { file, deadline, ids = { copy id -> n } } of the re
 local stFloor      = {}  -- copy id -> count FatBoss confirmed (a feed read before the report stays below it)
 local cgameBuild   = {}  -- clientNum -> the FatBoss cgame build it announced with fbsync
 local sentTags     = {}  -- clientNum -> fbtags command last sent
-local inventoryUrl, equipUrl, stattrakUrl, nextReport
+local inventoryUrl, equipUrl, stattrakUrl
 local loadoutPath, loadoutUrl, linkUrl, apiToken, testMode, defaultGraffiti, maxClients, homeDir, spraysPerLife
 local nextFetch, nextRead, lastLoadoutText = 0, 0, nil
 
@@ -324,9 +324,13 @@ local function readLoadouts()
     publishLoadouts()
 end
 
--- background download; the file is swapped in only when curl succeeds
-local function fetchLoadouts()
+-- background download; the file is swapped in only when curl succeeds. extra: another background
+-- command (the StatTrak report) that goes out in the same shell, so the server forks once a minute
+local function fetchLoadouts(extra)
     if not loadoutUrl or loadoutUrl == "" then
+        if extra then
+            os.execute(extra)
+        end
         return
     end
     local tmp = loadoutPath .. ".tmp"
@@ -334,8 +338,8 @@ local function fetchLoadouts()
     if apiToken and apiToken ~= "" then
         auth = " -H " .. shellQuote("Authorization: Bearer " .. apiToken)
     end
-    os.execute(string.format("(curl -fsS --max-time 10%s -o %s %s && mv -f %s %s) >/dev/null 2>&1 &",
-        auth, shellQuote(tmp), shellQuote(loadoutUrl), shellQuote(tmp), shellQuote(loadoutPath)))
+    os.execute(string.format("(curl -fsS --max-time 10%s -o %s %s && mv -f %s %s) >/dev/null 2>&1 &%s",
+        auth, shellQuote(tmp), shellQuote(loadoutUrl), shellQuote(tmp), shellQuote(loadoutPath), extra and (" " .. extra) or ""))
 end
 
 local function refuse(clientNum, levelTime, text)
@@ -623,8 +627,9 @@ local function isSlot(slot)
     return false
 end
 
--- POSTs body to url in the background; the answer lands in <base>.res (FatBoss answers 400 with a reason, so no -f)
-local function postAsync(url, body, base)
+-- POSTs body to url in the background; the answer lands in <base>.res (FatBoss answers 400 with a reason, so no -f).
+-- With deferred it returns the shell command instead of running it (to go out with another one).
+local function postAsync(url, body, base, deferred)
     local f = io.open(base .. ".req", "w")
     if not f then
         return false
@@ -635,8 +640,12 @@ local function postAsync(url, body, base)
     if apiToken and apiToken ~= "" then
         auth = " -H " .. shellQuote("Authorization: Bearer " .. apiToken)
     end
-    os.execute(string.format("(curl -sS --max-time 10%s -H 'Content-Type: application/json' --data @%s -o %s.tmp %s; mv -f %s.tmp %s.res; rm -f %s) >/dev/null 2>&1 &",
-        auth, shellQuote(base .. ".req"), shellQuote(base), shellQuote(url), shellQuote(base), shellQuote(base), shellQuote(base .. ".req")))
+    local cmd = string.format("(curl -sS --max-time 10%s -H 'Content-Type: application/json' --data @%s -o %s.tmp %s; mv -f %s.tmp %s.res; rm -f %s) >/dev/null 2>&1 &",
+        auth, shellQuote(base .. ".req"), shellQuote(base), shellQuote(url), shellQuote(base), shellQuote(base), shellQuote(base .. ".req"))
+    if deferred then
+        return cmd
+    end
+    os.execute(cmd)
     return true
 end
 
@@ -841,10 +850,11 @@ local function countKill(victim, killer, meansOfDeath)
     setLoadout(killer, loadoutString(killer))
 end
 
--- the kills since the last report to FatBoss, in the background; final: the map ends, nobody waits for the answer
+-- the kills since the last report to FatBoss, in the background; final: the map ends, nobody waits for the
+-- answer. Not final, it returns the shell command for fetchLoadouts to run with the download.
 local function reportKills(now, final)
     if not next(stPending) or testMode or not stattrakUrl or (stInflight and not final) then
-        return
+        return nil
     end
     local kills, ids = {}, {}
     for id, p in pairs(stPending) do
@@ -852,13 +862,16 @@ local function reportKills(now, final)
         ids[id] = p.n
     end
     local base = string.format("%s/fatboss_stattrak%s", homeDir, final and "_end" or "")
-    if not postAsync(stattrakUrl, { kills = kills }, base) then
-        return
+    local cmd = postAsync(stattrakUrl, { kills = kills }, base, not final)
+    if not cmd then
+        return nil
     end
     stPending = {}
     if not final then
         stInflight = { file = base .. ".res", deadline = now + REPORT_WAIT_MS, ids = ids }
+        return cmd
     end
+    return nil
 end
 
 -- FatBoss's answer: the counts it has now; a report without an answer is lost (never counted twice)
@@ -941,7 +954,6 @@ function et_InitGame(levelTime, randomSeed, restart)
     requests, lastPanel, outbox = {}, {}, {}
     stPending, stInflight, stFloor, cgameBuild, sentTags = {}, nil, {}, {}, {}
     os.remove(homeDir .. "/fatboss_stattrak.res")
-    nextReport = levelTime + REPORT_MS
     readLoadouts()
     fetchLoadouts()
     nextFetch = levelTime + FETCH_MS
@@ -951,11 +963,11 @@ function et_InitGame(levelTime, randomSeed, restart)
         testMode and ", test mode (/fbequip on)" or ""))
 end
 
--- download every minute, pick up the downloaded file every few seconds
+-- download every minute (with the StatTrak report), pick up the downloaded file every few seconds
 function et_RunFrame(levelTime)
     if levelTime >= nextFetch then
         nextFetch = levelTime + FETCH_MS
-        fetchLoadouts()
+        fetchLoadouts(reportKills(et.trap_Milliseconds(), false))
     end
     if levelTime >= nextRead then
         nextRead = levelTime + READ_MS
@@ -969,10 +981,6 @@ function et_RunFrame(levelTime)
     end
     if next(outbox) then
         drainOutbox()
-    end
-    if levelTime >= nextReport then
-        nextReport = levelTime + REPORT_MS
-        reportKills(et.trap_Milliseconds(), false)
     end
     if stInflight then
         checkReport(et.trap_Milliseconds())
