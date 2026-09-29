@@ -19,7 +19,7 @@
 #   FB_LOADOUT_URL=https://<fatboss>/crates/api/game/loadouts FB_API_TOKEN=<FATBOSS_GAME_TOKEN> bash fbtest.sh start
 set -euo pipefail
 
-VER="${FB_VER:-b14}"            # cgame release: fatboss-<VER>
+VER="${FB_VER:-b15}"            # cgame release: fatboss-<VER>
 SKINS="${FB_SKINS:-s7}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
 SERVER="${FB_SERVER:-0.14}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"

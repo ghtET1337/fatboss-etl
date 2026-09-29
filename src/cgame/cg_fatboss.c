@@ -15,8 +15,8 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b14"
-#define FATBOSS_CGAME_BUILD   14        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
+#define FATBOSS_CGAME_VERSION "b15"
+#define FATBOSS_CGAME_BUILD   15        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1230,7 +1230,8 @@ static signed char fbSkinResUsed[FB_SKIN_THEMES][FB_SKIN_TEXTURES][FB_RES_COUNT]
  * build_stickers.py: a shader that lays one image on a rectangle of the gun's texture (so it sits on
  * the first- and third-person model alike), or, for a model that also carries hands, a .skin file that
  * sends every other surface to fbk/nodraw. Everybody sees the stickers; the display shows on your own
- * first-person gun (and the one you spectate). Like the skins, nothing of it registers while you play:
+ * first-person gun (and the one you spectate), on a knife on its blade (a part of the first-person model).
+ * A gun without a skin can carry stickers too ("stock:kabcd" in the configstring), like in CS2. Like the skins, nothing of it registers while you play:
  * the passes load on the loading screen (everybody's stickers, and all ten digits in every place of your
  * own StatTrak displays), at the intermission or with fb_loadskins; a new sticker or a new StatTrak copy
  * waits till then. The count of a display that is loaded changes at once.
@@ -1253,14 +1254,30 @@ static int fbStickerSkins[FB_SKIN_MODELS][FB_STICKER_PLACES][FB_STICKER_CODES];
 static int fbDigitShaders[FB_SKIN_TEXTURES][FB_STATTRAK_DIGITS + 1][10];
 static int fbDigitSkins[FB_SKIN_MODELS][FB_STATTRAK_DIGITS + 1][10];
 
-/// the main model CG_FatBoss_WeaponSkin dressed last: the passes go on that one only
+/// the piece CG_FatBoss_WeaponSkin dressed last: CG_FatBoss_WeaponExtras adds its passes right after
 static struct
 {
 	int clientNum;
 	int weapon;
 	int view;
-	qboolean on;
+	int part;
+	qboolean on;            ///< stickers may go on it (a skin, or a default gun with stickers)
+	qboolean skinned;       ///< its skin is on it (the StatTrak display)
 } fbPassFor;
+
+static qboolean CG_FatBoss_HasStickers(int clientNum, int slot)
+{
+	int p;
+
+	for (p = 0; p < FB_STICKER_PLACES; p++)
+	{
+		if (fbStickers[clientNum][slot][p] > 0)
+		{
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
 
 static int CG_FatBoss_ThemeIndex(const char *name)
 {
@@ -1424,13 +1441,12 @@ void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int vi
 	// no stock code gives these weapons a custom shader, and parts share one
 	// refEntity: clear what the previous part got
 	re->customShader = 0;
-	if (part == -1)
-	{
-		fbPassFor.clientNum = clientNum;
-		fbPassFor.weapon    = weaponNum;
-		fbPassFor.view      = view;
-		fbPassFor.on        = qfalse;
-	}
+	fbPassFor.clientNum = clientNum;
+	fbPassFor.weapon    = weaponNum;
+	fbPassFor.view      = view;
+	fbPassFor.part      = part;
+	fbPassFor.on        = qfalse;
+	fbPassFor.skinned   = qfalse;
 	if (clientNum < 0 || clientNum >= MAX_CLIENTS || view < 0 || view >= W_NUM_TYPES || part < -1 || part >= W_MAX_PARTS)
 	{
 		return;
@@ -1442,13 +1458,15 @@ void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int vi
 	}
 	m     = &fbSkinModels[row - 1];
 	theme = fbSkinLoadout[clientNum][m->slot] - 1;
-	if (theme < 0 || !(fbSkinThemes[theme].textures & (1 << m->tex)))
-	{
-		return;
-	}
 	// a disguised covert op must not give himself away by his weapon
 	if (view == W_TP_MODEL && (powerups & (1 << PW_OPS_DISGUISED)))
 	{
+		return;
+	}
+	if (theme < 0 || !(fbSkinThemes[theme].textures & (1 << m->tex)))
+	{
+		// no skin on it: a default gun may still carry stickers
+		fbPassFor.on = part == -1 && fbStickerTex[m->tex] && CG_FatBoss_HasStickers(clientNum, m->slot);
 		return;
 	}
 	res = view == W_FP_MODEL && clientNum == cg.clientNum ? FB_RES_4K : FB_RES_1K;
@@ -1471,10 +1489,8 @@ void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int vi
 	if (h)
 	{
 		re->shaderRGBA[3] = (byte)MIN(255, 127 + (128 * fbSkinWear[clientNum][m->slot]) / 1000);
-		if (part == -1)
-		{
-			fbPassFor.on = qtrue;
-		}
+		fbPassFor.on      = qtrue;
+		fbPassFor.skinned = qtrue;
 	}
 }
 
@@ -1591,12 +1607,11 @@ static int CG_FatBoss_SlotPasses(int clientNum, int slot, qboolean load, int lim
 		const fbSkinModel_t *m  = &fbSkinModels[row];
 		qboolean            fp = m->view == W_FP_MODEL;
 
-		if (m->slot != slot || m->part != -1 || !fbStickerTex[m->tex] || (fp && clientNum != cg.clientNum)
-		    || (m->skin && !CG_FatBoss_StickerModel(m)))
+		if (m->slot != slot || (fp && clientNum != cg.clientNum) || (m->skin && !CG_FatBoss_StickerModel(m)))
 		{
 			continue;
 		}
-		for (p = 0; p < FB_STICKER_PLACES; p++)
+		for (p = 0; m->part == -1 && fbStickerTex[m->tex] && p < FB_STICKER_PLACES; p++)
 		{
 			code = fbStickersWanted[clientNum][slot][p];
 			if (code <= 0 || *CG_FatBoss_StickerHandle(row, p, code))
@@ -1612,7 +1627,7 @@ static int CG_FatBoss_SlotPasses(int clientNum, int slot, qboolean load, int lim
 				return n;
 			}
 		}
-		if (!fp || fbStattrakWanted[clientNum][slot] < 0)
+		if (!fp || fbStattrakWanted[clientNum][slot] < 0 || !fbDisplayTex[m->tex] || m->part != fbDisplayPart[m->tex])
 		{
 			continue;
 		}
@@ -1670,7 +1685,7 @@ static void CG_FatBoss_AddPass(refEntity_t *re, qhandle_t h, qboolean isSkin)
  * @brief After the gun went into the scene: its stickers, and on a first-person gun its StatTrak display
  * (the digits from the first one that is not a leading zero; the display shows the rest dark).
  */
-void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNum, int view)
+void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNum, int view, int part)
 {
 	refEntity_t         re;
 	const fbSkinModel_t *m;
@@ -1678,19 +1693,20 @@ void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNu
 	int                 row, slot, p, code, count, first;
 	qboolean            isSkin;
 
-	if (!fbPassFor.on || fbPassFor.clientNum != clientNum || fbPassFor.weapon != weaponNum || fbPassFor.view != view)
+	if (!fbPassFor.on || fbPassFor.clientNum != clientNum || fbPassFor.weapon != weaponNum || fbPassFor.view != view
+	    || fbPassFor.part != part || part < -1 || part >= W_MAX_PARTS)
 	{
 		return;
 	}
-	row = fbSkinRow[weaponNum][view][0] - 1;
-	if (row < 0 || !fbStickerTex[fbSkinModels[row].tex])
+	row = fbSkinRow[weaponNum][view][part + 1] - 1;
+	if (row < 0)
 	{
 		return;
 	}
 	m    = &fbSkinModels[row];
 	slot = m->slot;
 	re   = *gun;
-	for (p = 0; p < FB_STICKER_PLACES; p++)
+	for (p = 0; part == -1 && fbStickerTex[m->tex] && p < FB_STICKER_PLACES; p++)
 	{
 		code = fbStickers[clientNum][slot][p];
 		if (code > 0)
@@ -1699,7 +1715,7 @@ void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNu
 		}
 	}
 	count = fbStattrak[clientNum][slot];
-	if (view != W_FP_MODEL || count < 0)
+	if (view != W_FP_MODEL || count < 0 || !fbPassFor.skinned || !fbDisplayTex[m->tex] || part != fbDisplayPart[m->tex])
 	{
 		return;
 	}
@@ -2875,6 +2891,20 @@ static void CG_FatBoss_DrawInspectCard(void)
 	if (a <= 0.02f || slot < 0 || (theme = fbSkinLoadout[cg.clientNum][slot] - 1) < 0)
 	{
 		return;
+	}
+	// a skin made for the other knife only (WuT is a KA-BAR): this weapon is stock, no card
+	for (i = -1; i < W_MAX_PARTS; i++)
+	{
+		int row = fbSkinRow[fbInspect.weapon][W_FP_MODEL][i + 1];
+
+		if (row)
+		{
+			if (!(fbSkinThemes[theme].textures & (1 << fbSkinModels[row - 1].tex)))
+			{
+				return;
+			}
+			break;
+		}
 	}
 	count  = fbStattrak[cg.clientNum][slot];
 	wear   = fbSkinWear[cg.clientNum][slot];

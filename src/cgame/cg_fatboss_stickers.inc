@@ -3,8 +3,12 @@
 #define FB_STICKER_PLACES 4
 #define FB_STATTRAK_DIGITS 6
 
-// textures with sticker places and a display (the knives have neither)
+// textures with sticker places (the guns), and with a StatTrak display (the knives too)
 static const qboolean fbStickerTex[FB_SKIN_TEXTURES] = { qtrue, qtrue, qtrue, qtrue, qfalse, qfalse };
+static const qboolean fbDisplayTex[FB_SKIN_TEXTURES] = { qtrue, qtrue, qtrue, qtrue, qtrue, qtrue };
+
+// the first-person piece the display goes on: -1 the weapon model, else the part (a knife's blade)
+static const int fbDisplayPart[FB_SKIN_TEXTURES] = { -1, -1, -1, -1, 0, 0 };
 
 // models whose passes need a .skin file (fbk/<model>/<pass>.skin): the rest take the shader
 static const char *fbStickerSkinModels[] = { "v_colt", "v_silencedcolt", "silenced", "v_akimbo_colt", "v_luger", "v_silencer", "v_akimbo_luger", "v_thompson_fb", NULL };

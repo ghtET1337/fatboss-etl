@@ -1824,7 +1824,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 
 	// add gun
 	trap_R_AddRefEntityToScene(&gun);
-	CG_FatBoss_WeaponExtras(&gun, clientNum, weaponNum, modelViewType);
+	CG_FatBoss_WeaponExtras(&gun, clientNum, weaponNum, modelViewType, -1);
 	// and for akimbo add the gun to the other hand again
 	if ((!ps || cg.renderingThirdPerson) && GetWeaponTableData(weaponNum)->attributes & WEAPON_ATTRIBUT_AKIMBO)
 	{
@@ -1844,7 +1844,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 			VectorMA(gun.origin, -0.3f, up, gun.origin);
 		}
 		trap_R_AddRefEntityToScene(&gun);
-		CG_FatBoss_WeaponExtras(&gun, clientNum, weaponNum, modelViewType);
+		CG_FatBoss_WeaponExtras(&gun, clientNum, weaponNum, modelViewType, -1);
 	}
 	// }}} add the gun model
 	// {{{ add barrel models
@@ -2109,6 +2109,7 @@ void CG_AddPlayerWeapon(refEntity_t *parent, playerState_t *ps, centity_t *cent)
 					CG_FatBoss_WeaponSkin(&barrel, clientNum, weaponNum, modelViewType, i, team, cent->currentState.powerups);
 
 					CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups, ps, cent);
+					CG_FatBoss_WeaponExtras(&barrel, clientNum, weaponNum, modelViewType, i);
 
 					if (weaponNum == WP_SATCHEL_DET && i == W_PART_1)
 					{

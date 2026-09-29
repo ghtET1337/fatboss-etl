@@ -7,8 +7,8 @@ first- and the third-person model alike, and costs nothing when nobody wears it.
 
 The places come from textskins' charts (flat groups of triangles with a frame that reads along the gun):
 only panels of the main first-person model, on the side the player sees, where the hands do not cover
-them; the display on a level side, reading along the gun. Knives take no stickers (as in CS2) and show
-their StatTrak count on the inspect card only.
+them; the display on a level side, reading along the gun. Knives take no stickers (as in CS2); their
+display sits on the flat of the blade, which hangs on the hands as a part of the first-person model.
 
 Writes into fatboss/pk3 (the cgame pk3):
     scripts/fatboss_stickers.shader  fbk/<tex>/s<place><code> (a sticker), fbk/<tex>/p (the display),
@@ -41,6 +41,7 @@ PK3 = os.path.join(bs.REPO, "fatboss", "pk3")
 INC = os.path.join(bs.REPO, "src", "cgame", "cg_fatboss_stickers.inc")
 NAMES_INC = os.path.join(bs.REPO, "src", "cgame", "cg_fatboss_names.inc")
 GUNS = ("colt", "luger", "thompson", "mp40")
+KNIVES = ("knife", "kabar")          # a StatTrak display, no stickers
 PLACES = 4
 DIGITS = 6
 CODES = "0123456789abcdefghijklmnopqrstuvwxyz"
@@ -203,11 +204,24 @@ def seen_texels(mesh, W=1280, H=960):
 
 # ------------------------------------------------------------------ places
 
-def main_uv_offsets(tex, mesh):
-    """Whole-number shift of every main-model triangle's texture coordinates (the model's own tiling)."""
+def display_piece(tex):
+    """The piece of the first-person weapon the passes go on: the model itself (0) for the guns; for the knives,
+    whose blade hangs on the hands as a part, that part's piece. Returns (piece, part number or -1)."""
+    if tex in GUNS:
+        return 0, -1
+    mesh = ts.mesh_of(tex)
+    g = int(np.bincount(mesh.G).argmax())
+    _, _, parts = ts.weap(ts.TEX[tex][0])
+    return g, (list(parts.keys())[g - 1] if g else -1)
+
+
+def piece_uv_offsets(tex, mesh, g):
+    """Whole-number shift of the texture coordinates of every triangle of piece g (the model's own tiling);
+    zero for the other pieces."""
     weap_name, key = ts.TEX[tex]
-    main, _, _ = ts.weap(weap_name)
-    m = ts.Model(main)
+    main, _, parts = ts.weap(weap_name)
+    model = main if g == 0 else list(parts.values())[g - 1][1]
+    m = ts.Model(model)
     raw = []
     for s in m.surfaces:
         sh = (s.shaders[0] if s.shaders else "").lower()
@@ -215,26 +229,29 @@ def main_uv_offsets(tex, mesh):
             for a, b, c in s.tris:
                 raw.append((s.st[a], s.st[b], s.st[c]))
     raw = np.array(raw, np.float64)
-    n0 = int(np.sum(mesh.G == 0))
-    assert len(raw) == n0, (tex, len(raw), n0)
-    return np.round((raw - mesh.UV[:n0]).mean(axis=1)).astype(int)
+    idx = np.nonzero(mesh.G == g)[0]
+    assert len(raw) == len(idx), (tex, g, len(raw), len(idx))
+    out = np.zeros((len(mesh.P), 2), int)
+    out[idx] = np.round((raw - mesh.UV[idx]).mean(axis=1)).astype(int)
+    return out
 
 
 def place(tex):
-    """The display's place and four sticker places: [(kind, chart, rect in the chart's frame px)]."""
+    """The display's place and, on a gun, four sticker places: [(kind, chart, rect in the chart's frame px)]."""
     mesh = ts.mesh_of(tex)
     charts = ts.charts_of(tex)
     seen = seen_texels(mesh)
-    offsets = main_uv_offsets(tex, mesh)
-    pts = mesh.P[mesh.G == 0].reshape(-1, 3)
+    g, _ = display_piece(tex)
+    offsets = piece_uv_offsets(tex, mesh, g)
+    pts = mesh.P[mesh.G == g].reshape(-1, 3)
     length = np.ptp(pts[:, 0])
     for ch in charts:
         ch.free_all = ch.free.copy()
         ch.avoid(~seen)
         ch.right = mesh.text_axes(ch.idx)[0]
-        main = np.all(mesh.G[ch.idx] == 0)
-        ch.offset = tuple(offsets[ch.idx[0]]) if main else None
-        ch.usable = bool(main and ch.facing > 0.5 and len({tuple(o) for o in offsets[ch.idx]}) == 1)
+        mine = np.all(mesh.G[ch.idx] == g)
+        ch.offset = tuple(offsets[ch.idx[0]]) if mine else None
+        ch.usable = bool(mine and ch.facing > 0.5 and len({tuple(o) for o in offsets[ch.idx]}) == 1)
 
     def occupy(ch, rect, pad):
         ch.occupy(rect, pad=pad)
@@ -271,7 +288,7 @@ def place(tex):
         out.append(("plate", ci, rect))
     cap = min(2.6, 0.105 * length)
     opened = False
-    while sum(1 for p in out if p[0] == "sticker") < PLACES:
+    while tex in GUNS and sum(1 for p in out if p[0] == "sticker") < PLACES:
         b = best(1.0, MIN_STICKER, cap, False)
         if not b and not opened:
             opened = True          # nothing left in sight: the rest go where the inspect shows them
@@ -372,7 +389,7 @@ def main():
                "fbk/nodraw\n{\n\t{\n\t\tmap $whiteimage\n\t\tblendFunc GL_ZERO GL_ONE\n\t\tdepthFunc equal\n\t}\n}\n"]
     places = {}
     report = []
-    for tex in GUNS:
+    for tex in GUNS + KNIVES:
         pl, charts, mesh = place(tex)
         places[tex] = (pl, charts, mesh)
         k = 0
@@ -394,8 +411,8 @@ def main():
                     A, B = to_uv(mesh, ch, rect, fit(aspect, w, h))
                     shaders.append(shader(f"fbk/{tex}/s{k}{code}", f"fatboss/stickers/{design}.png", tcmod(A, B), "lightingDiffuse", 4))
                 k += 1
-        if k < PLACES or not any(p[0] == "plate" for p in pl):
-            raise SystemExit(f"{tex}: only {k} sticker places" + ("" if any(p[0] == "plate" for p in pl) else " and no display"))
+        if (tex in GUNS and k < PLACES) or not any(p[0] == "plate" for p in pl):
+            raise SystemExit(f"{tex}: {k} sticker places" + ("" if any(p[0] == "plate" for p in pl) else ", no display"))
     with open(os.path.join(PK3, "scripts", "fatboss_stickers.shader"), "w", newline="\n") as f:
         f.write("\n".join(shaders))
 
@@ -405,12 +422,14 @@ def main():
     skin_models = []
     n_skins = 0
     for wp, slot, tex, weap in bs.WEAPONS:
-        if tex not in GUNS:
+        if tex not in GUNS + KNIVES:
             continue
         models = bs.parse_weap(paks.read(f"weapons/{weap}.weap").decode("latin1"))
         gun = bs.TEXTURES[tex][2]
-        for view in ("fp", "tp"):
-            model = (models.get((view, -1)) or (None,))[0]
+        # guns: stickers on both views' models, the display in first person; knives: the display on the blade
+        pieces = [("fp", -1, True), ("tp", -1, False)] if tex in GUNS else [("fp", display_piece(tex)[1], True)]
+        for view, part, display in pieces:
+            model = (models.get((view, part)) or (None,))[0]
             if not model:
                 continue
             surfs = bs.surfaces(paks.read(model))
@@ -421,8 +440,8 @@ def main():
             if skin_id in skin_models:
                 continue
             skin_models.append(skin_id)
-            names = [f"s{k}{code}" for k in range(PLACES) for code, _ in designs]
-            if view == "fp":
+            names = [f"s{k}{code}" for k in range(PLACES) for code, _ in designs] if tex in GUNS else []
+            if display:
                 names += ["p"] + [f"d{pos}_{dgt}" for pos in range(DIGITS) for dgt in range(10)]
             for n in names:
                 lines = [f"{s},fbk/{tex}/{n}" if sh == gun else f"{s},fbk/nodraw" for s, sh in surfs]
@@ -438,9 +457,14 @@ def main():
     with open(INC, "w", newline="\n") as f:
         f.write("// FatBoss stickers and StatTrak displays - generated by fatboss/skins/build_stickers.py, do not edit\n\n")
         f.write(f"#define FB_STICKER_PLACES {PLACES}\n#define FB_STATTRAK_DIGITS {DIGITS}\n\n")
-        f.write("// textures with sticker places and a display (the knives have neither)\n")
-        f.write("static const qboolean fbStickerTex[FB_SKIN_TEXTURES] = { %s };\n\n" % ", ".join(
+        f.write("// textures with sticker places (the guns), and with a StatTrak display (the knives too)\n")
+        f.write("static const qboolean fbStickerTex[FB_SKIN_TEXTURES] = { %s };\n" % ", ".join(
             "qtrue" if t in GUNS else "qfalse" for t in bs.ALL))
+        f.write("static const qboolean fbDisplayTex[FB_SKIN_TEXTURES] = { %s };\n\n" % ", ".join(
+            "qtrue" if t in GUNS + KNIVES else "qfalse" for t in bs.ALL))
+        f.write("// the first-person piece the display goes on: -1 the weapon model, else the part (a knife's blade)\n")
+        f.write("static const int fbDisplayPart[FB_SKIN_TEXTURES] = { %s };\n\n" % ", ".join(
+            str(display_piece(t)[1]) if t in GUNS + KNIVES else "-1" for t in bs.ALL))
         f.write("// models whose passes need a .skin file (fbk/<model>/<pass>.skin): the rest take the shader\n")
         f.write("static const char *fbStickerSkinModels[] = { %s, NULL };\n" % ", ".join(f'"{m}"' for m in skin_models))
     print("\n".join(report))

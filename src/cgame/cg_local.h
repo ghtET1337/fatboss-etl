@@ -3180,7 +3180,7 @@ qboolean CG_FatBoss_ServerCommand(const char *cmd);
 void CG_FatBoss_AddSprays(void);
 void CG_FatBoss_ClearSprays(void);
 void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int view, int part, int team, int powerups);
-void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNum, int view);
+void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNum, int view, int part);
 void CG_FatBoss_Skins_f(void);
 void CG_FatBoss_LoadPending_f(void);
 void CG_FatBoss_LoadSkins(void);

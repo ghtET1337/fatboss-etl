@@ -7681,3 +7681,1711 @@ fbk/mp40/s3j
 		tcMod transform 18.179459 -0.852385 0.777857 21.661700 -3.925901 -4.354039
 	}
 }
+
+fbk/knife/p
+{
+	nopicmip
+	nomipmaps
+	sort 4
+	{
+		clampmap fatboss/stattrak/plate.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+		depthFunc equal
+		tcMod transform 3.887022 -0.042394 0.006736 4.718395 -2.289454 -0.564492
+	}
+}
+
+fbk/knife/d0_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d0_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d0_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d0_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d0_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d0_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d0_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d0_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d0_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d0_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -17.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d1_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -18.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d2_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -19.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d3_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -20.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d4_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -21.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/knife/d5_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 28.498642 -0.078508 0.049385 8.737769 -22.451555 -1.712022
+	}
+}
+
+fbk/kabar/p
+{
+	nopicmip
+	nomipmaps
+	sort 4
+	{
+		clampmap fatboss/stattrak/plate.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+		depthFunc equal
+		tcMod transform 3.693535 -0.039696 0.005777 6.608583 -1.986458 -0.427319
+	}
+}
+
+fbk/kabar/d0_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d0_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d0_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d0_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d0_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d0_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d0_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d0_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d0_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d0_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -15.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d1_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -16.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d2_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -17.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d3_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -18.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d4_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -19.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_0
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/0.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_1
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/1.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_2
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/2.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_3
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/3.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_4
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/4.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_5
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/5.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_6
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/6.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_7
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/7.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_8
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/8.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
+
+fbk/kabar/d5_9
+{
+	nopicmip
+	nomipmaps
+	sort 5
+	{
+		clampmap fatboss/stattrak/9.png
+		blendFunc blend
+		rgbGen identity
+		depthFunc equal
+		tcMod transform 27.080045 -0.073511 0.042356 12.238116 -20.230069 -1.457998
+	}
+}
