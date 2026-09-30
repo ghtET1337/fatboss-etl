@@ -42,8 +42,10 @@
 
     StatTrak, stickers, name tags (cgame b13): the feed also gives, per slot, the
     worn copy's id ("ids"), its StatTrak count ("st", StatTrak copies only), its
-    stickers ("stk", four base-36 design codes, "." for an empty place) and its
-    name ("tags"). An enemy killed with a StatTrak copy's weapon in a real game
+    stickers ("stk", a base-36 design code per spot of the gun, "." for an empty
+    one: five spots, four before 0.15) and its name ("tags"). Cgame b16 draws a
+    sticker on the spot the player put it on (":j" in the configstring; b13-b15
+    read four places of their own from ":k", which is gone). An enemy killed with a StatTrak copy's weapon in a real game
     (gamestate playing, not a teammate, not yourself) adds one to its count at
     once (the configstring shows it) and goes to FatBoss (/stattrak, next to the
     loadout URL) with the minute's loadout download (the same background shell,
@@ -55,7 +57,7 @@
     own spray that design (the FatBoss starter everybody gets).
 
     FATBOSS_TEST=1 (test servers only): everybody gets the "fatboss" graffiti,
-    and /fbequip <slot> <theme> [wear] [st or st=N] [k=abcd] [n=Name] tries any skin
+    and /fbequip <slot> <theme> [wear] [st or st=N] [k=abcde] [n=Name] tries any skin
     or graffiti without FatBoss, as a StatTrak copy with stickers and a name if
     asked (its kills count on the server, nothing is reported).
 
@@ -68,7 +70,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.14"
+local VERSION = "0.15"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 -- first configstring past CS_MAX of ET: Legacy 2.86 (bg_public.h); the FatBoss cgame reads FB_CS + client
@@ -178,8 +180,8 @@ local function stattrakCount(loadout, slot)
 end
 
 -- "<knife> <colt> <luger> <thompson> <mp40> <graffiti>", "-" for stock; a skin is "theme:NNN" with the
--- copy's wear x 1000, then ":sN" for a StatTrak count and ":kabcd" for its stickers (cgame b12 reads the
--- theme and the wear and skips the rest); "" for nothing at all (a small gamestate)
+-- copy's wear x 1000, then ":sN" for a StatTrak count and ":jabcde" for its stickers, one per spot (cgame b12
+-- reads the theme and the wear and skips the rest); "" for nothing at all (a small gamestate)
 local function loadoutString(clientNum)
     local loadout = loadoutOf(clientNum)
     local skins, wear, stk = loadout.skins or {}, loadout.wear or {}, loadout.stk or {}
@@ -195,7 +197,7 @@ local function loadoutString(clientNum)
                 theme = string.format("%s:s%d", theme, math.min(count, 999999))
             end
             if stk[slot] and slot ~= "knife" then
-                theme = theme .. ":k" .. stk[slot]
+                theme = theme .. ":j" .. stk[slot]
             end
         end
         parts[#parts + 1] = theme or "-"
@@ -249,9 +251,11 @@ local function validTag(tag)
     return type(tag) == "string" and #tag >= 1 and #tag <= 20 and tag:match("^[%w .,!?'_%-]+$") ~= nil
 end
 
--- four sticker places, a base-36 design code each or "." for none
+-- the sticker spots of a gun (five at most; four before FatBoss sent spots), a base-36 design code each or
+-- "." for none, at least one sticker
 local function validStickers(codes)
-    return type(codes) == "string" and codes:match("^[0-9a-z%.][0-9a-z%.][0-9a-z%.][0-9a-z%.]$") ~= nil and codes ~= "...."
+    return type(codes) == "string" and codes:match("^[0-9a-z%.][0-9a-z%.][0-9a-z%.][0-9a-z%.][0-9a-z%.]?$") ~= nil
+        and codes:match("[0-9a-z]") ~= nil
 end
 
 local function parseEntry(entry)
@@ -540,7 +544,7 @@ local function equip(clientNum)
     local name = string.lower(et.trap_Argv(2) or "")
     local wearArg = string.lower(et.trap_Argv(3) or "")
     local wear = CONDITION_WEAR[wearArg] or tonumber(wearArg)
-    -- the extras after the wear: st or st=N (StatTrak), k=abcd (stickers), n=Name_with_underscores
+    -- the extras after the wear: st or st=N (StatTrak), k=abcde (a sticker per spot), n=Name_with_underscores
     local st, stk, tag, extrasOk = nil, nil, nil, true
     for i = 4, 6 do
         local a = et.trap_Argv(i) or ""
@@ -570,9 +574,9 @@ local function equip(clientNum)
         valid = valid or s == slot
     end
     if not valid or (name ~= "-" and not validName(name)) or (wearArg ~= "" and (not wear or wear < 0 or wear > 1)) or not extrasOk then
-        say("usage: /fbequip <knife|colt|luger|thompson|mp40> <theme|-> [wear] [st[=N]] [k=abcd] [n=Name]   or   /fbequip graffiti <design>")
+        say("usage: /fbequip <knife|colt|luger|thompson|mp40> <theme|-> [wear] [st[=N]] [k=abcde] [n=Name]   or   /fbequip graffiti <design>")
         say("wear: 0 (Factory New) .. 1 (Battle-Scarred), or fn mw ft ww bs; st: a StatTrak copy (N kills);")
-        say("k=abcd: stickers on the four places (a design code each, . for none); n=Name: a name tag (_ for spaces)")
+        say("k=abcde: a sticker on each spot (a design code each, . for none; pistols have four spots); n=Name: a name tag (_ for spaces)")
         say("themes: " .. THEMES_HELP)
         return say("graffiti: fatboss poland_et gg ez gibbed noob nice_try cloudy skill_issue jebac_axis jebac_allies kurwa_mac wut_1112 sprzedam_opla nastepny_przystanek next_stop skill_404 rip_bozo lagging get_rekt")
     end
@@ -727,7 +731,7 @@ end
 
 -- the items, a few per command (a reliable command holds about 1 KB):
 -- "id,slot,value,wear,serial,flags,stattrak,stickers,name" - wear is the float x 1000 or -1 (graffiti);
--- flags: 1 worn, 2 on the market, 4 bound; stattrak the count or -1; stickers four codes or "-";
+-- flags: 1 worn, 2 on the market, 4 bound; stattrak the count or -1; stickers a code per spot or "-";
 -- name %-encoded or "-". Cgame b12 reads the first six and skips the rest.
 local function sendInventory(clientNum, guid, answer)
     takeEntry(clientNum, guid, answer.entry)
