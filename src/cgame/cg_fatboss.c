@@ -15,12 +15,13 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b15"
-#define FATBOSS_CGAME_BUILD   15        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
+#define FATBOSS_CGAME_VERSION "b16"
+#define FATBOSS_CGAME_BUILD   16        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
 #define FB_INSPECT_MAX_POINTS ((W_MAX_PARTS + 1) * 8)
+#define FB_INSPECT_RISE       32.0f     ///< cg_drawGun 0: how far below its place the gun comes up from
 
 typedef enum
 {
@@ -289,7 +290,6 @@ static qboolean CG_FatBoss_InspectAllowed(const playerState_t *ps)
 
 	if (!profile || !cg.snap || cg.demoPlayback || cg.renderingThirdPerson
 	    || cg.editingSpeakers || cg.testGun || cg.showGameView || cgs.dbShowing
-	    || (cg_drawGun.integer != 1 && !(cg_drawGun.integer == 2 && profile->style == FB_STYLE_KNIFE))
 	    || ps->pm_type != PM_NORMAL
 	    || ps->stats[STAT_HEALTH] <= 0
 	    || ps->persistant[PERS_TEAM] == TEAM_SPECTATOR
@@ -311,6 +311,23 @@ static qboolean CG_FatBoss_InspectAllowed(const playerState_t *ps)
 	}
 
 	return qtrue;
+}
+
+/**
+ * @brief The inspect shows the gun to players who hide it too (cg_drawGun 0, or 2 for a gun): CG_AddViewWeapon
+ * draws it while it lasts, and it hides again after.
+ */
+qboolean CG_FatBoss_InspectShowsGun(const playerState_t *ps)
+{
+	return fbInspect.active && fbInspect.profile && ps->weapon == fbInspect.weapon;
+}
+
+/**
+ * @brief The player hides this gun (cg_drawGun 0, or 2: only knives and throwables).
+ */
+static qboolean CG_FatBoss_GunHidden(void)
+{
+	return !cg_drawGun.integer || (cg_drawGun.integer == 2 && fbInspect.profile && fbInspect.profile->style != FB_STYLE_KNIFE);
 }
 
 static float CG_FatBoss_Ease(float fraction)
@@ -939,6 +956,11 @@ void CG_FatBoss_ApplyInspect(refEntity_t *hand)
 		hand->origin[i] += fraction * (targetOrigin[i] - hand->origin[i]);
 	}
 	hand->nonNormalizedAxes = qtrue;
+	if (CG_FatBoss_GunHidden())
+	{
+		// a gun the player hides comes up from below the screen and goes back down, rather than popping in
+		VectorMA(hand->origin, -FB_INSPECT_RISE * (1.0f - fraction), cg.refdef_current->viewaxis[2], hand->origin);
+	}
 }
 
 // support hands disappear halfway into the inspect and come back halfway out
@@ -1222,21 +1244,22 @@ static int fbSkinFiles[FB_SKIN_MODELS][FB_SKIN_THEMES][FB_RES_COUNT][2];
 static signed char fbSkinResUsed[FB_SKIN_THEMES][FB_SKIN_TEXTURES][FB_RES_COUNT];
 
 /*
- * Stickers and StatTrak (b13)
+ * Stickers and StatTrak (b13; decals since b16)
  *
- * A skin in the configstring can carry ":sN" (the copy is StatTrak: N enemies killed with it) and
- * ":kabcd" (four sticker places: a design's place in the graffiti table, base 36, or "."). Every
- * sticker, the StatTrak display and each lit digit is one more pass of the gun over its skin, made by
- * build_stickers.py: a shader that lays one image on a rectangle of the gun's texture (so it sits on
- * the first- and third-person model alike), or, for a model that also carries hands, a .skin file that
- * sends every other surface to fbk/nodraw. Everybody sees the stickers; the display shows on your own
- * first-person gun (and the one you spectate), on a knife on its blade (a part of the first-person model).
- * A gun without a skin can carry stickers too ("stock:kabcd" in the configstring), like in CS2. Like the skins, nothing of it registers while you play:
- * the passes load on the loading screen (everybody's stickers, and all ten digits in every place of your
- * own StatTrak displays), at the intermission or with fb_loadskins; a new sticker or a new StatTrak copy
- * waits till then. The count of a display that is loaded changes at once.
+ * A skin in the configstring can carry ":sN" (the copy is StatTrak: N enemies killed with it) and ":jabcde"
+ * (the sticker on each spot of the gun, where the player put them: a design's place in the graffiti table,
+ * base 36, or "."; b13-b15 had ":kabcd", four places of their own, read here as the first four spots). A gun
+ * without a skin can carry stickers too ("stock:j.a..."), like in CS2.
+ *
+ * Every sticker, the StatTrak display and each of its digits is a decal made by build_decals.py: a small model
+ * of the gun's own triangles under it, cut to its shape and lifted a hair (models/fbd/), drawn as one more
+ * entity with the gun's (or the gun part's) origin, axis and frame and the design's shader. It sits on its one
+ * face only, and every model of the weapon (silenced, akimbo, third person) has its own. Everybody sees the
+ * stickers; the display shows on the first-person gun (yours, and the one you spectate). They are all small and
+ * register on the loading screen, so a new sticker or StatTrak copy shows at once and nothing loads while you
+ * play.
  */
-#include "cg_fatboss_stickers.inc"
+#include "cg_fatboss_decals.inc"
 
 #define FB_STICKER_CODES 36
 
@@ -1244,17 +1267,25 @@ static const char fbStickerChars[FB_STICKER_CODES + 1] = "0123456789abcdefghijkl
 
 static int fbStattrak[MAX_CLIENTS][FB_SKIN_SLOTS];                                 ///< count shown, -1: no StatTrak
 static int fbStattrakWanted[MAX_CLIENTS][FB_SKIN_SLOTS];
-static signed char fbStickers[MAX_CLIENTS][FB_SKIN_SLOTS][FB_STICKER_PLACES];      ///< design drawn per place, -1 none
-static signed char fbStickersWanted[MAX_CLIENTS][FB_SKIN_SLOTS][FB_STICKER_PLACES];
+static signed char fbStickers[MAX_CLIENTS][FB_SKIN_SLOTS][FB_STICKER_SPOTS];       ///< design drawn per spot, -1 none
+static signed char fbStickersWanted[MAX_CLIENTS][FB_SKIN_SLOTS][FB_STICKER_SPOTS];
 static char fbTags[FB_SKIN_SLOTS][24];                                             ///< names of your own worn copies (fbtags)
-// pass handles, 0 not tried, -1 missing: per texture (shaders) and per model row (.skin files);
-// the last digit position holds the display itself
-static int fbStickerShaders[FB_SKIN_TEXTURES][FB_STICKER_PLACES][FB_STICKER_CODES];
-static int fbStickerSkins[FB_SKIN_MODELS][FB_STICKER_PLACES][FB_STICKER_CODES];
-static int fbDigitShaders[FB_SKIN_TEXTURES][FB_STATTRAK_DIGITS + 1][10];
-static int fbDigitSkins[FB_SKIN_MODELS][FB_STATTRAK_DIGITS + 1][10];
+// decals, all registered on the loading screen; 0 not yet, -1 missing
+static qhandle_t fbDecalModelHandles[FB_DECAL_MODELS];
+static qhandle_t fbDecalDesigns[FB_STICKER_CODES];                                 ///< fbd/s/<design>, by code
+static qhandle_t fbDecalPlate;
+static qhandle_t fbDecalDigits[10];
+static int fbDecalHostOf[WP_NUM_WEAPONS][W_NUM_TYPES][W_MAX_PARTS + 1];            ///< fbDecalHosts index + 1
 
-/// the piece CG_FatBoss_WeaponSkin dressed last: CG_FatBoss_WeaponExtras adds its passes right after
+/*
+ * fb_shine 0: the skins without their moving shine (B, the studio stage). Every skin shader loaded is remapped to
+ * its fbf/ twin (build_flat.py), whose studio stage is still; 1 (the default) puts them back. Archived, and it
+ * changes at once.
+ */
+static vmCvar_t fb_shine;
+static int      fbShineShown = 1;                                                  ///< what the loaded skins show
+
+/// the piece CG_FatBoss_WeaponSkin dressed last: CG_FatBoss_WeaponExtras adds its decals right after
 static struct
 {
 	int clientNum;
@@ -1269,7 +1300,7 @@ static qboolean CG_FatBoss_HasStickers(int clientNum, int slot)
 {
 	int p;
 
-	for (p = 0; p < FB_STICKER_PLACES; p++)
+	for (p = 0; p < FB_STICKER_SPOTS; p++)
 	{
 		if (fbStickers[clientNum][slot][p] > 0)
 		{
@@ -1353,6 +1384,55 @@ static qhandle_t CG_FatBoss_SkinShader(int theme, int tex, int res)
 }
 
 /**
+ * @brief A loaded skin shader with its moving shine or without it (fb_shine): remapped to its fbf/ twin, or back.
+ * A skin without a twin keeps its shine.
+ */
+static void CG_FatBoss_ShineOne(int theme, int tex, int res)
+{
+	char name[MAX_QPATH], flat[MAX_QPATH];
+
+	Com_sprintf(name, sizeof(name), "fatboss/skins/%s/%s_%s", fbSkinThemes[theme].name, fbSkinTexNames[tex], fbSkinResNames[res]);
+	Com_sprintf(flat, sizeof(flat), "fbf/%s/%s_%s", fbSkinThemes[theme].name, fbSkinTexNames[tex], fbSkinResNames[res]);
+	if (!fbShineShown && trap_R_RegisterShader(flat))
+	{
+		trap_R_RemapShader(name, flat, "0");
+	}
+	else
+	{
+		trap_R_RemapShader(name, name, "0");        // itself: no remap
+	}
+}
+
+/**
+ * @brief fb_shine changed: every loaded skin follows at once.
+ */
+static void CG_FatBoss_ShineUpdate(void)
+{
+	int theme, tex, res;
+
+	trap_Cvar_Update(&fb_shine);
+	if ((fb_shine.integer != 0) == fbShineShown)
+	{
+		return;
+	}
+	fbShineShown = fb_shine.integer != 0;
+	for (theme = 0; theme < FB_SKIN_THEMES; theme++)
+	{
+		for (tex = 0; tex < FB_SKIN_TEXTURES; tex++)
+		{
+			for (res = 0; res < FB_RES_COUNT; res++)
+			{
+				if (fbSkinShaders[theme][tex][res] > 0)
+				{
+					CG_FatBoss_ShineOne(theme, tex, res);
+				}
+			}
+		}
+	}
+	CG_Printf("FatBoss: weapon skins %s their moving shine\n", fbShineShown ? "with" : "without");
+}
+
+/**
  * @brief Loads one skin texture, and registers the .skin files that use it (a file read, no texture work).
  */
 static void CG_FatBoss_LoadShader(int theme, int tex, int res)
@@ -1369,6 +1449,10 @@ static void CG_FatBoss_LoadShader(int theme, int tex, int res)
 	{
 		*h = -1;
 		return;
+	}
+	if (!fbShineShown)
+	{
+		CG_FatBoss_ShineOne(theme, tex, res);
 	}
 	for (i = 0; i < FB_SKIN_MODELS; i++)
 	{
@@ -1465,8 +1549,8 @@ void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int vi
 	}
 	if (theme < 0 || !(fbSkinThemes[theme].textures & (1 << m->tex)))
 	{
-		// no skin on it: a default gun may still carry stickers
-		fbPassFor.on = part == -1 && fbStickerTex[m->tex] && CG_FatBoss_HasStickers(clientNum, m->slot);
+		// no skin on it: a default gun may still carry stickers (on its parts too: a pistol's slide)
+		fbPassFor.on = fbStickerTex[m->tex] && CG_FatBoss_HasStickers(clientNum, m->slot);
 		return;
 	}
 	res = view == W_FP_MODEL && clientNum == cg.clientNum ? FB_RES_4K : FB_RES_1K;
@@ -1507,194 +1591,82 @@ static int CG_FatBoss_StickerCode(char c)
 	return -1;
 }
 
-/**
- * @brief A model with hands (or another texture) in it that build_stickers.py made .skin files for.
- */
-static qboolean CG_FatBoss_StickerModel(const fbSkinModel_t *m)
-{
-	int i;
-
-	for (i = 0; m->skin && fbStickerSkinModels[i]; i++)
-	{
-		if (!Q_stricmp(fbStickerSkinModels[i], m->skin))
-		{
-			return qtrue;
-		}
-	}
-	return qfalse;
-}
-
-/**
- * @brief One pass (s<place><code>, p, d<pos>_<digit>) for a model row: a .skin file for models with hands
- * in them, else the texture's shader. Registered the first time it is asked for; 0 when there is none.
- */
-static qhandle_t CG_FatBoss_Pass(int row, int *skinHandle, int *shaderHandle, const char *pass, qboolean *isSkin, qboolean load)
-{
-	const fbSkinModel_t *m = &fbSkinModels[row];
-
-	if (m->skin)
-	{
-		*isSkin = qtrue;
-		if (!CG_FatBoss_StickerModel(m))
-		{
-			return 0;           // its other surfaces would get the sticker too
-		}
-		if (!*skinHandle && load)
-		{
-			*skinHandle = trap_R_RegisterSkin(va("fbk/%s/%s.skin", m->skin, pass));
-			if (!*skinHandle)
-			{
-				*skinHandle = -1;
-			}
-		}
-		return *skinHandle > 0 ? *skinHandle : 0;
-	}
-	*isSkin = qfalse;
-	if (!*shaderHandle && load)
-	{
-		*shaderHandle = trap_R_RegisterShader(va("fbk/%s/%s", fbSkinTexNames[m->tex], pass));
-		if (!*shaderHandle)
-		{
-			*shaderHandle = -1;
-		}
-	}
-	return *shaderHandle > 0 ? *shaderHandle : 0;
-}
-
-static qhandle_t CG_FatBoss_StickerPass(int row, int place, int code, qboolean *isSkin, qboolean load)
-{
-	return CG_FatBoss_Pass(row, &fbStickerSkins[row][place][code], &fbStickerShaders[fbSkinModels[row].tex][place][code],
-	                       va("s%i%c", place, fbStickerChars[code]), isSkin, load);
-}
-
-static qhandle_t CG_FatBoss_DigitPass(int row, int pos, int digit, qboolean *isSkin, qboolean load)
-{
-	if (pos == FB_STATTRAK_DIGITS)
-	{
-		return CG_FatBoss_Pass(row, &fbDigitSkins[row][pos][0], &fbDigitShaders[fbSkinModels[row].tex][pos][0], "p", isSkin, load);
-	}
-	return CG_FatBoss_Pass(row, &fbDigitSkins[row][pos][digit], &fbDigitShaders[fbSkinModels[row].tex][pos][digit],
-	                       va("d%i_%i", pos, digit), isSkin, load);
-}
-
 static qhandle_t CG_FatBoss_GraffitiIcon(int index, qboolean load);
-static qboolean CG_FatBoss_GraffitiIconKnown(int index);
 static int CG_FatBoss_LoadAllGraffiti(void);
+static int CG_FatBoss_LoadDecals(void);
 
-/// the handle slot a pass of a row uses: its .skin file, or its texture's shader
-static int *CG_FatBoss_StickerHandle(int row, int place, int code)
+/**
+ * @brief The decals of one weapon model (-1 the weapon model itself, else its part) in a view, or NULL.
+ */
+static const fbDecalHost_t *CG_FatBoss_DecalHost(int weaponNum, int view, int part)
 {
-	return fbSkinModels[row].skin ? &fbStickerSkins[row][place][code] : &fbStickerShaders[fbSkinModels[row].tex][place][code];
-}
+	int h;
 
-static int *CG_FatBoss_DigitHandle(int row, int pos, int digit)
-{
-	return fbSkinModels[row].skin ? &fbDigitSkins[row][pos][digit] : &fbDigitShaders[fbSkinModels[row].tex][pos][digit];
+	if (weaponNum <= WP_NONE || weaponNum >= WP_NUM_WEAPONS || view < 0 || view >= W_NUM_TYPES || part < -1 || part >= W_MAX_PARTS)
+	{
+		return NULL;
+	}
+	h = fbDecalHostOf[weaponNum][view][part + 1];
+	return h ? &fbDecalHosts[h - 1] : NULL;
 }
 
 /**
- * @brief The passes a slot's wanted stickers need (third person for everybody, first person for you) and, on
- * your own guns, the StatTrak display with every digit in every place. With load, registers up to limit of
- * them (0: all) and returns how many it registered; without, returns how many are not registered yet.
+ * @brief One decal: the gun's entity again with the decal's model and a design's shader. Nothing loads here.
  */
-static int CG_FatBoss_SlotPasses(int clientNum, int slot, qboolean load, int limit)
+static void CG_FatBoss_AddDecal(refEntity_t *re, int model, qhandle_t shader)
 {
-	int      row, p, code, pos, d, n = 0;
-	qboolean isSkin;
-
-	for (row = 0; row < FB_SKIN_MODELS; row++)
-	{
-		const fbSkinModel_t *m  = &fbSkinModels[row];
-		qboolean            fp = m->view == W_FP_MODEL;
-
-		if (m->slot != slot || (fp && clientNum != cg.clientNum) || (m->skin && !CG_FatBoss_StickerModel(m)))
-		{
-			continue;
-		}
-		for (p = 0; m->part == -1 && fbStickerTex[m->tex] && p < FB_STICKER_PLACES; p++)
-		{
-			code = fbStickersWanted[clientNum][slot][p];
-			if (code <= 0 || *CG_FatBoss_StickerHandle(row, p, code))
-			{
-				continue;
-			}
-			if (load)
-			{
-				CG_FatBoss_StickerPass(row, p, code, &isSkin, qtrue);
-			}
-			if (++n == limit)
-			{
-				return n;
-			}
-		}
-		if (!fp || fbStattrakWanted[clientNum][slot] < 0 || !fbDisplayTex[m->tex] || m->part != fbDisplayPart[m->tex])
-		{
-			continue;
-		}
-		for (pos = 0; pos <= FB_STATTRAK_DIGITS; pos++)
-		{
-			for (d = 0; d < (pos == FB_STATTRAK_DIGITS ? 1 : 10); d++)
-			{
-				if (*CG_FatBoss_DigitHandle(row, pos, d))
-				{
-					continue;
-				}
-				if (load)
-				{
-					CG_FatBoss_DigitPass(row, pos, d, &isSkin, qtrue);
-				}
-				if (++n == limit)
-				{
-					return n;
-				}
-			}
-		}
-	}
-	// your own stickers' pictures, for the inspect card
-	for (p = 0; clientNum == cg.clientNum && p < FB_STICKER_PLACES; p++)
-	{
-		code = fbStickersWanted[clientNum][slot][p];
-		if (code <= 0 || CG_FatBoss_GraffitiIconKnown(code))
-		{
-			continue;
-		}
-		if (load)
-		{
-			CG_FatBoss_GraffitiIcon(code, qtrue);
-		}
-		if (++n == limit)
-		{
-			return n;
-		}
-	}
-	return n;
-}
-
-static void CG_FatBoss_AddPass(refEntity_t *re, qhandle_t h, qboolean isSkin)
-{
-	if (!h)
+	if (model < 0 || model >= FB_DECAL_MODELS || fbDecalModelHandles[model] <= 0 || shader <= 0)
 	{
 		return;
 	}
-	re->customSkin   = isSkin ? h : 0;
-	re->customShader = isSkin ? 0 : h;
+	re->hModel       = fbDecalModelHandles[model];
+	re->customShader = shader;
+	re->customSkin   = 0;
 	trap_R_AddRefEntityToScene(re);
 }
 
 /**
- * @brief After the gun went into the scene: its stickers, and on a first-person gun its StatTrak display
- * (the digits from the first one that is not a leading zero; the display shows the rest dark).
+ * @brief A slot's stickers on one weapon model, from a copy of its entity (the gun, a part, the panel's).
+ */
+static void CG_FatBoss_AddStickers(const refEntity_t *gun, const fbDecalHost_t *host, int tex, const signed char *stickers)
+{
+	refEntity_t re;
+	int         s;
+
+	if (!host || !fbStickerTex[tex])
+	{
+		return;
+	}
+	re               = *gun;
+	re.shaderRGBA[0] = re.shaderRGBA[1] = re.shaderRGBA[2] = re.shaderRGBA[3] = 255;
+	for (s = 0; s < FB_STICKER_SPOTS && s < fbStickerSpots[tex]; s++)
+	{
+		if (stickers[s] > 0 && stickers[s] < FB_STICKER_CODES && host->spot[s] >= 0)
+		{
+			CG_FatBoss_AddDecal(&re, host->spot[s], fbDecalDesigns[(int)stickers[s]]);
+		}
+	}
+}
+
+/**
+ * @brief After the gun (or a part of it) went into the scene: its stickers, and on a first-person gun its StatTrak
+ * display (the digits from the first one that is not a leading zero; the display shows the rest dark).
  */
 void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNum, int view, int part)
 {
-	refEntity_t         re;
+	const fbDecalHost_t *host;
 	const fbSkinModel_t *m;
+	refEntity_t         re;
 	char                text[16];
-	int                 row, slot, p, code, count, first;
-	qboolean            isSkin;
+	int                 row, slot, p, count, first;
 
 	if (!fbPassFor.on || fbPassFor.clientNum != clientNum || fbPassFor.weapon != weaponNum || fbPassFor.view != view
-	    || fbPassFor.part != part || part < -1 || part >= W_MAX_PARTS)
+	    || fbPassFor.part != part)
+	{
+		return;
+	}
+	host = CG_FatBoss_DecalHost(weaponNum, view, part);
+	if (!host)
 	{
 		return;
 	}
@@ -1705,39 +1677,30 @@ void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNu
 	}
 	m    = &fbSkinModels[row];
 	slot = m->slot;
-	re   = *gun;
-	for (p = 0; part == -1 && fbStickerTex[m->tex] && p < FB_STICKER_PLACES; p++)
-	{
-		code = fbStickers[clientNum][slot][p];
-		if (code > 0)
-		{
-			CG_FatBoss_AddPass(&re, CG_FatBoss_StickerPass(row, p, code, &isSkin, qfalse), isSkin);
-		}
-	}
+	CG_FatBoss_AddStickers(gun, host, m->tex, fbStickers[clientNum][slot]);
 	count = fbStattrak[clientNum][slot];
-	if (view != W_FP_MODEL || count < 0 || !fbPassFor.skinned || !fbDisplayTex[m->tex] || part != fbDisplayPart[m->tex])
+	if (view != W_FP_MODEL || count < 0 || !fbPassFor.skinned || !fbDisplayTex[m->tex] || host->plate < 0)
 	{
 		return;
 	}
-	if (!CG_FatBoss_DigitPass(row, FB_STATTRAK_DIGITS, 0, &isSkin, qfalse))
-	{
-		return;         // not loaded (a display you spectate): nothing, rather than a stall
-	}
-	CG_FatBoss_AddPass(&re, CG_FatBoss_DigitPass(row, FB_STATTRAK_DIGITS, 0, &isSkin, qfalse), isSkin);
+	re               = *gun;
+	re.shaderRGBA[0] = re.shaderRGBA[1] = re.shaderRGBA[2] = re.shaderRGBA[3] = 255;
+	CG_FatBoss_AddDecal(&re, host->plate, fbDecalPlate);
 	Com_sprintf(text, sizeof(text), "%0*i", FB_STATTRAK_DIGITS, MIN(count, 999999));
 	for (first = 0; first < FB_STATTRAK_DIGITS - 1 && text[first] == '0'; first++)
 	{
 	}
 	for (p = first; p < FB_STATTRAK_DIGITS; p++)
 	{
-		CG_FatBoss_AddPass(&re, CG_FatBoss_DigitPass(row, p, text[p] - '0', &isSkin, qfalse), isSkin);
+		CG_FatBoss_AddDecal(&re, host->digit[p], fbDecalDigits[text[p] - '0']);
 	}
 }
 
 /**
- * @brief The fields after a skin's theme: "NNN" (wear x 1000), "sN" (StatTrak count), "kabcd" (stickers).
+ * @brief The fields after a skin's theme: "NNN" (wear x 1000), "sN" (StatTrak count), "jabcde" (a sticker per spot;
+ * "kabcd" before b16, read as the first spots).
  */
-static void CG_FatBoss_ReadFields(char *p, short *wear, int *st, signed char stk[FB_STICKER_PLACES])
+static void CG_FatBoss_ReadFields(char *p, short *wear, int *st, signed char stk[FB_STICKER_SPOTS])
 {
 	char *next;
 	int  k;
@@ -1753,9 +1716,9 @@ static void CG_FatBoss_ReadFields(char *p, short *wear, int *st, signed char stk
 		{
 			*st = MAX(0, MIN(999999, Q_atoi(p + 1)));
 		}
-		else if (*p == 'k')
+		else if (*p == 'j' || *p == 'k')
 		{
-			for (k = 0; k < FB_STICKER_PLACES && p[1 + k]; k++)
+			for (k = 0; k < FB_STICKER_SPOTS && p[1 + k]; k++)
 			{
 				stk[k] = (signed char)CG_FatBoss_StickerCode(p[1 + k]);
 			}
@@ -1772,7 +1735,7 @@ static void CG_FatBoss_ReadFields(char *p, short *wear, int *st, signed char stk
  * wear (float x 1000, "theme:NNN"; 0 without one), the graffiti design.
  */
 static void CG_FatBoss_ReadLoadout(int clientNum, int wanted[FB_SKIN_SLOTS], short wear[FB_SKIN_SLOTS], int st[FB_SKIN_SLOTS],
-                                   signed char stk[FB_SKIN_SLOTS][FB_STICKER_PLACES], char *design, int designSize)
+                                   signed char stk[FB_SKIN_SLOTS][FB_STICKER_SPOTS], char *design, int designSize)
 {
 	char buf[MAX_STRING_CHARS];
 	char *p = buf, *token, *colon;
@@ -1781,7 +1744,7 @@ static void CG_FatBoss_ReadLoadout(int clientNum, int wanted[FB_SKIN_SLOTS], sho
 	Q_strncpyz(buf, CG_ConfigString(FB_CS_SKINS + clientNum), sizeof(buf));
 	Com_Memset(wanted, 0, sizeof(int) * FB_SKIN_SLOTS);
 	Com_Memset(wear, 0, sizeof(short) * FB_SKIN_SLOTS);
-	Com_Memset(stk, -1, sizeof(signed char) * FB_SKIN_SLOTS * FB_STICKER_PLACES);
+	Com_Memset(stk, -1, sizeof(signed char) * FB_SKIN_SLOTS * FB_STICKER_SPOTS);
 	for (i = 0; i < FB_SKIN_SLOTS; i++)
 	{
 		st[i] = -1;
@@ -1914,26 +1877,16 @@ static void CG_FatBoss_ApplyReady(void)
 		{
 			if (fbSkinLoadout[i][s] != fbSkinWanted[i][s])
 			{
-				if (!CG_FatBoss_SlotReady(i, s, fbSkinWanted[i][s] - 1) || CG_FatBoss_SlotPasses(i, s, qfalse, 1))
+				if (!CG_FatBoss_SlotReady(i, s, fbSkinWanted[i][s] - 1))
 				{
 					fbSkinPending[i] = qtrue;
 					continue;
 				}
 				fbSkinLoadout[i][s] = fbSkinWanted[i][s];
 			}
-			// another copy of the same skin loads nothing: its wear shows at once
+			// another copy of the same skin loads nothing: its wear shows at once; stickers and StatTrak displays
+			// are all loaded already
 			fbSkinWear[i][s] = fbSkinWearWanted[i][s];
-			if (CG_FatBoss_SlotPasses(i, s, qfalse, 1))
-			{
-				// new stickers or a new StatTrak display wait for their images; a count on a display that is
-				// drawn goes on
-				fbSkinPending[i] = qtrue;
-				if (fbStattrak[i][s] >= 0 && fbStattrakWanted[i][s] >= 0)
-				{
-					fbStattrak[i][s] = fbStattrakWanted[i][s];
-				}
-				continue;
-			}
 			fbStattrak[i][s] = fbStattrakWanted[i][s];
 			Com_Memcpy(fbStickers[i][s], fbStickersWanted[i][s], sizeof(fbStickers[i][s]));
 		}
@@ -1954,7 +1907,6 @@ void CG_FatBoss_LoadSkins(void)
 		for (s = 0; s < FB_SKIN_SLOTS; s++)
 		{
 			textures            += CG_FatBoss_LoadSlot(i, s, fbSkinWanted[i][s] - 1, qfalse);
-			textures            += CG_FatBoss_SlotPasses(i, s, qtrue, 0);
 			fbSkinLoadout[i][s]  = fbSkinWanted[i][s];
 			fbSkinWear[i][s]     = fbSkinWearWanted[i][s];
 			fbStattrak[i][s]     = fbStattrakWanted[i][s];
@@ -1963,8 +1915,10 @@ void CG_FatBoss_LoadSkins(void)
 		fbSkinPending[i] = qfalse;
 	}
 	// every design, not only the ones worn now: a graffiti somebody picks during the map must not load
-	// (and stall the game) the first time it is sprayed; they are small, and the stickers' icons too
+	// (and stall the game) the first time it is sprayed; they are small, and the stickers' icons too. The
+	// same for every sticker, display and digit decal
 	textures += CG_FatBoss_LoadAllGraffiti();
+	textures += CG_FatBoss_LoadDecals();
 	CG_DPrintf("FatBoss: %i skin textures loaded\n", textures);
 }
 
@@ -2010,10 +1964,6 @@ static void CG_FatBoss_SkinPump(void)
 			{
 				return;
 			}
-			if (CG_FatBoss_SlotPasses(i, s, qtrue, 4))
-			{
-				return;         // a few small images a frame
-			}
 		}
 		CG_FatBoss_ApplyReady();
 	}
@@ -2031,7 +1981,6 @@ void CG_FatBoss_LoadPending_f(void)
 		for (s = 0; fbSkinPending[i] && s < FB_SKIN_SLOTS; s++)
 		{
 			textures += CG_FatBoss_LoadSlot(i, s, fbSkinWanted[i][s] - 1, qfalse);
-			CG_FatBoss_SlotPasses(i, s, qtrue, 0);
 		}
 	}
 	CG_FatBoss_ApplyReady();
@@ -2058,11 +2007,16 @@ static void CG_FatBoss_InitSkins(void)
 	Com_Memset(fbStickers, -1, sizeof(fbStickers));
 	Com_Memset(fbStickersWanted, -1, sizeof(fbStickersWanted));
 	Com_Memset(fbTags, 0, sizeof(fbTags));
-	Com_Memset(fbStickerShaders, 0, sizeof(fbStickerShaders));
-	Com_Memset(fbStickerSkins, 0, sizeof(fbStickerSkins));
-	Com_Memset(fbDigitShaders, 0, sizeof(fbDigitShaders));
-	Com_Memset(fbDigitSkins, 0, sizeof(fbDigitSkins));
+	Com_Memset(fbDecalModelHandles, 0, sizeof(fbDecalModelHandles));
+	Com_Memset(fbDecalDesigns, 0, sizeof(fbDecalDesigns));
+	Com_Memset(fbDecalDigits, 0, sizeof(fbDecalDigits));
+	Com_Memset(fbDecalHostOf, 0, sizeof(fbDecalHostOf));
+	fbDecalPlate = 0;
 	Com_Memset(&fbPassFor, 0, sizeof(fbPassFor));
+	for (i = 0; i < (int)ARRAY_LEN(fbDecalHosts); i++)
+	{
+		fbDecalHostOf[fbDecalHosts[i].weapon][fbDecalHosts[i].view][fbDecalHosts[i].part + 1] = i + 1;
+	}
 	for (i = 0; i < FB_SKIN_MODELS; i++)
 	{
 		const fbSkinModel_t *m = &fbSkinModels[i];
@@ -2094,12 +2048,17 @@ void CG_FatBoss_Skins_f(void)
 				{
 					Q_strcat(line, sizeof(line), va("^8[ST %i]^7", fbStattrak[i][s]));
 				}
-				if (fbStickers[i][s][0] >= 0 || fbStickers[i][s][1] >= 0 || fbStickers[i][s][2] >= 0 || fbStickers[i][s][3] >= 0)
+				if (CG_FatBoss_HasStickers(i, s))
 				{
-					Q_strcat(line, sizeof(line), va("[k %c%c%c%c]", fbStickers[i][s][0] >= 0 ? fbStickerChars[(int)fbStickers[i][s][0]] : '.',
-					                                fbStickers[i][s][1] >= 0 ? fbStickerChars[(int)fbStickers[i][s][1]] : '.',
-					                                fbStickers[i][s][2] >= 0 ? fbStickerChars[(int)fbStickers[i][s][2]] : '.',
-					                                fbStickers[i][s][3] >= 0 ? fbStickerChars[(int)fbStickers[i][s][3]] : '.'));
+					char spots[FB_STICKER_SPOTS + 1];
+					int  k;
+
+					for (k = 0; k < FB_STICKER_SPOTS; k++)
+					{
+						spots[k] = fbStickers[i][s][k] >= 0 ? fbStickerChars[(int)fbStickers[i][s][k]] : '.';
+					}
+					spots[k] = 0;
+					Q_strcat(line, sizeof(line), va("[stickers %s]", spots));
 				}
 			}
 			if (fbSkinWanted[i][s] != fbSkinLoadout[i][s])
@@ -2195,6 +2154,7 @@ void CG_FatBoss_AddSprays(void)
 		trap_SendClientCommand(va("fbsync %i", FATBOSS_CGAME_BUILD));
 	}
 	CG_FatBoss_SkinPump();
+	CG_FatBoss_ShineUpdate();
 	for (i = 0; i < MAX_CLIENTS; i++)
 	{
 		if (!fbSprays[i].active)
@@ -2257,7 +2217,7 @@ typedef struct
 	int serial;
 	int flags;
 	int stattrak;       ///< count, -1: not StatTrak
-	signed char stickers[FB_STICKER_PLACES];
+	signed char stickers[FB_STICKER_SPOTS];     ///< design per spot, -1 none
 	char name[24];      ///< its name tag
 } fbInvItem_t;
 
@@ -2560,7 +2520,7 @@ static void CG_FatBoss_PanelParseItem(const char *token)
 	if (n == 9)
 	{
 		it->stattrak = MAX(-1, MIN(999999, Q_atoi(field[6])));
-		for (k = 0; k < FB_STICKER_PLACES && strlen(field[7]) == FB_STICKER_PLACES; k++)
+		for (k = 0; k < FB_STICKER_SPOTS && field[7][k]; k++)
 		{
 			it->stickers[k] = (signed char)CG_FatBoss_StickerCode(field[7][k]);
 		}
@@ -2747,14 +2707,9 @@ static void CG_FatBoss_PanelPreview(float x, float y, float w, float h, int tab,
 	trap_R_SaveViewParms();
 	trap_R_ClearScene();
 	trap_R_AddRefEntityToScene(&ent);
-	for (k = 0; stickers && fbStickerTex[m->tex] && k < FB_STICKER_PLACES; k++)
+	if (stickers)
 	{
-		qboolean isSkin;
-
-		if (stickers[k] > 0)
-		{
-			CG_FatBoss_AddPass(&ent, CG_FatBoss_StickerPass(row - 1, k, stickers[k], &isSkin, qtrue), isSkin);
-		}
+		CG_FatBoss_AddStickers(&ent, CG_FatBoss_DecalHost(wp, W_TP_MODEL, -1), m->tex, stickers);
 	}
 	trap_R_RenderScene(&refdef);
 	trap_R_RestoreViewParms();
@@ -2838,9 +2793,61 @@ static int CG_FatBoss_LoadAllGraffiti(void)
 	return i;
 }
 
-static qboolean CG_FatBoss_GraffitiIconKnown(int index)
+/**
+ * @brief Every decal model (models/fbd/), every sticker design's shader, the display's and its digits': all small,
+ * so all of them load on the loading screen and none while you play. Returns how many it registered.
+ */
+static int CG_FatBoss_LoadDecals(void)
 {
-	return index < 0 || index >= (int)ARRAY_LEN(fbGraffitiNames) || fbGraffitiShaders[index] != 0;
+	int i, n = 0;
+
+	for (i = 0; i < FB_DECAL_MODELS; i++)
+	{
+		if (!fbDecalModelHandles[i])
+		{
+			fbDecalModelHandles[i] = trap_R_RegisterModel(fbDecalModels[i]);
+			n                     += fbDecalModelHandles[i] != 0;
+			if (!fbDecalModelHandles[i])
+			{
+				fbDecalModelHandles[i] = -1;
+			}
+		}
+	}
+	// the first design is FatBoss's own graffiti, no sticker
+	for (i = 1; i < FB_STICKER_CODES && i < (int)ARRAY_LEN(fbGraffitiNames); i++)
+	{
+		if (!fbDecalDesigns[i])
+		{
+			fbDecalDesigns[i] = trap_R_RegisterShader(va("fbd/s/%s", fbGraffitiNames[i].key));
+			n                += fbDecalDesigns[i] != 0;
+			if (!fbDecalDesigns[i])
+			{
+				fbDecalDesigns[i] = -1;
+			}
+		}
+	}
+	if (!fbDecalPlate)
+	{
+		fbDecalPlate = trap_R_RegisterShader("fbd/plate");
+		n           += fbDecalPlate != 0;
+		if (!fbDecalPlate)
+		{
+			fbDecalPlate = -1;
+		}
+	}
+	for (i = 0; i < 10; i++)
+	{
+		if (!fbDecalDigits[i])
+		{
+			fbDecalDigits[i] = trap_R_RegisterShader(va("fbd/digit%i", i));
+			n               += fbDecalDigits[i] != 0;
+			if (!fbDecalDigits[i])
+			{
+				fbDecalDigits[i] = -1;
+			}
+		}
+	}
+	return n;
 }
 
 /**
@@ -2909,7 +2916,7 @@ static void CG_FatBoss_DrawInspectCard(void)
 	count  = fbStattrak[cg.clientNum][slot];
 	wear   = fbSkinWear[cg.clientNum][slot];
 	weapon = fbInspect.weapon == WP_KNIFE_KABAR ? "KA-BAR" : fbPanelSlotTitles[slot];
-	for (i = 0; i < FB_STICKER_PLACES; i++)
+	for (i = 0; i < FB_STICKER_SPOTS; i++)
 	{
 		icons += fbStickers[cg.clientNum][slot][i] > 0;
 	}
@@ -2961,7 +2968,7 @@ static void CG_FatBoss_DrawInspectCard(void)
 	{
 		y += 3;
 		trap_R_SetColor(white);
-		for (i = 0; i < FB_STICKER_PLACES; i++)
+		for (i = 0; i < FB_STICKER_SPOTS; i++)
 		{
 			qhandle_t icon = fbStickers[cg.clientNum][slot][i] > 0 ? CG_FatBoss_GraffitiIcon(fbStickers[cg.clientNum][slot][i], qfalse) : 0;
 
@@ -3104,15 +3111,17 @@ void CG_FatBoss_Panel_Draw(void)
 		}
 		else
 		{
+			int shown = 0;
+
 			CG_FatBoss_PanelPreview(x + 1, y0 + 39, 236, 178, fbPanel.tab, row->value, it ? it->wear : 0, it ? it->stickers : NULL);
-			for (i = 0; it && i < FB_STICKER_PLACES; i++)
+			for (i = 0; it && i < FB_STICKER_SPOTS; i++)
 			{
 				qhandle_t icon = it->stickers[i] > 0 ? CG_FatBoss_GraffitiIcon(it->stickers[i], qtrue) : 0;
 
 				if (icon)
 				{
 					trap_R_SetColor(NULL);
-					CG_DrawPic(x + 6 + i * 22, y0 + 196, 18, 18, icon);
+					CG_DrawPic(x + 6 + shown++ * 22, y0 + 196, 18, 18, icon);
 				}
 			}
 		}
@@ -3380,6 +3389,8 @@ void CG_FatBoss_Init(void)
 	fbSyncAsked = qfalse;
 	fbSpraySound = trap_S_RegisterSound("sound/fatboss/spray.wav", qfalse);
 	trap_Cvar_Register(&fb_inspectshots, "fb_inspectshots", "0", CVAR_TEMP);
+	trap_Cvar_Register(&fb_shine, "fb_shine", "1", CVAR_ARCHIVE);
+	fbShineShown = fb_shine.integer != 0;
 	// the ESC menu's "FatBoss Arsenal" button shows while this is 1 (CG_FatBoss_Shutdown puts it back)
 	trap_Cvar_Register(&fb_arsenal, "fb_arsenal", "0", CVAR_TEMP);
 	trap_Cvar_Set("fb_arsenal", "1");

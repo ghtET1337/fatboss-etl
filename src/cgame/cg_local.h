@@ -3172,6 +3172,7 @@ void CG_FatBoss_Inspect_f(void);
 void CG_FatBoss_InspectUp_f(void);
 void CG_FatBoss_CancelInspect(void);
 void CG_FatBoss_UpdateInspect(const playerState_t *ps);
+qboolean CG_FatBoss_InspectShowsGun(const playerState_t *ps);
 void CG_FatBoss_ApplyInspect(refEntity_t *hand);
 void CG_FatBoss_Version_f(void);
 qboolean CG_FatBoss_HidePart(int weaponNum, int part);

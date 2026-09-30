@@ -2749,7 +2749,8 @@ void CG_AddViewWeapon(playerState_t *ps)
 	// hide all gun models (0)
 	// draw all gun models (1)
 	// draw only melee weapon, syringe and pliers, and throwables (incl. grenades) (2)
-	if (!cg_drawGun.integer || (cg_drawGun.integer == 2
+	// FatBoss: the inspect (+ilookatweapon) shows the gun while it lasts
+	if (!CG_FatBoss_InspectShowsGun(ps) && (!cg_drawGun.integer || (cg_drawGun.integer == 2
 	                            && (ps->eFlags & EF_MOUNTEDTANK
 	                                || (GetWeaponTableData(ps->weapon)->type
 	                                    && !(GetWeaponTableData(ps->weapon)->type & WEAPON_TYPE_GRENADE)
@@ -2757,7 +2758,7 @@ void CG_AddViewWeapon(playerState_t *ps)
 	                                    && !(GetWeaponTableData(ps->weapon)->type & WEAPON_TYPE_SYRINGUE))
 	                                )
 	                            )
-	    )
+	    ))
 	{
 		if (!BG_PlayerMounted(cg.predictedPlayerState.eFlags))
 		{
