@@ -15,8 +15,8 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b17"
-#define FATBOSS_CGAME_BUILD   17        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
+#define FATBOSS_CGAME_VERSION "b18"
+#define FATBOSS_CGAME_BUILD   18        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -2994,6 +2994,11 @@ static void CG_FatBoss_DrawInspectCard(void)
  * op's disguise like the skins, and its two small models load with the cgame, so it shows at once.
  */
 #define FB_PROP_SPRING 2.0f             ///< the spring's height, the toy's foot over the helmet (build_prop.py)
+// Where the spring stands, in the frame of the hat (tag_mouth of the head): the top of the helmets and caps of
+// ET (measured from their vertices: z 10.72-10.73, over x 0.5-0.8). The hat's own bounds give the height when
+// they are sane; the Axis helmet's md3 stores a dummy 2-unit box, which put the prop inside the head (b17).
+#define FB_PROP_TOP_X  0.55f
+#define FB_PROP_TOP_Z  10.57f
 #define FB_PROP_NOTICE 8000             ///< how long the punished player's own line shows after a spawn
 #define FB_WOBBLE_K    90.0f            ///< lean: spring back (about 1.5 swings a second)
 #define FB_WOBBLE_C    3.5f             ///< lean: damping (low: it keeps swinging a while)
@@ -3115,12 +3120,13 @@ void CG_FatBoss_AddHelmetProp(centity_t *cent, const refEntity_t *hat)
 	{
 		return;
 	}
-	// the top of the helmet: over the middle of its bounds, at its highest
+	// the top of the hat: its bounds' highest point when they look like a hat (2-24 units tall, the top 6-20 over
+	// the mouth tag), else the top every ET helmet and cap has
 	trap_R_ModelBounds(hat->hModel, mins, maxs);
+	height = (maxs[2] - mins[2] >= 2.5f && maxs[2] - mins[2] <= 24.f && maxs[2] >= 6.f && maxs[2] <= 20.f) ? maxs[2] - 0.15f : FB_PROP_TOP_Z;
 	VectorCopy(hat->origin, top);
-	VectorMA(top, (mins[0] + maxs[0]) * 0.5f, hat->axis[0], top);
-	VectorMA(top, (mins[1] + maxs[1]) * 0.5f, hat->axis[1], top);
-	VectorMA(top, maxs[2] - 0.15f, hat->axis[2], top);
+	VectorMA(top, FB_PROP_TOP_X, hat->axis[0], top);
+	VectorMA(top, height, hat->axis[2], top);
 	VectorCopy(hat->axis[0], axis[0]);
 	VectorCopy(hat->axis[1], axis[1]);
 	VectorCopy(hat->axis[2], axis[2]);

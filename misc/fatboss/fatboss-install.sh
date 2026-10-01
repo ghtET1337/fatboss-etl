@@ -15,7 +15,7 @@
 # (fatboss.lua and fatboss-start.sh).
 set -euo pipefail
 
-VER="${FB_VER:-b17}"
+VER="${FB_VER:-b18}"
 SKINS="${FB_SKINS:-s8}"
 SERVER="${FB_SERVER:-0.16}"
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
