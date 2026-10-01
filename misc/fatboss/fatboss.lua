@@ -61,6 +61,12 @@
     or graffiti without FatBoss, as a StatTrak copy with stickers and a name if
     asked (its kills count on the server, nothing is reported).
 
+    Punishment prop (0.16): an admin puts it on a player on the FatBoss website or
+    Discord; the feed carries "prop" and "prop_until" for their computers, and the
+    configstring gets "p:<prop>:<until>" after the graffiti. The FatBoss cgame b17
+    draws it on their helmet (older cgames read six tokens and skip it). It goes
+    at "prop_until" even when the feed stops. /fbequip prop dong [minutes] tries it.
+
     Runs next to Oksii's stats.lua and combinedfixes.lua in its own Lua VM and
     handles only its own commands ("spray", "fblink", "fbsync", "fbinv", "fbwear",
     and "fbequip" in test mode).
@@ -70,14 +76,19 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.15"
+local VERSION = "0.16"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
+local PROPS           = { dong = true }   -- punishment props the FatBoss cgame draws (b17)
 -- first configstring past CS_MAX of ET: Legacy 2.86 (bg_public.h); the FatBoss cgame reads FB_CS + client
 local FB_CS           = 943
 local THEMES_HELP     = "fade nebula case redline frontier glacier pearl inferno emerald scales tiger marble skill_issue caution_noob "
                      .. "sticker_bomb knockoff connection_interrupted sale gold polska neon camo cyber plasma airstrike "
-                     .. "damascus (knives) defender (colt) wut (thompson, kabar)"
+                     .. "damascus (knives) defender (colt) wut (thompson, kabar) "
+                     .. "wyrmfire jade_serpent orbital synthwave kintsugi magma sapphire ruby black_pearl "
+                     .. "crimson_web filigree carbon aurora sakura hex_reactor holo_prism blood_moon checkmate "
+                     .. "neon_oni grandma_carpet googly_eyes duct_tape crayon_kid rubber_ducky hot_dog_stand princess_mode laser_cats "
+                     .. "honk_honk"
 -- /fbequip wear by condition: the middle of each CS2 range
 local CONDITION_WEAR  = { fn = 0.035, mw = 0.11, ft = 0.265, ww = 0.415, bs = 0.72 }
 local SPRAY_RANGE     = 128
@@ -205,7 +216,12 @@ local function loadoutString(clientNum)
     end
     local graffiti = loadout.graffiti or defaultGraffiti
     parts[#parts + 1] = graffiti or "-"
-    if not any and not graffiti then
+    -- the punishment prop, until its time is up: "p:<prop>:<until, unix time>" (cgame b17; older ones read six tokens)
+    local prop = loadout.prop and (loadout.propUntil or 0) > os.time() and loadout.prop or nil
+    if prop then
+        parts[#parts + 1] = string.format("p:%s:%d", prop, loadout.propUntil)
+    end
+    if not any and not graffiti and not prop then
         return ""
     end
     return table.concat(parts, " ")
@@ -295,6 +311,10 @@ local function parseEntry(entry)
                 end
             end
         end
+    end
+    local propUntil = tonumber(entry.prop_until)
+    if validName(entry.prop) and PROPS[entry.prop] and propUntil then
+        out.prop, out.propUntil = entry.prop, math.floor(propUntil)
     end
     return out
 end
@@ -538,6 +558,7 @@ local function checkLinks(now)
 end
 
 -- /fbequip <knife|colt|luger|thompson|mp40|graffiti> <name|-> [wear 0..1 or fn|mw|ft|ww|bs]  (test servers only)
+-- /fbequip prop <dong|-> [minutes]: the punishment prop on your own helmet
 local function equip(clientNum)
     local guid = guidOf(clientNum)
     local slot = string.lower(et.trap_Argv(1) or "")
@@ -569,28 +590,40 @@ local function equip(clientNum)
     if guid == "" then
         return say("no cl_guid, nothing to equip.")
     end
-    local valid = slot == "graffiti"
+    local isProp = slot == "prop"
+    local valid = slot == "graffiti" or isProp
     for _, s in ipairs(SLOTS) do
         valid = valid or s == slot
     end
-    if not valid or (name ~= "-" and not validName(name)) or (wearArg ~= "" and (not wear or wear < 0 or wear > 1)) or not extrasOk then
+    local minutes = isProp and tonumber(wearArg ~= "" and wearArg or "60") or nil
+    if not valid or (name ~= "-" and not validName(name)) or (isProp and name ~= "-" and not PROPS[name])
+        or (isProp and (not minutes or minutes < 1 or minutes > 10080))
+        or (not isProp and wearArg ~= "" and (not wear or wear < 0 or wear > 1)) or not extrasOk then
         say("usage: /fbequip <knife|colt|luger|thompson|mp40> <theme|-> [wear] [st[=N]] [k=abcde] [n=Name]   or   /fbequip graffiti <design>")
+        say("or /fbequip prop <dong|-> [minutes, 60 by default]: the punishment prop on your helmet (cgame b17)")
         say("wear: 0 (Factory New) .. 1 (Battle-Scarred), or fn mw ft ww bs; st: a StatTrak copy (N kills);")
         say("k=abcde: a sticker on each spot (a design code each, . for none; pistols have four spots); n=Name: a name tag (_ for spaces)")
         say("themes: " .. THEMES_HELP)
-        return say("graffiti: fatboss poland_et gg ez gibbed noob nice_try cloudy skill_issue jebac_axis jebac_allies kurwa_mac wut_1112 sprzedam_opla nastepny_przystanek next_stop skill_404 rip_bozo lagging get_rekt")
+        return say("graffiti: fatboss poland_et gg ez gibbed noob nice_try cloudy skill_issue jebac_axis jebac_allies kurwa_mac wut_1112 sprzedam_opla nastepny_przystanek next_stop skill_404 rip_bozo lagging get_rekt spawn_camper arty_incoming dyno_planted headshot one_tap rage_quit skill_diff cry_more brb_coffee panzer_noob potato_aim toaster_pc honk")
     end
     local entry = testLoadouts[guid]
     if not entry then
         -- start from the real loadout, so one slot changes at a time
         local base = loadouts[guid] or {}
-        entry = { graffiti = base.graffiti, skins = {}, wear = {}, st = {}, stk = {}, tags = {} }
+        entry = { graffiti = base.graffiti, prop = base.prop, propUntil = base.propUntil, skins = {}, wear = {}, st = {}, stk = {}, tags = {} }
         for _, key in ipairs({ "skins", "wear", "st", "stk", "tags" }) do
             for k, v in pairs(base[key] or {}) do
                 entry[key][k] = v
             end
         end
         testLoadouts[guid] = entry
+    end
+    if isProp then
+        entry.prop = name ~= "-" and name or nil
+        entry.propUntil = name ~= "-" and os.time() + math.floor(minutes * 60) or nil
+        say(string.format("prop = %s%s (shows at once with cgame b17)", name, name ~= "-" and string.format(" for %d min", math.floor(minutes)) or ""))
+        setLoadout(clientNum, loadoutString(clientNum))
+        return
     end
     if slot == "graffiti" then
         entry.graffiti = name ~= "-" and name or nil
@@ -972,6 +1005,7 @@ function et_RunFrame(levelTime)
     if levelTime >= nextFetch then
         nextFetch = levelTime + FETCH_MS
         fetchLoadouts(reportKills(et.trap_Milliseconds(), false))
+        publishLoadouts()             -- a punishment prop whose time is up comes off (only changed strings go out)
     end
     if levelTime >= nextRead then
         nextRead = levelTime + READ_MS

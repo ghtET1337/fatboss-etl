@@ -235,6 +235,162 @@ fbd/s/wut_1112
 	}
 }
 
+fbd/s/spawn_camper
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/spawn_camper.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/arty_incoming
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/arty_incoming.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/dyno_planted
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/dyno_planted.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/headshot
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/headshot.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/one_tap
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/one_tap.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/rage_quit
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/rage_quit.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/skill_diff
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/skill_diff.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/cry_more
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/cry_more.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/brb_coffee
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/brb_coffee.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/panzer_noob
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/panzer_noob.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/potato_aim
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/potato_aim.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/toaster_pc
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/toaster_pc.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/honk
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/honk.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
 fbd/plate
 {
 	nopicmip

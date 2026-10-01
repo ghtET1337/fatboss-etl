@@ -280,3 +280,185 @@ fatboss/graffiti/get_rekt
 		alphaGen vertex
 	}
 }
+
+fatboss/graffiti/spawn_camper
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/spawn_camper.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/arty_incoming
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/arty_incoming.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/dyno_planted
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/dyno_planted.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/headshot
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/headshot.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/one_tap
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/one_tap.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/rage_quit
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/rage_quit.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/skill_diff
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/skill_diff.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/cry_more
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/cry_more.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/brb_coffee
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/brb_coffee.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/panzer_noob
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/panzer_noob.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/potato_aim
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/potato_aim.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/toaster_pc
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/toaster_pc.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}
+
+fatboss/graffiti/honk
+{
+	nopicmip
+	nocompress
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/graffiti/honk.png
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen vertex
+		alphaGen vertex
+	}
+}

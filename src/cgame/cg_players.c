@@ -3272,6 +3272,10 @@ void CG_Player(centity_t *cent)
 			}
 
 			CG_AddRefEntityWithPowerups(&acc, cent->currentState.powerups, ci->team, &cent->currentState, cent->fireRiseDir);
+			if (i == ACC_HAT)
+			{
+				CG_FatBoss_AddHelmetProp(cent, &acc);   // FatBoss: the punishment prop rides on the helmet
+			}
 		}
 	}
 

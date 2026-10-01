@@ -15,8 +15,8 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b16"
-#define FATBOSS_CGAME_BUILD   16        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
+#define FATBOSS_CGAME_VERSION "b17"
+#define FATBOSS_CGAME_BUILD   17        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1893,6 +1893,8 @@ static void CG_FatBoss_ApplyReady(void)
 	}
 }
 
+static void CG_FatBoss_ReadProp(int clientNum);   // the punishment prop, further down
+
 /**
  * @brief On the loading screen: everybody's loadout, and every texture and graffiti it needs.
  */
@@ -1903,6 +1905,7 @@ void CG_FatBoss_LoadSkins(void)
 
 	for (i = 0; i < MAX_CLIENTS; i++)
 	{
+		CG_FatBoss_ReadProp(i);
 		CG_FatBoss_ReadLoadout(i, fbSkinWanted[i], fbSkinWearWanted[i], fbStattrakWanted[i], fbStickersWanted[i], design, sizeof(design));
 		for (s = 0; s < FB_SKIN_SLOTS; s++)
 		{
@@ -1934,6 +1937,7 @@ qboolean CG_FatBoss_ConfigStringModified(int num)
 	{
 		return qfalse;
 	}
+	CG_FatBoss_ReadProp(clientNum);     // the prop needs no loading: it shows at once
 	CG_FatBoss_ReadLoadout(clientNum, fbSkinWanted[clientNum], fbSkinWearWanted[clientNum], fbStattrakWanted[clientNum],
 	                       fbStickersWanted[clientNum], design, sizeof(design));
 	fbSkinPending[clientNum] = qtrue;
@@ -2982,6 +2986,246 @@ static void CG_FatBoss_DrawInspectCard(void)
 	}
 }
 
+/*
+ * Punishment prop (b17). An admin puts it on a player on the FatBoss website or Discord; fatboss.lua 0.16 adds
+ * "p:<prop>:<until, unix time>" after the graffiti in that player's configstring. A pink toy stands on a spring on
+ * top of the helmet and wobbles with the head: the spring leans against the head's acceleration and squashes on
+ * landings. It rides on the helmet (a headshot that knocks the helmet off takes it along), hides with a covert
+ * op's disguise like the skins, and its two small models load with the cgame, so it shows at once.
+ */
+#define FB_PROP_SPRING 2.0f             ///< the spring's height, the toy's foot over the helmet (build_prop.py)
+#define FB_PROP_NOTICE 8000             ///< how long the punished player's own line shows after a spawn
+#define FB_WOBBLE_K    90.0f            ///< lean: spring back (about 1.5 swings a second)
+#define FB_WOBBLE_C    3.5f             ///< lean: damping (low: it keeps swinging a while)
+#define FB_WOBBLE_S    0.018f           ///< lean per unit/s^2 of the head's acceleration (a running start: ~0.4 rad)
+#define FB_SQUASH_K    150.0f
+#define FB_SQUASH_C    6.0f
+#define FB_SQUASH_S    0.011f
+
+typedef struct
+{
+	vec3_t lastPos, lastVel;
+	float ang[2], vel[2];               ///< lean towards the helmet's forward and left, radians
+	float squash, squashVel;            ///< the spring, a share of its height
+	int time;
+} fbWobble_t;
+
+static qhandle_t  fbPropModel, fbPropSpring;
+static int        fbProp[MAX_CLIENTS];          ///< 1: the toy on the helmet, 0: none
+static int        fbPropUntil[MAX_CLIENTS];     ///< unix time it comes off (the server drops it then too)
+static fbWobble_t fbWobble[MAX_GENTITIES];
+static int        fbPropNoticeUntil;
+static qboolean   fbPropWasAlive;
+
+static int CG_FatBoss_Now(void)
+{
+	qtime_t t;
+
+	return trap_RealTime(&t);
+}
+
+/**
+ * @brief The prop token of a player's configstring ("p:dong:<until>" after the graffiti).
+ */
+static void CG_FatBoss_ReadProp(int clientNum)
+{
+	const char *p   = strstr(CG_ConfigString(FB_CS_SKINS + clientNum), " p:");
+	int        had  = fbProp[clientNum];
+
+	fbProp[clientNum]      = 0;
+	fbPropUntil[clientNum] = 0;
+	if (p && !Q_strncmp(p + 3, "dong:", 5))
+	{
+		fbProp[clientNum]      = 1;
+		fbPropUntil[clientNum] = atoi(p + 8);
+	}
+	if (clientNum == cg.clientNum && fbProp[clientNum] && !had)
+	{
+		fbPropNoticeUntil = cg.time + FB_PROP_NOTICE;
+	}
+}
+
+/**
+ * @brief Moves the wobble on to now from where the foot of the spring is: a damped spring per direction,
+ *        pushed by the head's acceleration.
+ */
+static void CG_FatBoss_Wobble(fbWobble_t *w, const vec3_t pos, vec3_t axis[3])
+{
+	vec3_t vel, acc;
+	float  dt = (cg.time - w->time) * 0.001f, a[2], up, h;
+	int    i, steps;
+
+	if (!w->time || dt < 0 || dt > 0.25f)
+	{
+		Com_Memset(w, 0, sizeof(*w));
+		VectorCopy(pos, w->lastPos);
+		w->time = cg.time ? cg.time : 1;
+		return;
+	}
+	if (dt < 0.001f)
+	{
+		return;                         // drawn again in the same frame
+	}
+	VectorSubtract(pos, w->lastPos, vel);
+	VectorScale(vel, 1.f / dt, vel);
+	VectorSubtract(vel, w->lastVel, acc);
+	VectorScale(acc, 1.f / dt, acc);
+	if (VectorLength(vel) > 2000.f)
+	{
+		VectorClear(vel);               // a teleport or a respawn, not a push
+		VectorClear(acc);
+	}
+	a[0]  = Com_Clamp(-4000.f, 4000.f, DotProduct(acc, axis[0]));
+	a[1]  = Com_Clamp(-4000.f, 4000.f, DotProduct(acc, axis[1]));
+	up    = Com_Clamp(-4000.f, 4000.f, DotProduct(acc, axis[2]));
+	steps = (int)ceil(dt / 0.008f);
+	h     = dt / steps;
+	for (; steps > 0; steps--)
+	{
+		for (i = 0; i < 2; i++)
+		{
+			// the head speeds up one way, the toy lags behind and the spring pulls it back up
+			w->vel[i] += (-FB_WOBBLE_K * w->ang[i] - FB_WOBBLE_C * w->vel[i] - FB_WOBBLE_S * a[i]) * h;
+			w->ang[i]  = Com_Clamp(-0.8f, 0.8f, w->ang[i] + w->vel[i] * h);
+		}
+		w->squashVel += (-FB_SQUASH_K * w->squash - FB_SQUASH_C * w->squashVel - FB_SQUASH_S * up) * h;
+		w->squash     = Com_Clamp(-0.35f, 0.35f, w->squash + w->squashVel * h);
+	}
+	VectorCopy(pos, w->lastPos);
+	VectorCopy(vel, w->lastVel);
+	w->time = cg.time;
+}
+
+/**
+ * @brief The punishment prop on a helmet the player model just drew (cg_players.c, ACC_HAT).
+ */
+void CG_FatBoss_AddHelmetProp(centity_t *cent, const refEntity_t *hat)
+{
+	int         client = cent->currentState.clientNum;
+	fbWobble_t  *w;
+	refEntity_t re;
+	vec3_t      mins, maxs, top, axis[3], up, fwd, left;
+	float       lean, side, idle, height;
+
+	if (client < 0 || client >= MAX_CLIENTS || !fbProp[client] || !fbPropModel || !fbPropSpring || !hat->hModel)
+	{
+		return;
+	}
+	if ((cent->currentState.powerups & (1 << PW_OPS_DISGUISED)) || (fbPropUntil[client] && CG_FatBoss_Now() >= fbPropUntil[client]))
+	{
+		return;
+	}
+	// the top of the helmet: over the middle of its bounds, at its highest
+	trap_R_ModelBounds(hat->hModel, mins, maxs);
+	VectorCopy(hat->origin, top);
+	VectorMA(top, (mins[0] + maxs[0]) * 0.5f, hat->axis[0], top);
+	VectorMA(top, (mins[1] + maxs[1]) * 0.5f, hat->axis[1], top);
+	VectorMA(top, maxs[2] - 0.15f, hat->axis[2], top);
+	VectorCopy(hat->axis[0], axis[0]);
+	VectorCopy(hat->axis[1], axis[1]);
+	VectorCopy(hat->axis[2], axis[2]);
+	w = &fbWobble[cent - cg_entities];
+	CG_FatBoss_Wobble(w, top, axis);
+
+	// a little sway of its own, so it never stands quite still
+	idle = (cent - cg_entities) * 1.7f + cg.time * 0.0035f;
+	lean = w->ang[0] + 0.04f * sin(idle);
+	side = w->ang[1] + 0.04f * sin(idle * 1.3f + 1.f);
+	// the leaning frame: up tips towards forward and left; forward and left follow it
+	VectorScale(axis[2], cos(lean) * cos(side), up);
+	VectorMA(up, sin(lean), axis[0], up);
+	VectorMA(up, sin(side), axis[1], up);
+	VectorNormalize(up);
+	VectorMA(axis[0], -DotProduct(axis[0], up), up, fwd);
+	VectorNormalize(fwd);
+	CrossProduct(up, fwd, left);
+	height = FB_PROP_SPRING * (1.f + w->squash);
+
+	re              = *hat;             // its lighting, shadow and third-person flags
+	re.customShader = 0;
+	re.customSkin   = 0;
+	re.hModel       = fbPropSpring;
+	VectorCopy(top, re.origin);
+	VectorCopy(top, re.oldorigin);
+	VectorCopy(fwd, re.axis[0]);
+	VectorCopy(left, re.axis[1]);
+	VectorScale(up, 1.f + w->squash, re.axis[2]);
+	re.nonNormalizedAxes = qtrue;
+	CG_AddRefEntityWithPowerups(&re, cent->currentState.powerups, cgs.clientinfo[client].team, &cent->currentState, cent->fireRiseDir);
+
+	re              = *hat;
+	re.customShader = 0;
+	re.customSkin   = 0;
+	re.hModel       = fbPropModel;
+	VectorMA(top, height, up, re.origin);
+	VectorCopy(re.origin, re.oldorigin);
+	VectorCopy(fwd, re.axis[0]);
+	VectorCopy(left, re.axis[1]);
+	VectorCopy(up, re.axis[2]);
+	re.nonNormalizedAxes = qfalse;
+	CG_AddRefEntityWithPowerups(&re, cent->currentState.powerups, cgs.clientinfo[client].team, &cent->currentState, cent->fireRiseDir);
+}
+
+/**
+ * @brief The punished player's own line: small, at the bottom, see-through, for a few seconds after each spawn.
+ */
+static void CG_FatBoss_DrawPropNotice(void)
+{
+	qboolean alive;
+	int      left;
+	float    a, w, h, x, y;
+	vec4_t   back, red, text;
+	char     line[128], when[32];
+
+	if (!cg.snap || cg.snap->ps.clientNum != cg.clientNum)
+	{
+		return;
+	}
+	alive = cg.snap->ps.stats[STAT_HEALTH] > 0 && cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR && !(cg.snap->ps.pm_flags & PMF_LIMBO);
+	if (alive && !fbPropWasAlive && fbProp[cg.clientNum])
+	{
+		fbPropNoticeUntil = cg.time + FB_PROP_NOTICE;
+	}
+	fbPropWasAlive = alive;
+	if (!alive || !fbProp[cg.clientNum] || cg.time >= fbPropNoticeUntil || fbPanel.open || fbInspect.active)
+	{
+		return;
+	}
+	left = fbPropUntil[cg.clientNum] ? fbPropUntil[cg.clientNum] - CG_FatBoss_Now() : 0;
+	if (fbPropUntil[cg.clientNum] && left <= 0)
+	{
+		return;
+	}
+	if (left >= 86400)
+	{
+		Com_sprintf(when, sizeof(when), "  %dd %dh left", left / 86400, left % 86400 / 3600);
+	}
+	else if (left >= 3600)
+	{
+		Com_sprintf(when, sizeof(when), "  %dh %02dm left", left / 3600, left % 3600 / 60);
+	}
+	else if (left > 0)
+	{
+		Com_sprintf(when, sizeof(when), "  %dm left", MAX(1, left / 60));
+	}
+	else
+	{
+		when[0] = 0;
+	}
+	Com_sprintf(line, sizeof(line), "Admin punishment: a prop on your helmet, everybody sees it%s", when);
+	a = Com_Clamp(0.f, 1.f, (fbPropNoticeUntil - cg.time) / 600.f);
+	Vector4Set(back, 0.f, 0.f, 0.f, 0.38f * a);
+	Vector4Set(red, 0.86f, 0.22f, 0.24f, 0.95f * a);
+	Vector4Set(text, 1.f, 0.86f, 0.9f, 0.9f * a);
+	w = CG_Text_Width_Ext(line, FB_CARD_TEXT, 0, &cgs.media.limboFont2) + 14;
+	h = 15;
+	x = (Ccg_WideX(SCREEN_WIDTH) - w) * 0.5f;
+	y = SCREEN_HEIGHT - 6 - h;
+	CG_FillRect(x, y, w, h, back);
+	CG_FillRect(x, y, 2, h, red);
+	CG_Text_Paint_Ext(x + 7, y + 10.5f, FB_CARD_TEXT, FB_CARD_TEXT, text, line, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+}
+
 void CG_FatBoss_Panel_Draw(void)
 {
 	float              x0, y0, x, y;
@@ -2991,6 +3235,7 @@ void CG_FatBoss_Panel_Draw(void)
 	char               name[64], detail[64];
 
 	CG_FatBoss_DrawInspectCard();
+	CG_FatBoss_DrawPropNotice();
 	if (!fbPanel.open)
 	{
 		return;
@@ -3388,6 +3633,14 @@ void CG_FatBoss_Init(void)
 	CG_FatBoss_InitSkins();
 	fbSyncAsked = qfalse;
 	fbSpraySound = trap_S_RegisterSound("sound/fatboss/spray.wav", qfalse);
+	// the punishment prop: two small models, loaded with the cgame so a prop put on during the map shows at once
+	fbPropModel  = trap_R_RegisterModel("models/fbprop/dong.md3");
+	fbPropSpring = trap_R_RegisterModel("models/fbprop/spring.md3");
+	Com_Memset(fbProp, 0, sizeof(fbProp));
+	Com_Memset(fbPropUntil, 0, sizeof(fbPropUntil));
+	Com_Memset(fbWobble, 0, sizeof(fbWobble));
+	fbPropNoticeUntil = 0;
+	fbPropWasAlive    = qfalse;
 	trap_Cvar_Register(&fb_inspectshots, "fb_inspectshots", "0", CVAR_TEMP);
 	trap_Cvar_Register(&fb_shine, "fb_shine", "1", CVAR_ARCHIVE);
 	fbShineShown = fb_shine.integer != 0;

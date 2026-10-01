@@ -3190,6 +3190,7 @@ void CG_FatBoss_Menu_f(void);
 void CG_FatBoss_Panel_Draw(void);
 void CG_FatBoss_Panel_Key(int key, qboolean down);
 void CG_FatBoss_Panel_Closed(void);
+void CG_FatBoss_AddHelmetProp(centity_t *cent, const refEntity_t *hat);
 void CG_FatBoss_Shutdown(void);
 #define FB_CS_SKINS CS_MAX      ///< fatboss.lua: one configstring per client with its FatBoss loadout
 qboolean CG_WeaponSelectable(int weapon, qboolean playSound);

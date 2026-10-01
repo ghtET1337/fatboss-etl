@@ -7,8 +7,10 @@ this repo), plus Codex's defender pk3 for his two finished skins:
   python fatboss/skins/build_skins.py --paks legacy_v2.86.0.pk3 pak0.pk3 --codex defender_v0_7.pk3
 
 Writes
-  fatboss/pk3-skins/          textures, shaders, .skin files and the wear masks; CI packs
-                              them per theme (see Packs below), released as fatboss-skins-<VERSION>
+  fatboss/pk3-skins/          textures, shaders, .skin files and the wear masks of skins s1-s7
+  fatboss/pk3-skins-s8/       the same for the illustrated themes of skins s8 (artskins.py)
+                              CI packs each tree into its own pk3 (see Packs below), released
+                              together as fatboss-skins-<VERSION>
   src/cgame/cg_fatboss_skins.inc   the table the cgame finds them with
 
 Each finish comes in two sizes:
@@ -30,9 +32,14 @@ studio lights, lacquer a little, wood and grips nothing. The paint has brighter
 edges baked in and is darker where it reflects, so the two add up. How glossy and
 how metallic each finish is: MATERIALS.
 
-Pack: CI packs the whole tree into one pk3, zzz_fatboss_skins_<VERSION>.pk3. It
-is far over the 32 MiB the UDP download manages, so players get it from the
-server's web download (the official legacy_v2.86.0.pk3 needs that too).
+Packs (skins s8): fatboss/skins/PACKS names each pk3 and the tree it is packed from. A pk3 that
+is out never changes (a player who has it keeps it), so new themes go into a new
+tree and pk3: fatboss/pk3-skins is zzz_fatboss_skins_s7.pk3 for good, and the s8
+themes are zzz_fatboss_skins_s8.pk3. CI re-attaches a released pk3 to the next
+release and checks the tree still holds exactly what it holds. The later packs
+use the studio image and the wear masks of the first one. The packs are far over
+the 32 MiB the UDP download manages, so players get them from the server's web
+download (the official legacy_v2.86.0.pk3 needs that too).
 All shaders are nopicmip + nocompress, so r_picmip and texture compression on
 the player's side never blur them.
 
@@ -51,12 +58,28 @@ import zlib
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+import artskins
 import gunspace
 import textskins
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
 OUT = os.path.join(REPO, "fatboss", "pk3-skins")
+
+
+def read_packs():
+    """fatboss/skins/PACKS (CI reads it too): {pk3 name: (tree under fatboss/, the themes in it: None for the others)}."""
+    packs = {}
+    for line in open(os.path.join(HERE, "PACKS"), encoding="utf-8"):
+        if line.strip() and not line.startswith("#"):
+            pk3, tree_dir, kind = line.split()
+            packs[pk3] = (tree_dir, tuple(artskins.ART_THEMES) if kind == "art" else None)
+    assert os.path.join(REPO, "fatboss", next(iter(packs.values()))[0]) == OUT, "the first pack is the one with the studio and wear"
+    return packs
+
+
+PACKS = read_packs()
+TREES = [os.path.join(REPO, "fatboss", t) for t, _ in PACKS.values()]
 INC = os.path.join(REPO, "src", "cgame", "cg_fatboss_skins.inc")
 OWN_PK3_DIR = os.path.join(REPO, "fatboss", "pk3")   # our thompson.weap and its models
 
@@ -93,6 +116,8 @@ THEMES = {
     "sale": (ALL, (0.10, 0.10, 0.08)),
     # CS2-style finishes laid out on the gun's side view (gunspace.py), picked 2026-09-26
     **{t: (ALL, (round(0.6 * e, 2),) * 3) for t, e in gunspace.ENV.items()},
+    # illustrated finishes painted on the side view (artskins.py), picked 2026-09-30: skins s8
+    **{t: (ALL, (round(0.5 * v[2], 2),) * 3) for t, v in artskins.ART_THEMES.items()},
 }
 TEXT_THEMES = ("skill_issue", "caution_noob", "sticker_bomb", "knockoff", "connection_interrupted", "sale")
 CODEX = {
@@ -128,6 +153,7 @@ MATERIALS = {
     "inferno": (0.6, 0.4), "nebula": (0.6, 0.3), "plasma": (0.6, 0.3), "defender": (0.6, 0.4), "redline": (0.55, 0.1),
     "neon": (0.5, 0.2), "cyber": (0.5, 0.2), "polska": (0.4, 0.1), "frontier": (0.4, 0.1), "wut": (0.4, 0.1),
     "airstrike": (0.35, 0.1), "camo": (0.18, 0.0),
+    **{t: (v[2], v[3]) for t, v in artskins.ART_THEMES.items()},
 }
 DEFAULT_MATERIAL = (0.35, 0.05)     # the text skins: a lacquered print
 GLOSS_DIV = 4                       # gloss maps at 1k: the reflection is soft anyway
@@ -143,6 +169,14 @@ SKIN_DIR = "fbs"
 PACK_LIMIT = 450 * 1024 * 1024
 JPEG_QUALITY = {"4k": 90, "1k": 92}
 WEAR_SIZE = 2048          # the scratch masks: wider side
+
+
+def tree(theme):
+    """The tree (so the pk3) a theme's textures, shaders and .skin files are in."""
+    for t, themes in PACKS.values():
+        if themes and theme in themes:
+            return os.path.join(REPO, "fatboss", t)
+    return OUT
 
 
 # ---------------------------------------------------------------------------
@@ -314,9 +348,11 @@ def ramp(t, stops):
 
 def finish(paks, tex, theme, div=1):
     """4k finish of a stock texture (div > 1: smaller, for previews): (rgb float array, glow array or None)."""
-    if theme in TEXT_THEMES or theme in dict(textskins.THEMES) or theme in gunspace.GUN_THEMES:
+    if theme in TEXT_THEMES or theme in dict(textskins.THEMES) or theme in gunspace.GUN_THEMES or theme in artskins.ART_THEMES:
         if textskins._READ is None:
             textskins.set_reader(paks.read)
+        if theme in artskins.ART_THEMES:
+            return artskins.build(theme, tex, div), None
         if theme in gunspace.GUN_THEMES:
             return gunspace.build(theme, tex, div), None
         return textskins.build(theme, tex, div), None
@@ -792,12 +828,13 @@ def main():
             for theme in args.themes:
                 if theme not in THEMES:
                     raise SystemExit(f"unknown theme {theme}")
-                shutil.rmtree(os.path.join(OUT, "models", "fatboss", "skins", theme), ignore_errors=True)
-                shutil.rmtree(os.path.join(OUT, SKIN_DIR, theme), ignore_errors=True)
+                shutil.rmtree(os.path.join(tree(theme), "models", "fatboss", "skins", theme), ignore_errors=True)
+                shutil.rmtree(os.path.join(tree(theme), SKIN_DIR, theme), ignore_errors=True)
         else:
-            if os.path.isdir(OUT):
-                shutil.rmtree(OUT)
-            os.makedirs(OUT)
+            for t in TREES:
+                if os.path.isdir(t):
+                    shutil.rmtree(t)
+                os.makedirs(t)
         # the studio the reflection stage mirrors (env.jpg of skins s1-s6 is not used any more)
         save_jpg(Image.fromarray((studio_env() * 255 + 0.5).astype(np.uint8)), os.path.join(OUT, STUDIO), (512, 512), 92)
         old_env = os.path.join(OUT, "models/fatboss/skins/env.jpg")
@@ -822,6 +859,7 @@ def main():
                     continue
                 (w, h) = TEXTURES[tex][1]
                 d = f"models/fatboss/skins/{theme}"
+                root = tree(theme)
                 if (theme, tex) in CODEX:
                     fp_src, tp_src = CODEX[(theme, tex)]
                     fp_img = Image.open(io.BytesIO(codex.read(fp_src))).convert("RGB").resize((w, h), Image.LANCZOS)
@@ -835,24 +873,25 @@ def main():
                     arr, gloss = materials(theme, tex, arr)
                     fp = tp = Image.fromarray((arr * 255 + 0.5).astype(np.uint8))
                     if glow is not None:
-                        save_jpg(glow, os.path.join(OUT, f"{d}/{tex}_glow.jpg"), (w // 4, h // 4), 90)
-                save_jpg(Image.fromarray((gloss * 255 + 0.5).astype(np.uint8)), os.path.join(OUT, f"{d}/{tex}_gloss.jpg"),
+                        save_jpg(glow, os.path.join(root, f"{d}/{tex}_glow.jpg"), (w // 4, h // 4), 90)
+                save_jpg(Image.fromarray((gloss * 255 + 0.5).astype(np.uint8)), os.path.join(root, f"{d}/{tex}_gloss.jpg"),
                          (w // GLOSS_DIV, h // GLOSS_DIV), 90)
                 for res, div in RES.items():
                     src = tp if res == "1k" else fp
-                    save_jpg(src, os.path.join(OUT, f"{d}/{tex}_{res}.jpg"), (w // div, h // div), JPEG_QUALITY[res])
+                    save_jpg(src, os.path.join(root, f"{d}/{tex}_{res}.jpg"), (w // div, h // div), JPEG_QUALITY[res])
                 print(theme, tex, flush=True)
     # every .skin file is written again below: none of an earlier build may stay (sizes that are gone)
-    for p, _, files in os.walk(OUT):
-        for f in files:
-            if f.endswith(".skin"):
-                os.remove(os.path.join(p, f))
+    for t in TREES:
+        for p, _, files in os.walk(t):
+            for f in files:
+                if f.endswith(".skin"):
+                    os.remove(os.path.join(p, f))
 
     # one shader file per theme, so a theme and its shaders always travel in the same pk3
-    scripts = os.path.join(OUT, "scripts")
-    if os.path.isdir(scripts):
-        shutil.rmtree(scripts)
-    os.makedirs(scripts)
+    for t in TREES:
+        if os.path.isdir(os.path.join(t, "scripts")):
+            shutil.rmtree(os.path.join(t, "scripts"))
+        os.makedirs(os.path.join(t, "scripts"))
     for theme, (covers, env_strength) in THEMES.items():
         shaders = ["// FatBoss weapon skins - generated by fatboss/skins/build_skins.py, do not edit", ""]
         for tex in covers:
@@ -860,13 +899,13 @@ def main():
                 continue
             d = f"models/fatboss/skins/{theme}"
             glow_path = f"{d}/{tex}_glow.jpg"
-            if not os.path.isfile(os.path.join(OUT, glow_path)):
+            if not os.path.isfile(os.path.join(tree(theme), glow_path)):
                 glow_path = None
             for res in RES:
                 # no glow on third-person weapons: it would light players up in the dark
                 shaders.append(stage_shader(f"fatboss/skins/{theme}/{tex}_{res}", f"{d}/{tex}_{res}.jpg", f"{d}/{tex}_gloss.jpg",
                                             glow_path if res != "1k" else None, f"{SKIN_DIR}/wear/{tex}.png"))
-        with open(os.path.join(scripts, f"fatboss_skins_{theme}.shader"), "w", newline="\n") as f:
+        with open(os.path.join(tree(theme), "scripts", f"fatboss_skins_{theme}.shader"), "w", newline="\n") as f:
             f.write("\n".join(shaders))
 
     # which model of which weapon carries the gun texture; mixed models (gun
@@ -904,7 +943,7 @@ def main():
                                     lines.append(f"{s},fatboss/skins/{theme}/{tex}_{res}")
                                 else:
                                     lines.append(f"{s},{team_map.get(s, sh)}")
-                            p = os.path.join(OUT, f"{SKIN_DIR}/{theme}/{skin_id}_{res}{suffix}.skin")
+                            p = os.path.join(tree(theme), f"{SKIN_DIR}/{theme}/{skin_id}_{res}{suffix}.skin")
                             os.makedirs(os.path.dirname(p), exist_ok=True)
                             with open(p, "w", newline="\n") as f:
                                 f.write("\n".join(lines) + "\n")
@@ -936,41 +975,49 @@ def main():
 
 
 def check_qpaths():
-    """Every file in the pk3 and every shader name in the scripts must be shorter than MAX_QPATH."""
+    """Every file in the pk3s and every shader name in the scripts must be shorter than MAX_QPATH."""
     long = []
-    for p, _, files in os.walk(OUT):
-        for f in files:
-            rel = os.path.relpath(os.path.join(p, f), OUT).replace(os.sep, "/")
-            if len(rel) >= MAX_QPATH:
-                long.append(rel)
-            if f.endswith((".shader", ".skin")):
-                with open(os.path.join(p, f), encoding="latin1") as fh:
-                    for word in re.findall(r"[A-Za-z0-9_/.]+", fh.read()):
-                        if "/" in word and len(word) >= MAX_QPATH:
-                            long.append(f"{rel}: {word}")
+    for root in TREES:
+        for p, _, files in os.walk(root):
+            for f in files:
+                rel = os.path.relpath(os.path.join(p, f), root).replace(os.sep, "/")
+                if len(rel) >= MAX_QPATH:
+                    long.append(rel)
+                if f.endswith((".shader", ".skin")):
+                    with open(os.path.join(p, f), encoding="latin1") as fh:
+                        for word in re.findall(r"[A-Za-z0-9_/.]+", fh.read()):
+                            if "/" in word and len(word) >= MAX_QPATH:
+                                long.append(f"{rel}: {word}")
     if long:
         raise SystemExit("names of MAX_QPATH (64) characters or more, the game would not load them:\n  " + "\n  ".join(sorted(set(long))))
 
 
 def check_packs():
-    """One skins pk3: every image a shader maps must be in the tree; print the size per theme and in all."""
-    total = 0
-    for p, _, files in os.walk(OUT):
-        total += sum(os.path.getsize(os.path.join(p, f)) for f in files)
+    """Every image a shader maps must be in its pack or the first one; no file in two packs; the size per theme and pack."""
     for theme in THEMES:
         size = 0
-        for d in (os.path.join(OUT, "models", "fatboss", "skins", theme), os.path.join(OUT, SKIN_DIR, theme)):
+        for d in (os.path.join(tree(theme), "models", "fatboss", "skins", theme), os.path.join(tree(theme), SKIN_DIR, theme)):
             for p, _, files in os.walk(d):
                 size += sum(os.path.getsize(os.path.join(p, f)) for f in files)
         print(f"{theme}: {size / 1048576:.1f} MiB")
-    for name in os.listdir(os.path.join(OUT, "scripts")):
-        text = open(os.path.join(OUT, "scripts", name), encoding="latin1").read()
-        for img in re.findall(r"\bmap\s+(\S+)", text):
-            if not os.path.isfile(os.path.join(OUT, img)):
-                raise SystemExit(f"{name} maps {img}, which is not in the pack")
-    print(f"skins pk3: {total / 1048576:.1f} MiB")
-    if total > PACK_LIMIT:
-        raise SystemExit(f"the skins pk3 would be {total / 1048576:.1f} MiB, over {PACK_LIMIT / 1048576:.0f}")
+    seen = {}
+    for pk3, root in zip(PACKS, TREES):
+        total = 0
+        for p, _, files in os.walk(root):
+            for f in files:
+                rel = os.path.relpath(os.path.join(p, f), root).replace(os.sep, "/")
+                if rel in seen:
+                    raise SystemExit(f"{rel} is in {seen[rel]} and {pk3}: which one the game takes depends on the load order")
+                seen[rel] = pk3
+                total += os.path.getsize(os.path.join(p, f))
+        for name in os.listdir(os.path.join(root, "scripts")):
+            text = open(os.path.join(root, "scripts", name), encoding="latin1").read()
+            for img in re.findall(r"\bmap\s+(\S+)", text):
+                if not os.path.isfile(os.path.join(root, img)) and not os.path.isfile(os.path.join(TREES[0], img)):
+                    raise SystemExit(f"{pk3}: {name} maps {img}, which is neither in it nor in the first pack")
+        print(f"{pk3}: {total / 1048576:.1f} MiB")
+        if total > PACK_LIMIT:
+            raise SystemExit(f"{pk3} would be {total / 1048576:.1f} MiB, over {PACK_LIMIT / 1048576:.0f}")
 
 
 if __name__ == "__main__":
