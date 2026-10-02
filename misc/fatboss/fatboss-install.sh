@@ -107,6 +107,7 @@ Next steps
 2. docker-compose.yml, in every server that gets FatBoss (etl-server1 as the example):
      etl-server1:
        entrypoint: ["/bin/sh", "/fatboss/fatboss-start.sh"]
+       init: true                         # reaps the curl/mv fatboss.lua forks, or zombies fill the pids limit
        volumes:
          - "$FB_DIR:/fatboss:ro"          # next to the volumes it already has
 

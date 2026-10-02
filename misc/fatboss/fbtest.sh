@@ -124,7 +124,9 @@ start() {
 	# but submits nothing and runs none of the gather automation (rename, sort,
 	# auto start, map, config), so it cannot touch api.etl.lol or real matches.
 	docker rm -f -v "$NAME" >/dev/null 2>&1 || true
-	docker run -d --name "$NAME" --restart no \
+	# --init: fatboss.lua forks a background curl+mv each minute; without an init those orphans land on
+	# etlded (PID 1), which never reaps them, and the zombies pile up until the pids limit is hit
+	docker run -d --init --name "$NAME" --restart no \
 		--label com.centurylinklabs.watchtower.enable=false \
 		--env-file "$tmp/env" \
 		-e MAP_PORT="$PORT" \
