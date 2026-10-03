@@ -97,9 +97,10 @@ install_release() {
 	# download finishes it (UDP stalls for good at 32 MiB): take it from a server that has it
 	if [ ! -f "$WEB/legacy_v${etl}.pk3" ]; then
 		for n in $(docker ps --format '{{.Names}}'); do
+			# through $tmp, so an interrupted copy never leaves a half pk3 on the redirect
 			if docker exec "$n" test -f "/legacy/server/legacy/legacy_v${etl}.pk3" 2>/dev/null \
-				&& docker cp "$n:/legacy/server/legacy/legacy_v${etl}.pk3" "$WEB/" >/dev/null; then
-				chmod 644 "$WEB/legacy_v${etl}.pk3"
+				&& docker cp "$n:/legacy/server/legacy/legacy_v${etl}.pk3" "$tmp/" >/dev/null 2>&1; then
+				install -m 644 "$tmp/legacy_v${etl}.pk3" "$WEB/legacy_v${etl}.pk3"
 				echo "Copied legacy_v${etl}.pk3 from $n to $WEB for the redirect"
 				break
 			fi
@@ -128,10 +129,11 @@ Next steps
        volumes:
          - "$FB_DIR:/fatboss:ro"          # next to the volumes it already has
 
-3. Apply it when the server is empty (the container is recreated, the other servers are left alone):
-     etl-server start 1
-   which is: cd $ETL_DIR && docker compose --env-file=settings.env up -d etl-server1
-   ('etl-server restart' does not pick up compose or settings.env changes.)
+3. Apply it when the server is empty (the container is recreated, the other servers are left alone).
+   The image tag in VERSION (settings.env) must carry legacy_v${etl}.pk3; pull it first:
+     cd $ETL_DIR && docker compose --env-file=settings.env pull etl-server1 && etl-server start 1
+   ('etl-server start 1' is 'docker compose --env-file=settings.env up -d etl-server1';
+    'etl-server restart' does not pick up compose or settings.env changes.)
 
 4. Check (the image must carry the ET: Legacy this FatBoss is built for):
      docker exec etl-server1 ls /legacy/server/legacy | grep legacy_v      -> legacy_v${etl}.pk3
@@ -140,7 +142,13 @@ Next steps
 EOF
 	if [ -n "$running" ]; then
 		echo "Already on FatBoss: $running- restart them to pick up this release:"
-		for n in $running; do echo "     docker restart $n"; done
+		for n in $running; do
+			if docker exec "$n" test -f "/legacy/server/legacy/legacy_v${etl}.pk3" 2>/dev/null; then
+				echo "     docker restart $n"
+			else
+				echo "     $n runs another ET: Legacy: move it to an image with legacy_v${etl}.pk3 (step 3); until then it runs without FatBoss"
+			fi
+		done
 	fi
 }
 

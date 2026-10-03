@@ -19,7 +19,8 @@
 #   FB_LOADOUT_URL=https://<fatboss>/crates/api/game/loadouts FB_API_TOKEN=<FATBOSS_GAME_TOKEN> bash fbtest.sh start
 #
 # A newer Oksii image than production runs (production untouched, its environment still copied):
-#   FB_IMAGE=oksii/etlegacy:stable bash fbtest.sh start
+#   FB_IMAGE=oksii/etlegacy:v2.86.0-13 bash fbtest.sh start
+# (pulling a tag production also uses, like stable, moves it there at its next recreate)
 set -euo pipefail
 
 VER="${FB_VER:-b19}"            # cgame release: fatboss-<VER>
@@ -70,6 +71,8 @@ remove_installed() {
 	[ -f "$FB_DIR/installed.txt" ] || return 0
 	while read -r f; do
 		case " $* " in *" $f "*) continue ;; esac
+		# production's own FatBoss install (fatboss-install.sh) needs it on the redirect too
+		[ -f "$ETL_DIR/fatboss/$f" ] && continue
 		[ -n "$f" ] && rm -f "$WEB/$f" && echo "removed $f from $WEB"
 	done < "$FB_DIR/installed.txt"
 }
@@ -121,9 +124,14 @@ start() {
 	# only arrives over the web: the UDP fallback stalls for good at 32 MiB
 	if [ ! -f "$WEB/$EXPECT" ]; then
 		cid=$(docker create "$image")
-		docker cp "$cid:/legacy/server/legacy/$EXPECT" "$WEB/$EXPECT" && chmod 644 "$WEB/$EXPECT"
+		# through $tmp, so an interrupted copy never leaves a half pk3 on the redirect
+		if docker cp "$cid:/legacy/server/legacy/$EXPECT" "$tmp/" >/dev/null 2>&1; then
+			install -m 644 "$tmp/$EXPECT" "$WEB/$EXPECT"
+			echo "Added $EXPECT to $WEB for the redirect"
+		else
+			echo "WARNING: could not copy $EXPECT out of the image; players without it cannot finish the download"
+		fi
 		docker rm -v "$cid" >/dev/null
-		echo "Added $EXPECT to $WEB for the redirect"
 	fi
 
 	# the production container's own environment, minus what the test changes
