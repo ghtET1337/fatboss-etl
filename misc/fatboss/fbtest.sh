@@ -17,9 +17,12 @@
 #
 # Against the real FatBoss site (loadouts from the Arsenal tab, /fblink codes):
 #   FB_LOADOUT_URL=https://<fatboss>/crates/api/game/loadouts FB_API_TOKEN=<FATBOSS_GAME_TOKEN> bash fbtest.sh start
+#
+# A newer Oksii image than production runs (production untouched, its environment still copied):
+#   FB_IMAGE=oksii/etlegacy:stable bash fbtest.sh start
 set -euo pipefail
 
-VER="${FB_VER:-b18}"            # cgame release: fatboss-<VER>
+VER="${FB_VER:-b19}"            # cgame release: fatboss-<VER>
 SKINS="${FB_SKINS:-s8}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
 SERVER="${FB_SERVER:-0.16}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
@@ -28,7 +31,7 @@ PROD="${PROD:-etl-server1}"
 NAME="etl-fbtest"
 PORT="${PORT:-27970}"
 PASS="${FB_PASS:-fbtest}"
-EXPECT="legacy_v2.86.0.pk3"    # the ET: Legacy version this cgame was built for
+EXPECT=""                      # the official pk3 this cgame was built for, from the release notes of the pk3
 PK3="zzz_fatboss_${VER}.pk3"
 FB_DIR="$ETL_DIR/fatboss-test" # fatboss-start.sh, fatboss.lua and the list of what this script installed
 WEB="$ETL_DIR/maps/legacy"     # what the redirect web server hands to players
@@ -72,16 +75,28 @@ remove_installed() {
 }
 
 start() {
-	# the cgame must match the mod version the production image runs
-	if ! docker exec "$PROD" ls /legacy/server/legacy/ | grep -qx "$EXPECT"; then
-		echo "STOP: $PROD does not run $EXPECT, it has:"
-		docker exec "$PROD" ls /legacy/server/legacy/ | grep '^legacy_v' || true
-		exit 1
-	fi
-	image=$(docker inspect "$PROD" --format '{{.Image}}')
-
 	tmp=$(mktemp -d)
 	trap 'rm -rf "$tmp"' EXIT
+	# the ET: Legacy version the cgame was built for: a release (2.86.0) or a snapshot (2.86.0-13-g39c75a3)
+	curl -fsSL -o "$tmp/$PK3.txt" "$REL/fatboss-$VER/$PK3.txt"
+	etl=$(sed -n 's/^et:legacy: *v\{0,1\}\([0-9][0-9.]*\(-[0-9][0-9]*-g[0-9a-f][0-9a-f]*\)\{0,1\}\).*/\1/p' "$tmp/$PK3.txt" | head -n 1)
+	[ -n "$etl" ] || { echo "STOP: $PK3.txt does not say which ET: Legacy it was built for"; exit 1; }
+	EXPECT="legacy_v${etl}.pk3"
+	# the image under test: production's own, or FB_IMAGE (pulled fresh)
+	if [ -n "${FB_IMAGE:-}" ]; then
+		echo "Pulling $FB_IMAGE ..."
+		docker pull -q "$FB_IMAGE" >/dev/null
+		image="$FB_IMAGE"
+	else
+		image=$(docker inspect "$PROD" --format '{{.Image}}')
+	fi
+	# the cgame must match the mod version the image runs
+	have=$(docker run --rm --entrypoint ls "$image" /legacy/server/legacy/ | grep '^legacy_v' || true)
+	if ! grep -qx "$EXPECT" <<< "$have"; then
+		echo "STOP: fatboss-$VER is built for $EXPECT, but the image ${FB_IMAGE:-of $PROD} has: ${have:-no legacy_v pk3}"
+		exit 1
+	fi
+
 	echo "Downloading fatboss-$VER, fatboss-skins-$SKINS and fatboss-server-$SERVER ..."
 	fetch "fatboss-$VER" "$PK3"
 	fetch "fatboss-server-$SERVER" fatboss.lua fatboss-start.sh
@@ -105,13 +120,15 @@ start() {
 	# players on older clients download the official pk3 too, and at 34 MB it
 	# only arrives over the web: the UDP fallback stalls for good at 32 MiB
 	if [ ! -f "$WEB/$EXPECT" ]; then
-		docker cp "$PROD:/legacy/server/legacy/$EXPECT" "$WEB/$EXPECT" && chmod 644 "$WEB/$EXPECT"
+		cid=$(docker create "$image")
+		docker cp "$cid:/legacy/server/legacy/$EXPECT" "$WEB/$EXPECT" && chmod 644 "$WEB/$EXPECT"
+		docker rm -v "$cid" >/dev/null
 		echo "Added $EXPECT to $WEB for the redirect"
 	fi
 
 	# the production container's own environment, minus what the test changes
 	docker inspect "$PROD" --format '{{range .Config.Env}}{{println .}}{{end}}' \
-		| grep -vE '^(PATH|HOME|HOSTNAME|MAP_PORT|PASSWORD|STATS_SUBMIT|STATS_GATHER_FEATURES|STATS_AUTO_[A-Z_]*|SETTINGSBRANCH|AUTORESTART|SVTRACKER|ADVERT|MAPS|MAPS_AUTO|STARTMAP|FATBOSS_[A-Z_]*)=' \
+		| grep -vE '^(PATH|HOME|HOSTNAME|MAP_PORT|PASSWORD|STATS_SUBMIT|STATS_GATHER_FEATURES|STATS_AUTO_[A-Z_]*|SETTINGSBRANCH|AUTORESTART|SVTRACKER|ADVERT|MAPS|MAPS_AUTO|STARTMAP|ETLTV_[A-Z_]*|FATBOSS_[A-Z_]*)=' \
 		| grep . > "$tmp/env" || true
 	# optionally the real FatBoss site instead of /fbequip alone
 	if [ -n "${FB_LOADOUT_URL:-}" ]; then

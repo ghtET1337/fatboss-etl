@@ -15,7 +15,7 @@
 # (fatboss.lua and fatboss-start.sh).
 set -euo pipefail
 
-VER="${FB_VER:-b18}"
+VER="${FB_VER:-b19}"
 SKINS="${FB_SKINS:-s8}"
 SERVER="${FB_SERVER:-0.16}"
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
@@ -54,8 +54,11 @@ fetch_skins() { # <release tag> <file>...
 }
 
 fatboss_containers() {
+	# an if, not &&: a last container without /fatboss must not fail the loop (set -e + pipefail)
 	docker ps --format '{{.Names}}' | while read -r n; do
-		docker inspect "$n" --format '{{range .Mounts}}{{.Destination}} {{end}}' | grep -qw /fatboss && echo "$n"
+		if docker inspect "$n" --format '{{range .Mounts}}{{.Destination}} {{end}}' | grep -qw /fatboss; then
+			echo "$n"
+		fi
 	done
 }
 
@@ -70,8 +73,9 @@ install_release() {
 	mapfile -t skins < <(grep -E '^zzz_fatboss_(skins?|wear)_[a-z0-9_]+\.pk3$' "$tmp/skins.txt")
 	[ "${#skins[@]}" -gt 0 ] || { echo "STOP: skins.txt lists no pk3"; exit 1; }
 	fetch_skins "fatboss-skins-$SKINS" "${skins[@]}"
-	# the ET: Legacy version the cgame was built for, from the release notes of the pk3
-	etl=$(sed -n 's/^et:legacy: *v\{0,1\}\([0-9][0-9.]*\).*/\1/p' "$tmp/$PK3.txt" | head -n 1)
+	# the ET: Legacy version the cgame was built for, from the release notes of the pk3:
+	# a release (2.86.0) or a snapshot (2.86.0-13-g39c75a3), named exactly like the official pk3
+	etl=$(sed -n 's/^et:legacy: *v\{0,1\}\([0-9][0-9.]*\(-[0-9][0-9]*-g[0-9a-f][0-9a-f]*\)\{0,1\}\).*/\1/p' "$tmp/$PK3.txt" | head -n 1)
 	[ -n "$etl" ] || { echo "STOP: $PK3.txt does not say which ET: Legacy it was built for"; exit 1; }
 
 	mkdir -p "$FB_DIR" "$WEB"
@@ -89,9 +93,22 @@ install_release() {
 	echo "legacy_v${etl}.pk3" > "$FB_DIR/ETL_PK3"
 	echo "Installed in $FB_DIR: $PK3 ${skins[*]} fatboss.lua fatboss-start.sh (built for ET: Legacy $etl)"
 	echo "Copied to $WEB for the redirect: $PK3 ${skins[*]}"
+	# players who lack the official pk3 download it too, and at 34 MB only the web
+	# download finishes it (UDP stalls for good at 32 MiB): take it from a server that has it
 	if [ ! -f "$WEB/legacy_v${etl}.pk3" ]; then
-		echo "Note: $WEB has no legacy_v${etl}.pk3; players on older clients would download it over UDP, which stops at 32 MiB."
-		echo "      Copy it from a server: docker cp etl-server1:/legacy/server/legacy/legacy_v${etl}.pk3 $WEB/"
+		for n in $(docker ps --format '{{.Names}}'); do
+			if docker exec "$n" test -f "/legacy/server/legacy/legacy_v${etl}.pk3" 2>/dev/null \
+				&& docker cp "$n:/legacy/server/legacy/legacy_v${etl}.pk3" "$WEB/" >/dev/null; then
+				chmod 644 "$WEB/legacy_v${etl}.pk3"
+				echo "Copied legacy_v${etl}.pk3 from $n to $WEB for the redirect"
+				break
+			fi
+		done
+	fi
+	if [ ! -f "$WEB/legacy_v${etl}.pk3" ]; then
+		echo "Note: no running container has legacy_v${etl}.pk3, and $WEB has none either."
+		echo "      This FatBoss is for servers on that ET: Legacy version; on any other the servers start without FatBoss."
+		echo "      Once a server runs it: docker cp etl-server1:/legacy/server/legacy/legacy_v${etl}.pk3 $WEB/"
 	fi
 
 	running=$(fatboss_containers | tr '\n' ' ')
@@ -111,8 +128,14 @@ Next steps
        volumes:
          - "$FB_DIR:/fatboss:ro"          # next to the volumes it already has
 
-3. Apply it (the container is recreated, the other servers are left alone):
-     cd $ETL_DIR && docker compose up -d etl-server1
+3. Apply it when the server is empty (the container is recreated, the other servers are left alone):
+     etl-server start 1
+   which is: cd $ETL_DIR && docker compose --env-file=settings.env up -d etl-server1
+   ('etl-server restart' does not pick up compose or settings.env changes.)
+
+4. Check (the image must carry the ET: Legacy this FatBoss is built for):
+     docker exec etl-server1 ls /legacy/server/legacy | grep legacy_v      -> legacy_v${etl}.pk3
+     docker logs etl-server1 2>&1 | grep -i fatboss | tail                 -> fatboss: loadouts from FatBoss, links on
 
 EOF
 	if [ -n "$running" ]; then

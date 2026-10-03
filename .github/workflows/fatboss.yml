@@ -2,7 +2,8 @@
 # zzz_fatboss_<version>.pk3. That pk3 goes next to the official legacy_v*.pk3
 # on a server running the official ET: Legacy mod of the same version.
 #
-# The version below must match the server's mod exactly (legacy_v2.86.0.pk3).
+# The version below must match the server's mod exactly: Oksii's oksii/etlegacy:stable
+# runs the ET: Legacy snapshot v2.86.0-13-g39c75a3 (legacy_v2.86.0-13-g39c75a3.pk3).
 # A player whose platform is missing from the pk3 fails the sv_pure check,
 # so the package job refuses to publish without the required platforms.
 name: FatBoss cgame
@@ -22,7 +23,7 @@ permissions:
   contents: write
 
 env:
-  CI_ETL_DESCRIBE: v2.86.0
+  CI_ETL_DESCRIBE: v2.86.0-13-g39c75a3
   CI_ETL_TAG: v2.86.0
 
 jobs:

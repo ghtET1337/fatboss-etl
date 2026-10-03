@@ -11,5 +11,7 @@ the server keeps running the official legacy mod.
   clients cache pk3 files by name.
 
 The branch `fatboss` is based on the exact ET: Legacy version the servers run
-(currently v2.86.0). When the servers move to a new ET: Legacy version, rebase
-this branch onto that tag and publish a new pk3 before updating the servers.
+(currently the snapshot v2.86.0-13-g39c75a3 that oksii/etlegacy:stable runs). When
+the servers move to a new ET: Legacy version, merge
+that commit into this branch, set CI_ETL_DESCRIBE in fatboss.yml to its exact
+`git describe` and publish a new pk3 before updating the servers.
