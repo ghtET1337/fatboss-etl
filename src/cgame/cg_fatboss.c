@@ -15,8 +15,8 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b19"
-#define FATBOSS_CGAME_BUILD   19        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
+#define FATBOSS_CGAME_VERSION "b20"
+#define FATBOSS_CGAME_BUILD   20        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1450,10 +1450,6 @@ static void CG_FatBoss_LoadShader(int theme, int tex, int res)
 		*h = -1;
 		return;
 	}
-	if (!fbShineShown)
-	{
-		CG_FatBoss_ShineOne(theme, tex, res);
-	}
 	for (i = 0; i < FB_SKIN_MODELS; i++)
 	{
 		const fbSkinModel_t *m = &fbSkinModels[i];
@@ -1479,6 +1475,10 @@ static void CG_FatBoss_LoadShader(int theme, int tex, int res)
 			}
 		}
 	}
+	// after the .skin files: they make the shader's model copy (LIGHTMAP_NONE, beside the 2D one registered above),
+	// and a remap reaches only the copies that exist when it is made. Either way: a cgame_restart keeps the
+	// renderer's copies and their remaps
+	CG_FatBoss_ShineOne(theme, tex, res);
 }
 
 static qhandle_t CG_FatBoss_SkinFile(int row, int theme, int res, int team)

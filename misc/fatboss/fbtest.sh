@@ -23,7 +23,7 @@
 # (pulling a tag production also uses, like stable, moves it there at its next recreate)
 set -euo pipefail
 
-VER="${FB_VER:-b19}"            # cgame release: fatboss-<VER>
+VER="${FB_VER:-b20}"            # cgame release: fatboss-<VER>
 SKINS="${FB_SKINS:-s8}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
 SERVER="${FB_SERVER:-0.16}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
