@@ -67,6 +67,19 @@
     draws it on their helmet (older cgames read six tokens and skip it). It goes
     at "prop_until" even when the feed stops. /fbequip prop dong [minutes] tries it.
 
+    Request files (0.17): every call to FatBoss is a background curl (10 s at most)
+    whose fatboss_link_*, fatboss_panel_* or fatboss_stattrak* .req/.tmp/.res files
+    stay in <fs_homepath>/legacy until RunFrame reads the answer. Each name carries
+    the time its Lua VM started, so a file an earlier run left is never taken for
+    an answer of this one. A call dropped while the map runs (the player left, no
+    answer in time) loses its files 30 s after it started. What a map leaves when
+    it ends (calls still on their way, the last StatTrak report) and what a server
+    leaves when it quits go with a later map: 30 s into every map, RunFrame starts
+    one find that deletes the request files of other runs nobody changed for over
+    a minute (two with busybox find). A map's last files are only seconds old when
+    the next map sweeps, so they usually go with the map after that; after a quit
+    they go with the first or second map of the next start.
+
     Runs next to Oksii's stats.lua and combinedfixes.lua in its own Lua VM and
     handles only its own commands ("spray", "fblink", "fbsync", "fbinv", "fbwear",
     and "fbequip" in test mode).
@@ -76,7 +89,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.16"
+local VERSION = "0.17"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 local PROPS           = { dong = true }   -- punishment props the FatBoss cgame draws (b17)
@@ -119,6 +132,15 @@ local PANEL_CHUNK     = 700     -- characters of items per fbinv_items command
 -- it has not acknowledged, so a list of hundreds of items goes out over a few frames
 local PANEL_PER_FRAME = 4
 local REPORT_WAIT_MS  = 15000   -- StatTrak kills go to FatBoss with the minute's download (and when the map ends)
+local CURL_MAX_S      = 10      -- curl's --max-time for every call to FatBoss
+-- a request nobody waits for any more leaves its files until this long after it started: its curl is over by then
+local CURL_DONE_MS    = 30000
+local SWEEP_PER_FRAME = 4       -- abandoned requests whose files go in one frame, at most
+-- what a request leaves in homeDir: <base>.req (the body), .tmp (curl's download), .res (the answer)
+local REQUEST_FILES   = { "fatboss_link_*", "fatboss_panel_*", "fatboss_stattrak*" }
+-- the map's sweep of earlier runs' request files skips a file changed in the last minute (find -mmin +1;
+-- two minutes with busybox): no curl writes it any more
+local SWEEP_AGE_MIN   = 1
 local GS_PLAYING      = "0"
 local CGAME_TAGS      = 13      -- the first FatBoss cgame that shows name tags ("fbsync 13")
 -- means of death -> the slot whose StatTrak copy counts the kill (bg_public.h of ET: Legacy 2.86)
@@ -137,23 +159,81 @@ local sprays       = {}  -- clientNum -> fbspray command without the sound flag
 local sprayCount   = {}  -- clientNum -> graffiti sprayed in the current life
 local lastSpray    = {}  -- clientNum -> time of the last graffiti
 local lastMessage  = {}  -- clientNum -> level time of the last refusal
-local links        = {}  -- clientNum -> { file, guid, deadline } of a /fblink waiting for FatBoss
+local links        = {}  -- clientNum -> { file, base, started, guid, deadline } of a /fblink waiting for FatBoss
 local lastLink     = {}  -- clientNum -> time of the last /fblink
 local lastSync     = {}  -- clientNum -> time the client last got everything
-local requests     = {}  -- clientNum -> { file, guid, kind, deadline } of a panel request waiting for FatBoss
+local requests     = {}  -- clientNum -> { file, base, started, guid, kind, deadline } of a panel request waiting for FatBoss
 local lastPanel    = {}  -- clientNum -> time of the last panel request
 local outbox       = {}  -- clientNum -> commands of an item list still to send
 local stPending    = {}  -- copy id -> { guid, n }: StatTrak kills not reported yet
-local stInflight   = nil -- { file, deadline, ids = { copy id -> n } } of the report on its way
+local stInflight   = nil -- { file, base, started, deadline, ids = { copy id -> n } } of the report on its way
 local stFloor      = {}  -- copy id -> count FatBoss confirmed (a feed read before the report stays below it)
 local cgameBuild   = {}  -- clientNum -> the FatBoss cgame build it announced with fbsync
 local sentTags     = {}  -- clientNum -> fbtags command last sent
+local abandoned    = {}  -- { base, deadline } of requests nobody waits for: their files go at the deadline
+local sweepAt      = nil -- trap_Milliseconds time of this map's sweep of earlier runs' request files (nil: done)
+-- in every request file name: trap_Milliseconds starts at 0 again with every server process, so without the time
+-- this Lua VM started, a file an earlier run left could have the name of a new request and pass for its answer;
+-- the sweep also tells this map's own files by it
+local RUN          = os.time()
 local inventoryUrl, equipUrl, stattrakUrl
 local loadoutPath, loadoutUrl, linkUrl, apiToken, testMode, defaultGraffiti, maxClients, homeDir, spraysPerLife
 local nextFetch, nextRead, lastLoadoutText = 0, 0, nil
 
 local function shellQuote(s)
     return "'" .. tostring(s):gsub("'", "'\"'\"'") .. "'"
+end
+
+-- the files of one background request (see REQUEST_FILES)
+local function removeRequestFiles(base)
+    os.remove(base .. ".req")
+    os.remove(base .. ".tmp")
+    os.remove(base .. ".res")
+end
+
+-- a request nobody waits for any more (the player left, no answer in time, a new map): curl still writes the
+-- answer, so its files go once that curl is surely over - now, when the answer is already here.
+-- pending: { base, started } of a link, panel request or StatTrak report (nil: nothing)
+local function abandon(pending)
+    if not pending then
+        return
+    end
+    local f = io.open(pending.base .. ".res", "r")
+    if f then
+        f:close()
+        removeRequestFiles(pending.base)
+    else
+        abandoned[#abandoned + 1] = { base = pending.base, deadline = pending.started + CURL_DONE_MS }
+    end
+end
+
+-- the files of abandoned requests whose time is up, a few per frame
+local function sweepAbandoned(now)
+    local i, done = 1, 0
+    while abandoned[i] and done < SWEEP_PER_FRAME do
+        if now >= abandoned[i].deadline then
+            removeRequestFiles(abandoned[i].base)
+            table.remove(abandoned, i)
+            done = done + 1
+        else
+            i = i + 1
+        end
+    end
+end
+
+-- Request files left by earlier runs: the last map's Lua VM went with whatever it still waited for, a server can
+-- stop mid-request, and 0.16 left every dropped answer behind. RunFrame calls this once, 30 s into the map: one
+-- find (and the rm it batches) deletes the request files without this VM's RUN in the name that nobody changed for
+-- a minute, so neither a request of this map nor a file a curl still writes. Nothing waits in the background.
+local function sweepLeftovers()
+    local names = {}
+    for _, name in ipairs(REQUEST_FILES) do
+        names[#names + 1] = "-name " .. shellQuote(name)
+    end
+    -- a path that starts with "-" would read as a find option
+    local dir = homeDir:sub(1, 1) == "-" and "./" .. homeDir or homeDir
+    os.execute(string.format("find %s -maxdepth 1 -type f \\( %s \\) \\( -name '*.req' -o -name '*.tmp' -o -name '*.res' \\) ! -name '*_%d_*' -mmin +%d -exec rm -f {} + >/dev/null 2>&1 &",
+        shellQuote(dir), table.concat(names, " -o "), RUN, SWEEP_AGE_MIN))
 end
 
 -- design and theme names reach shader paths on the clients: [a-z0-9_] only
@@ -362,8 +442,8 @@ local function fetchLoadouts(extra)
     if apiToken and apiToken ~= "" then
         auth = " -H " .. shellQuote("Authorization: Bearer " .. apiToken)
     end
-    os.execute(string.format("(curl -fsS --max-time 10%s -o %s %s && mv -f %s %s) >/dev/null 2>&1 &%s",
-        auth, shellQuote(tmp), shellQuote(loadoutUrl), shellQuote(tmp), shellQuote(loadoutPath), extra and (" " .. extra) or ""))
+    os.execute(string.format("(curl -fsS --max-time %d%s -o %s %s && mv -f %s %s) >/dev/null 2>&1 &%s",
+        CURL_MAX_S, auth, shellQuote(tmp), shellQuote(loadoutUrl), shellQuote(tmp), shellQuote(loadoutPath), extra and (" " .. extra) or ""))
 end
 
 local function refuse(clientNum, levelTime, text)
@@ -514,7 +594,7 @@ local function link(clientNum)
     local userinfo = et.trap_GetUserinfo(clientNum)
     local name = (et.Info_ValueForKey(userinfo, "name") or ""):gsub("%^.", "")
     local server = (et.trap_Cvar_Get("sv_hostname") or ""):gsub("%^.", "")
-    local base = string.format("%s/fatboss_link_%d_%d", homeDir, clientNum, now)
+    local base = string.format("%s/fatboss_link_%d_%d_%d", homeDir, clientNum, RUN, now)
     local body = io.open(base .. ".req", "w")
     if not body then
         return tell(clientNum, "the server could not write the request. Tell an admin.")
@@ -526,9 +606,9 @@ local function link(clientNum)
         auth = " -H " .. shellQuote("Authorization: Bearer " .. apiToken)
     end
     -- the answer lands in .res (FatBoss answers 400 with a reason, so no -f); RunFrame picks it up
-    os.execute(string.format("(curl -sS --max-time 10%s -H 'Content-Type: application/json' --data @%s -o %s.tmp %s; mv -f %s.tmp %s.res; rm -f %s) >/dev/null 2>&1 &",
-        auth, shellQuote(base .. ".req"), shellQuote(base), shellQuote(linkUrl), shellQuote(base), shellQuote(base), shellQuote(base .. ".req")))
-    links[clientNum] = { file = base .. ".res", guid = guid, deadline = now + LINK_WAIT_MS }
+    os.execute(string.format("(curl -sS --max-time %d%s -H 'Content-Type: application/json' --data @%s -o %s.tmp %s; mv -f %s.tmp %s.res; rm -f %s) >/dev/null 2>&1 &",
+        CURL_MAX_S, auth, shellQuote(base .. ".req"), shellQuote(base), shellQuote(linkUrl), shellQuote(base), shellQuote(base), shellQuote(base .. ".req")))
+    links[clientNum] = { file = base .. ".res", base = base, started = now, guid = guid, deadline = now + LINK_WAIT_MS }
     tell(clientNum, "linking this computer to your FatBoss account...")
 end
 
@@ -552,6 +632,7 @@ local function checkLinks(now)
             end
         elseif now > pending.deadline then
             links[clientNum] = nil
+            abandon(pending)
             tell(clientNum, "^1not linked:^7 no answer from FatBoss. Try again in a minute.")
         end
     end
@@ -677,8 +758,8 @@ local function postAsync(url, body, base, deferred)
     if apiToken and apiToken ~= "" then
         auth = " -H " .. shellQuote("Authorization: Bearer " .. apiToken)
     end
-    local cmd = string.format("(curl -sS --max-time 10%s -H 'Content-Type: application/json' --data @%s -o %s.tmp %s; mv -f %s.tmp %s.res; rm -f %s) >/dev/null 2>&1 &",
-        auth, shellQuote(base .. ".req"), shellQuote(base), shellQuote(url), shellQuote(base), shellQuote(base), shellQuote(base .. ".req"))
+    local cmd = string.format("(curl -sS --max-time %d%s -H 'Content-Type: application/json' --data @%s -o %s.tmp %s; mv -f %s.tmp %s.res; rm -f %s) >/dev/null 2>&1 &",
+        CURL_MAX_S, auth, shellQuote(base .. ".req"), shellQuote(base), shellQuote(url), shellQuote(base), shellQuote(base), shellQuote(base .. ".req"))
     if deferred then
         return cmd
     end
@@ -712,11 +793,11 @@ local function panelSend(clientNum, url, body, kind)
         return
     end
     body.guid = guid
-    local base = string.format("%s/fatboss_panel_%d_%d", homeDir, clientNum, now)
+    local base = string.format("%s/fatboss_panel_%d_%d_%d", homeDir, clientNum, RUN, now)
     if not postAsync(url, body, base) then
         return panelError(clientNum, "The server could not write the request. Tell an admin.")
     end
-    requests[clientNum] = { file = base .. ".res", guid = guid, kind = kind, deadline = now + PANEL_WAIT_MS }
+    requests[clientNum] = { file = base .. ".res", base = base, started = now, guid = guid, kind = kind, deadline = now + PANEL_WAIT_MS }
 end
 
 -- fbinv: the panel opened, it wants the player's items
@@ -845,6 +926,7 @@ local function checkRequests(now)
             end
         elseif now > pending.deadline then
             requests[clientNum] = nil
+            abandon(pending)
             panelError(clientNum, "No answer from FatBoss. Try again in a minute.")
         end
     end
@@ -888,7 +970,8 @@ local function countKill(victim, killer, meansOfDeath)
 end
 
 -- the kills since the last report to FatBoss, in the background; final: the map ends, nobody waits for the
--- answer. Not final, it returns the shell command for fetchLoadouts to run with the download.
+-- answer (a later map's sweep removes it). Not final, it returns the shell command for fetchLoadouts to run
+-- with the download. Every report has files of its own, so a late answer is never taken for the next one's.
 local function reportKills(now, final)
     if not next(stPending) or testMode or not stattrakUrl or (stInflight and not final) then
         return nil
@@ -898,14 +981,14 @@ local function reportKills(now, final)
         kills[#kills + 1] = { guid = p.guid, id = id, n = p.n }
         ids[id] = p.n
     end
-    local base = string.format("%s/fatboss_stattrak%s", homeDir, final and "_end" or "")
+    local base = string.format("%s/fatboss_stattrak%s_%d_%d", homeDir, final and "_end" or "", RUN, now)
     local cmd = postAsync(stattrakUrl, { kills = kills }, base, not final)
     if not cmd then
         return nil
     end
     stPending = {}
     if not final then
-        stInflight = { file = base .. ".res", deadline = now + REPORT_WAIT_MS, ids = ids }
+        stInflight = { file = base .. ".res", base = base, started = now, deadline = now + REPORT_WAIT_MS, ids = ids }
         return cmd
     end
     return nil
@@ -934,6 +1017,7 @@ local function checkReport(now)
         publishLoadouts()
     elseif now > stInflight.deadline then
         et.G_LogPrint(string.format("%s: no answer to a StatTrak report\n", MODNAME))
+        abandon(stInflight)
         stInflight = nil
         publishLoadouts()
     end
@@ -986,11 +1070,21 @@ function et_InitGame(levelTime, randomSeed, restart)
     end
     spraysPerLife = math.floor(tonumber(os.getenv("FATBOSS_SPRAYS_PER_LIFE") or "") or 3)
     spraysPerLife = math.max(1, math.min(10, spraysPerLife))
+    -- ET: Legacy starts every map in a fresh Lua VM, so nothing waits here yet; should a VM ever see a second
+    -- map, what it still waited for is dropped like any abandoned request
+    for _, pending in pairs(links) do
+        abandon(pending)
+    end
+    for _, pending in pairs(requests) do
+        abandon(pending)
+    end
+    abandon(stInflight)
     -- a new map starts with empty configstrings; a map_restart keeps them (setting the same value again sends nothing)
     setStrings, synced, sprays, links, sprayCount, lastSpray = {}, {}, {}, {}, {}, {}
     requests, lastPanel, outbox = {}, {}, {}
     stPending, stInflight, stFloor, cgameBuild, sentTags = {}, nil, {}, {}, {}
-    os.remove(homeDir .. "/fatboss_stattrak.res")
+    -- what earlier runs left goes 30 s into the map, when every curl of the last map is surely over
+    sweepAt = et.trap_Milliseconds() + CURL_DONE_MS
     readLoadouts()
     fetchLoadouts()
     nextFetch = levelTime + FETCH_MS
@@ -1022,6 +1116,13 @@ function et_RunFrame(levelTime)
     end
     if stInflight then
         checkReport(et.trap_Milliseconds())
+    end
+    if abandoned[1] then
+        sweepAbandoned(et.trap_Milliseconds())
+    end
+    if sweepAt and et.trap_Milliseconds() >= sweepAt then
+        sweepAt = nil
+        sweepLeftovers()
     end
 end
 
@@ -1090,6 +1191,9 @@ function et_ClientBegin(clientNum)
 end
 
 function et_ClientDisconnect(clientNum)
+    -- the answers of the player's requests still come; their files go once nobody can need them
+    abandon(requests[clientNum])
+    abandon(links[clientNum])
     requests[clientNum] = nil
     outbox[clientNum] = nil
     lastPanel[clientNum] = nil

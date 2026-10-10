@@ -17,7 +17,7 @@ set -euo pipefail
 
 VER="${FB_VER:-b20}"
 SKINS="${FB_SKINS:-s8}"
-SERVER="${FB_SERVER:-0.16}"
+SERVER="${FB_SERVER:-0.17}"
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
 ETL_DIR="${ETL_DIR:-/root/etlserver}"
 FB_DIR="$ETL_DIR/fatboss"
