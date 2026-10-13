@@ -94,7 +94,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.18"
+local VERSION = "0.19"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 local PROPS           = { dong = true }   -- punishment props the FatBoss cgame draws (b17)
@@ -145,6 +145,9 @@ local LINK_WAIT_MS    = 15000   -- how long a /fblink waits for FatBoss to answe
 local LINK_GAP_MS     = 5000    -- one /fblink per player every few seconds
 local SYNC_GAP_MS     = 3000    -- one fbsync (a cgame restart) per player every few seconds
 local SPRAY_GAP_MS    = 2000    -- between two graffiti of one player
+-- between two spray attempts of one player, refused ones too (0.19): a spray where the graffiti does not fit
+-- costs up to ~244 traces, so a bound flood of "spray" must not reach them every frame
+local SPRAY_TRY_MS    = 400
 local PANEL_GAP_MS    = 500     -- one panel request (list, wear) per player every half second
 local PANEL_WAIT_MS   = 15000   -- how long a panel request waits for FatBoss
 local PANEL_CHUNK     = 700     -- characters of items per fbinv_items command
@@ -179,6 +182,7 @@ local synced       = {}  -- clientNum -> true once the client got the graffiti o
 local sprays       = {}  -- clientNum -> fbspray command without the sound flag
 local sprayCount   = {}  -- clientNum -> graffiti sprayed in the current life
 local lastSpray    = {}  -- clientNum -> time of the last graffiti
+local lastTry      = {}  -- clientNum -> time of the last spray attempt that got past the gap checks
 local lastMessage  = {}  -- clientNum -> level time of the last refusal
 local links        = {}  -- clientNum -> { file, base, started, guid, deadline } of a /fblink waiting for FatBoss
 local lastLink     = {}  -- clientNum -> time of the last /fblink
@@ -557,6 +561,10 @@ local function spray(clientNum)
     if lastSpray[clientNum] and levelTime - lastSpray[clientNum] < SPRAY_GAP_MS then
         return refuse(clientNum, levelTime, "shake the can a moment.")
     end
+    if lastTry[clientNum] and levelTime - lastTry[clientNum] < SPRAY_TRY_MS then
+        return refuse(clientNum, levelTime, "shake the can a moment.")
+    end
+    lastTry[clientNum] = levelTime
     local design = loadoutOf(clientNum).graffiti or defaultGraffiti
     if not design then
         return refuse(clientNum, levelTime, "no graffiti equipped - get one from FatBoss crates.")
@@ -1133,6 +1141,7 @@ function et_InitGame(levelTime, randomSeed, restart)
     abandon(stInflight)
     -- a new map starts with empty configstrings; a map_restart keeps them (setting the same value again sends nothing)
     setStrings, synced, sprays, links, sprayCount, lastSpray = {}, {}, {}, {}, {}, {}
+    lastTry = {}
     requests, lastPanel, outbox = {}, {}, {}
     stPending, stInflight, stFloor, cgameBuild, sentTags = {}, nil, {}, {}, {}
     -- what earlier runs left goes 30 s into the map, when every curl of the last map is surely over
@@ -1251,6 +1260,7 @@ function et_ClientDisconnect(clientNum)
     lastPanel[clientNum] = nil
     sprayCount[clientNum] = nil
     lastSpray[clientNum] = nil
+    lastTry[clientNum] = nil
     lastMessage[clientNum] = nil
     synced[clientNum] = nil
     links[clientNum] = nil
