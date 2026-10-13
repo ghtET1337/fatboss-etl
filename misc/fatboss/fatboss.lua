@@ -45,7 +45,12 @@
     stickers ("stk", a base-36 design code per spot of the gun, "." for an empty
     one: five spots, four before 0.15) and its name ("tags"). Cgame b16 draws a
     sticker on the spot the player put it on (":j" in the configstring; b13-b15
-    read four places of their own from ":k", which is gone). An enemy killed with a StatTrak copy's weapon in a real game
+    read four places of their own from ":k", which is gone). Two-char codes (0.18):
+    with 75 designs a gun that carries one from 36 up gets two chars per spot from
+    FatBoss (base 36, high then low, ".." for none: 8 or 10 chars, the length tells
+    them apart) and ":J" in the configstring, which cgame b21 reads and b20 skips
+    (no stickers rather than wrong ones; its Arsenal panel gets "-" for them).
+    An enemy killed with a StatTrak copy's weapon in a real game
     (gamestate playing, not a teammate, not yourself) adds one to its count at
     once (the configstring shows it) and goes to FatBoss (/stattrak, next to the
     loadout URL) with the minute's loadout download (the same background shell,
@@ -89,7 +94,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.17"
+local VERSION = "0.18"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 local PROPS           = { dong = true }   -- punishment props the FatBoss cgame draws (b17)
@@ -101,7 +106,22 @@ local THEMES_HELP     = "fade nebula case redline frontier glacier pearl inferno
                      .. "wyrmfire jade_serpent orbital synthwave kintsugi magma sapphire ruby black_pearl "
                      .. "crimson_web filigree carbon aurora sakura hex_reactor holo_prism blood_moon checkmate "
                      .. "neon_oni grandma_carpet googly_eyes duct_tape crayon_kid rubber_ducky hot_dog_stand princess_mode laser_cats "
-                     .. "honk_honk"
+                     .. "honk_honk "
+                     .. "rabid_beast golden_coil empress mecha_unit red_vector black_ice corrupted neon_tokyo "
+                     .. "lost_space toxic_breach nitro quantum bullet_rain neon_riot ti_burn laminate rust_coat "
+                     .. "trench_art butcher pinstripe hot_rod wycinanki amber freehand enigma toy_blaster cardboard "
+                     .. "comic_pow ugly_sweater gummy disco_ball bubblegum wildstyle leopard_diva lava_lamp "
+                     .. "happy_trees"
+-- /fbequip's list of every graffiti design
+local GRAFFITI_HELP   = "fatboss poland_et gg ez gibbed noob nice_try cloudy skill_issue jebac_axis jebac_allies "
+                     .. "kurwa_mac wut_1112 sprzedam_opla nastepny_przystanek next_stop skill_404 rip_bozo lagging "
+                     .. "get_rekt spawn_camper arty_incoming dyno_planted headshot one_tap rage_quit skill_diff cry_more "
+                     .. "brb_coffee panzer_noob potato_aim toaster_pc honk eat_shit git_gud_bitch suck_my_panzer "
+                     .. "fuck_your_ping stfu_noob ur_mom certified_shitter asshat wtf_was_that holy_shit kiss_my_ass "
+                     .. "touch_grass uninstall who_asked wallhack free_kill go_next alt_f4 hold_w cope_seethe no_scope "
+                     .. "defused_lol beep_beep smoke_break airstrike_on_me oops mg42_brrr docs_stolen teamkiller "
+                     .. "trust_covert obj_what_obj send_nukes bonk big_brain npc wanted rip_kd open_24_7 spierdalaj "
+                     .. "no_i_chuj co_kurwa ja_pierdole"
 -- /fbequip wear by condition: the middle of each CS2 range
 local CONDITION_WEAR  = { fn = 0.035, mw = 0.11, ft = 0.265, ww = 0.415, bs = 0.72 }
 local SPRAY_RANGE     = 128
@@ -143,6 +163,7 @@ local REQUEST_FILES   = { "fatboss_link_*", "fatboss_panel_*", "fatboss_stattrak
 local SWEEP_AGE_MIN   = 1
 local GS_PLAYING      = "0"
 local CGAME_TAGS      = 13      -- the first FatBoss cgame that shows name tags ("fbsync 13")
+local CGAME_WIDE_STK  = 21      -- the first FatBoss cgame that reads two-char sticker codes (":J")
 -- means of death -> the slot whose StatTrak copy counts the kill (bg_public.h of ET: Legacy 2.86)
 local MOD_SLOT        = {
     [5] = "knife", [61] = "knife", [65] = "knife",                       -- knife, KA-BAR, backstab
@@ -271,8 +292,9 @@ local function stattrakCount(loadout, slot)
 end
 
 -- "<knife> <colt> <luger> <thompson> <mp40> <graffiti>", "-" for stock; a skin is "theme:NNN" with the
--- copy's wear x 1000, then ":sN" for a StatTrak count and ":jabcde" for its stickers, one per spot (cgame b12
--- reads the theme and the wear and skips the rest); "" for nothing at all (a small gamestate)
+-- copy's wear x 1000, then ":sN" for a StatTrak count and ":jabcde" for its stickers, one per spot, or
+-- ":J0a1b...." with two chars per spot once a design is 36 or more (cgame b21; b12 reads the theme and the wear
+-- and skips the rest, b20 skips ":J"); "" for nothing at all (a small gamestate)
 local function loadoutString(clientNum)
     local loadout = loadoutOf(clientNum)
     local skins, wear, stk = loadout.skins or {}, loadout.wear or {}, loadout.stk or {}
@@ -288,7 +310,7 @@ local function loadoutString(clientNum)
                 theme = string.format("%s:s%d", theme, math.min(count, 999999))
             end
             if stk[slot] and slot ~= "knife" then
-                theme = theme .. ":j" .. stk[slot]
+                theme = theme .. (#stk[slot] >= 8 and ":J" or ":j") .. stk[slot]
             end
         end
         parts[#parts + 1] = theme or "-"
@@ -347,11 +369,26 @@ local function validTag(tag)
     return type(tag) == "string" and #tag >= 1 and #tag <= 20 and tag:match("^[%w .,!?'_%-]+$") ~= nil
 end
 
--- the sticker spots of a gun (five at most; four before FatBoss sent spots), a base-36 design code each or
--- "." for none, at least one sticker
+-- the sticker spots of a gun (five at most; four before FatBoss sent spots), at least one sticker: a base-36
+-- design code each or "." for none (4-5 chars), or, once a design is 36 or more, two chars each, high then low,
+-- or ".." for none (8 or 10 chars, 0.18)
 local function validStickers(codes)
-    return type(codes) == "string" and codes:match("^[0-9a-z%.][0-9a-z%.][0-9a-z%.][0-9a-z%.][0-9a-z%.]?$") ~= nil
-        and codes:match("[0-9a-z]") ~= nil
+    if type(codes) ~= "string" or not codes:match("[0-9a-z]") then
+        return false
+    end
+    if #codes == 4 or #codes == 5 then
+        return codes:match("^[0-9a-z%.]+$") ~= nil
+    end
+    if #codes ~= 8 and #codes ~= 10 then
+        return false
+    end
+    for i = 1, #codes, 2 do
+        local pair = codes:sub(i, i + 1)
+        if pair ~= ".." and not pair:match("^[0-9a-z][0-9a-z]$") then
+            return false
+        end
+    end
+    return true
 end
 
 local function parseEntry(entry)
@@ -683,9 +720,22 @@ local function equip(clientNum)
         say("usage: /fbequip <knife|colt|luger|thompson|mp40> <theme|-> [wear] [st[=N]] [k=abcde] [n=Name]   or   /fbequip graffiti <design>")
         say("or /fbequip prop <dong|-> [minutes, 60 by default]: the punishment prop on your helmet (cgame b17)")
         say("wear: 0 (Factory New) .. 1 (Battle-Scarred), or fn mw ft ww bs; st: a StatTrak copy (N kills);")
-        say("k=abcde: a sticker on each spot (a design code each, . for none; pistols have four spots); n=Name: a name tag (_ for spaces)")
-        say("themes: " .. THEMES_HELP)
-        return say("graffiti: fatboss poland_et gg ez gibbed noob nice_try cloudy skill_issue jebac_axis jebac_allies kurwa_mac wut_1112 sprzedam_opla nastepny_przystanek next_stop skill_404 rip_bozo lagging get_rekt spawn_camper arty_incoming dyno_planted headshot one_tap rage_quit skill_diff cry_more brb_coffee panzer_noob potato_aim toaster_pc honk")
+        say("k=abcde: a sticker on each spot (a design code each, . for none; pistols have four spots), or two chars")
+        say("per spot once a design is 36 or more (k=0a1b...., .. for none; cgame b21); n=Name: a name tag (_ for spaces)")
+        -- the lists in lines of 400 characters at most: the server drops a command over 1022
+        local function sayList(label, list)
+            local line = label
+            for word in list:gmatch("%S+") do
+                if #line + #word + 1 > 400 then
+                    say(line)
+                    line = " "
+                end
+                line = line .. " " .. word
+            end
+            return say(line)
+        end
+        sayList("themes:", THEMES_HELP)
+        return sayList("graffiti:", GRAFFITI_HELP)
     end
     local entry = testLoadouts[guid]
     if not entry then
@@ -860,7 +910,9 @@ local function sendInventory(clientNum, guid, answer)
             wear = wear and math.max(0, math.min(1000, math.floor(wear))) or -1
             local st = tonumber(it.stattrak)
             st = st and st >= 0 and math.min(999999, math.floor(st)) or -1
-            local stk = validStickers(it.stickers) and it.stickers or "-"
+            -- two-char codes only to a cgame that reads them (b21): b20 would show wrong stickers
+            local stk = validStickers(it.stickers) and (#it.stickers < 8 or (cgameBuild[clientNum] or 0) >= CGAME_WIDE_STK)
+                and it.stickers or "-"
             tokens[#tokens + 1] = string.format("%d,%s,%s,%d,%d,%d,%d,%s,%s", math.floor(id), it.slot, it.value, wear,
                 math.floor(serial), flags, st, stk, encodeTag(it.name_tag))
         end

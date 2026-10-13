@@ -391,6 +391,510 @@ fbd/s/honk
 	}
 }
 
+fbd/s/eat_shit
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/eat_shit.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/git_gud_bitch
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/git_gud_bitch.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/suck_my_panzer
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/suck_my_panzer.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/fuck_your_ping
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/fuck_your_ping.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/stfu_noob
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/stfu_noob.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/ur_mom
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/ur_mom.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/certified_shitter
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/certified_shitter.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/asshat
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/asshat.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/wtf_was_that
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/wtf_was_that.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/holy_shit
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/holy_shit.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/kiss_my_ass
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/kiss_my_ass.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/touch_grass
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/touch_grass.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/uninstall
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/uninstall.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/who_asked
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/who_asked.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/wallhack
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/wallhack.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/free_kill
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/free_kill.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/go_next
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/go_next.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/alt_f4
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/alt_f4.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/hold_w
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/hold_w.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/cope_seethe
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/cope_seethe.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/no_scope
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/no_scope.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/defused_lol
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/defused_lol.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/beep_beep
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/beep_beep.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/smoke_break
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/smoke_break.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/airstrike_on_me
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/airstrike_on_me.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/oops
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/oops.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/mg42_brrr
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/mg42_brrr.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/docs_stolen
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/docs_stolen.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/teamkiller
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/teamkiller.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/trust_covert
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/trust_covert.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/obj_what_obj
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/obj_what_obj.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/send_nukes
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/send_nukes.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/bonk
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/bonk.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/big_brain
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/big_brain.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/npc
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/npc.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/wanted
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/wanted.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/rip_kd
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/rip_kd.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/open_24_7
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/open_24_7.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/spierdalaj
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/spierdalaj.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/no_i_chuj
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/no_i_chuj.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/co_kurwa
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/co_kurwa.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
+fbd/s/ja_pierdole
+{
+	nopicmip
+	polygonOffset
+	sort decal
+	{
+		clampmap fatboss/stickers/ja_pierdole.png
+		blendFunc blend
+		rgbGen lightingDiffuse
+	}
+}
+
 fbd/plate
 {
 	nopicmip

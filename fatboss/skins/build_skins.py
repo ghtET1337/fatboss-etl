@@ -9,6 +9,7 @@ this repo), plus Codex's defender pk3 for his two finished skins:
 Writes
   fatboss/pk3-skins/          textures, shaders, .skin files and the wear masks of skins s1-s7
   fatboss/pk3-skins-s8/       the same for the illustrated themes of skins s8 (artskins.py)
+  fatboss/pk3-skins-s9/       the same for the illustrated themes of skins s9 (artskins_s9.py)
                               CI packs each tree into its own pk3 (see Packs below), released
                               together as fatboss-skins-<VERSION>
   src/cgame/cg_fatboss_skins.inc   the table the cgame finds them with
@@ -34,9 +35,10 @@ how metallic each finish is: MATERIALS.
 
 Packs (skins s8): fatboss/skins/PACKS names each pk3 and the tree it is packed from. A pk3 that
 is out never changes (a player who has it keeps it), so new themes go into a new
-tree and pk3: fatboss/pk3-skins is zzz_fatboss_skins_s7.pk3 for good, and the s8
-themes are zzz_fatboss_skins_s8.pk3. CI re-attaches a released pk3 to the next
-release and checks the tree still holds exactly what it holds. The later packs
+tree and pk3: fatboss/pk3-skins is zzz_fatboss_skins_s7.pk3 for good, the s8
+themes are zzz_fatboss_skins_s8.pk3 and the s9 ones zzz_fatboss_skins_s9.pk3
+(PACK_KINDS says which themes a kind in PACKS means). CI re-attaches a released
+pk3 to the next release and checks the tree still holds exactly what it holds. The later packs
 use the studio image and the wear masks of the first one. The packs are far over
 the 32 MiB the UDP download manages, so players get them from the server's web
 download (the official legacy_v2.86.0.pk3 needs that too).
@@ -59,6 +61,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 import artskins
+import artskins_s9
 import gunspace
 import textskins
 
@@ -67,13 +70,17 @@ REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
 OUT = os.path.join(REPO, "fatboss", "pk3-skins")
 
 
+# the themes of a pack, by its kind in PACKS (base: every theme no other pack has)
+PACK_KINDS = {"base": None, "art": tuple(artskins.ART_THEMES), "art_s9": tuple(artskins_s9.ART_THEMES_S9)}
+
+
 def read_packs():
     """fatboss/skins/PACKS (CI reads it too): {pk3 name: (tree under fatboss/, the themes in it: None for the others)}."""
     packs = {}
     for line in open(os.path.join(HERE, "PACKS"), encoding="utf-8"):
         if line.strip() and not line.startswith("#"):
             pk3, tree_dir, kind = line.split()
-            packs[pk3] = (tree_dir, tuple(artskins.ART_THEMES) if kind == "art" else None)
+            packs[pk3] = (tree_dir, PACK_KINDS[kind])
     assert os.path.join(REPO, "fatboss", next(iter(packs.values()))[0]) == OUT, "the first pack is the one with the studio and wear"
     return packs
 
@@ -118,6 +125,8 @@ THEMES = {
     **{t: (ALL, (round(0.6 * e, 2),) * 3) for t, e in gunspace.ENV.items()},
     # illustrated finishes painted on the side view (artskins.py), picked 2026-09-30: skins s8
     **{t: (ALL, (round(0.5 * v[2], 2),) * 3) for t, v in artskins.ART_THEMES.items()},
+    # 36 more of them (artskins_s9.py), picked 2026-10-12: skins s9
+    **{t: (ALL, (round(0.5 * v[2], 2),) * 3) for t, v in artskins_s9.ART_THEMES_S9.items()},
 }
 TEXT_THEMES = ("skill_issue", "caution_noob", "sticker_bomb", "knockoff", "connection_interrupted", "sale")
 CODEX = {
@@ -154,6 +163,7 @@ MATERIALS = {
     "neon": (0.5, 0.2), "cyber": (0.5, 0.2), "polska": (0.4, 0.1), "frontier": (0.4, 0.1), "wut": (0.4, 0.1),
     "airstrike": (0.35, 0.1), "camo": (0.18, 0.0),
     **{t: (v[2], v[3]) for t, v in artskins.ART_THEMES.items()},
+    **{t: (v[2], v[3]) for t, v in artskins_s9.ART_THEMES_S9.items()},
 }
 DEFAULT_MATERIAL = (0.35, 0.05)     # the text skins: a lacquered print
 GLOSS_DIV = 4                       # gloss maps at 1k: the reflection is soft anyway
@@ -348,11 +358,14 @@ def ramp(t, stops):
 
 def finish(paks, tex, theme, div=1):
     """4k finish of a stock texture (div > 1: smaller, for previews): (rgb float array, glow array or None)."""
-    if theme in TEXT_THEMES or theme in dict(textskins.THEMES) or theme in gunspace.GUN_THEMES or theme in artskins.ART_THEMES:
+    if (theme in TEXT_THEMES or theme in dict(textskins.THEMES) or theme in gunspace.GUN_THEMES or theme in artskins.ART_THEMES
+            or theme in artskins_s9.ART_THEMES_S9):
         if textskins._READ is None:
             textskins.set_reader(paks.read)
         if theme in artskins.ART_THEMES:
             return artskins.build(theme, tex, div), None
+        if theme in artskins_s9.ART_THEMES_S9:
+            return artskins_s9.build(theme, tex, div), None
         if theme in gunspace.GUN_THEMES:
             return gunspace.build(theme, tex, div), None
         return textskins.build(theme, tex, div), None

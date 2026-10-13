@@ -1,6 +1,8 @@
 # The skins pk3s, in load order. A pk3 never changes once it is out: players and servers keep the copy they
 # have, so new themes go into a new tree and pk3. zzz_fatboss_skins_<v>.pk3 is first released in
 # fatboss-skins-<v>; later releases attach that very file again (CI checks the tree still holds exactly it).
-# pk3                       tree (under fatboss/)   themes (base: every theme but artskins.py's; art: artskins.py's)
+# pk3                       tree (under fatboss/)   themes (base: every theme the others do not have; art: artskins.py's;
+#                                                   art_s9: artskins_s9.py's)
 zzz_fatboss_skins_s7.pk3    pk3-skins               base
 zzz_fatboss_skins_s8.pk3    pk3-skins-s8            art
+zzz_fatboss_skins_s9.pk3    pk3-skins-s9            art_s9

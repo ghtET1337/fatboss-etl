@@ -8737,6 +8737,11238 @@ fbf/wyrmfire/kabar_1k
 	}
 }
 
+fbf/amber/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/amber/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/amber/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/amber/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/black_ice/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/black_ice/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/black_ice/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bubblegum/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bubblegum/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bubblegum/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/bullet_rain/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/bullet_rain/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/bullet_rain/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/butcher/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/butcher/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/butcher/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/cardboard/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/cardboard/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/cardboard/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/comic_pow/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/comic_pow/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/comic_pow/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/corrupted/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/corrupted/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/corrupted/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/disco_ball/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/disco_ball/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/disco_ball/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/empress/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/empress/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/empress/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/enigma/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/enigma/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/enigma/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/freehand/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/freehand/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/freehand/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/golden_coil/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/golden_coil/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/golden_coil/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/gummy/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/gummy/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/gummy/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/happy_trees/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/happy_trees/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/happy_trees/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/hot_rod/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/hot_rod/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/hot_rod/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/laminate/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/laminate/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/laminate/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lava_lamp/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lava_lamp/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lava_lamp/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/leopard_diva/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/leopard_diva/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/leopard_diva/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/lost_space/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/lost_space/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/lost_space/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/mecha_unit/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/mecha_unit/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/mecha_unit/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_riot/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_riot/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_riot/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/neon_tokyo/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/neon_tokyo/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/neon_tokyo/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/nitro/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/nitro/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/nitro/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/pinstripe/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/pinstripe/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/pinstripe/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/quantum/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/quantum/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/quantum/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rabid_beast/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rabid_beast/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rabid_beast/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/red_vector/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/red_vector/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/red_vector/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/rust_coat/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/rust_coat/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/rust_coat/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ti_burn/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ti_burn/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ti_burn/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toxic_breach/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toxic_breach/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toxic_breach/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/toy_blaster/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/toy_blaster/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/toy_blaster/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/trench_art/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/trench_art/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/trench_art/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/ugly_sweater/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/ugly_sweater/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/ugly_sweater/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wildstyle/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wildstyle/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wildstyle/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/colt_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/colt_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/colt_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/colt_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/colt_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/colt.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/luger_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/luger_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/luger_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/luger_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/luger_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/luger.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/thompson_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/thompson_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/thompson_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/thompson_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/thompson_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/thompson.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/mp40_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/mp40_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/mp40_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/mp40_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/mp40_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/mp40.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/knife_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/knife_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/knife_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/knife_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/knife_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/knife.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/kabar_4k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/kabar_4k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
+fbf/wycinanki/kabar_1k
+{
+	nopicmip
+	nocompress
+	{
+		map models/fatboss/skins/wycinanki/kabar_gloss.jpg
+		rgbGen lightingDiffuse
+	}
+	{
+		map $whiteimage
+		rgbGen const ( 0.195 0.199 0.204 )
+		blendFunc GL_DST_COLOR GL_ZERO
+	}
+	{
+		map models/fatboss/skins/wycinanki/kabar_1k.jpg
+		blendFunc GL_ONE GL_ONE
+		rgbGen lightingDiffuse
+	}
+	{
+		map fbs/wear/kabar.png
+		alphaFunc GE128
+		alphaGen entity
+		rgbGen lightingDiffuse
+	}
+}
+
 fbf/airstrike/colt_4k
 {
 	nopicmip

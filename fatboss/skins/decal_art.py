@@ -21,7 +21,7 @@ NAMES_INC = os.path.join(bs.REPO, "src", "cgame", "cg_fatboss_names.inc")
 GUNS = ("colt", "luger", "thompson", "mp40")
 KNIVES = ("knife", "kabar")          # a StatTrak display, no stickers
 DIGITS = 6
-CODES = "0123456789abcdefghijklmnopqrstuvwxyz"
+CODES = "0123456789abcdefghijklmnopqrstuvwxyz"     # sticker codes: base 36, one char per spot or two (b21)
 PLATE_W, PLATE_ASPECT = 512, 3.3
 PLATE_H = round(PLATE_W / PLATE_ASPECT)
 
@@ -132,8 +132,9 @@ def game_camera(tex):
 # ------------------------------------------------------------------ the designs
 
 def sticker_designs():
-    """(code, design) of every graffiti design but the starter, in the cgame's table order."""
+    """(index, design) of every graffiti design but the starter, in the cgame's table order (as many as there are:
+    a gun's sticker codes are one base-36 char per spot while every design on it is below 36, else two, cgame b21)."""
     text = open(NAMES_INC, encoding="utf-8").read()
     block = text[text.index("fbGraffitiNames"):]
     keys = re.findall(r'\{ "([a-z0-9_]+)",', block)
-    return [(CODES[i], k) for i, k in enumerate(keys) if k != "fatboss"]
+    return [(i, k) for i, k in enumerate(keys) if k != "fatboss"]

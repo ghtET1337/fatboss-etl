@@ -690,7 +690,7 @@ def main():
     ts.set_reader(paks.read)
     designs = art.sticker_designs()
 
-    for code, design in designs:
+    for _, design in designs:
         square_art(os.path.join(PK3, "fatboss", "stickers", f"{design}.png"))
     st_dir = os.path.join(PK3, "fatboss", "stattrak")
     shutil.rmtree(st_dir, ignore_errors=True)

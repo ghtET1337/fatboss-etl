@@ -15,8 +15,8 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b20"
-#define FATBOSS_CGAME_BUILD   20        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags"
+#define FATBOSS_CGAME_VERSION "b21"
+#define FATBOSS_CGAME_BUILD   21        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags", 21 two-char sticker codes
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -1251,6 +1251,12 @@ static signed char fbSkinResUsed[FB_SKIN_THEMES][FB_SKIN_TEXTURES][FB_RES_COUNT]
  * base 36, or "."; b13-b15 had ":kabcd", four places of their own, read here as the first four spots). A gun
  * without a skin can carry stickers too ("stock:j.a..."), like in CS2.
  *
+ * Since b21 there are more designs than one base-36 char holds (75): a gun with any design from 36 up carries
+ * ":J" instead, two chars per spot (base 36, high then low: "1b" is 47), ".." for an empty spot, 8 or 10 chars.
+ * The server keeps ":j" whenever every design on the gun is below 36, so b20 still draws those; it skips the
+ * unknown ":J" and shows no stickers rather than wrong ones. The panel's inventory field is told apart by its
+ * length (4-5 one char per spot, 8-10 two).
+ *
  * Every sticker, the StatTrak display and each of its digits is a decal made by build_decals.py: a small model
  * of the gun's own triangles under it, cut to its shape and lifted a hair (models/fbd/), drawn as one more
  * entity with the gun's (or the gun part's) origin, axis and frame and the design's shader. It sits on its one
@@ -1261,18 +1267,28 @@ static signed char fbSkinResUsed[FB_SKIN_THEMES][FB_SKIN_TEXTURES][FB_RES_COUNT]
  */
 #include "cg_fatboss_decals.inc"
 
-#define FB_STICKER_CODES 36
+typedef struct
+{
+	const char *key;
+	const char *name;
+	const char *rarity;
+} fbName_t;
 
-static const char fbStickerChars[FB_STICKER_CODES + 1] = "0123456789abcdefghijklmnopqrstuvwxyz";
+#include "cg_fatboss_names.inc"
+
+#define FB_STICKER_BASE     36                                  ///< one sticker code char: 0-9 a-z
+#define FB_GRAFFITI_DESIGNS ((int)ARRAY_LEN(fbGraffitiNames))   ///< every design; a sticker's design is its index
+
+static const char fbStickerChars[FB_STICKER_BASE + 1] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 static int fbStattrak[MAX_CLIENTS][FB_SKIN_SLOTS];                                 ///< count shown, -1: no StatTrak
 static int fbStattrakWanted[MAX_CLIENTS][FB_SKIN_SLOTS];
-static signed char fbStickers[MAX_CLIENTS][FB_SKIN_SLOTS][FB_STICKER_SPOTS];       ///< design drawn per spot, -1 none
-static signed char fbStickersWanted[MAX_CLIENTS][FB_SKIN_SLOTS][FB_STICKER_SPOTS];
+static short fbStickers[MAX_CLIENTS][FB_SKIN_SLOTS][FB_STICKER_SPOTS];             ///< design drawn per spot, -1 none
+static short fbStickersWanted[MAX_CLIENTS][FB_SKIN_SLOTS][FB_STICKER_SPOTS];
 static char fbTags[FB_SKIN_SLOTS][24];                                             ///< names of your own worn copies (fbtags)
 // decals, all registered on the loading screen; 0 not yet, -1 missing
 static qhandle_t fbDecalModelHandles[FB_DECAL_MODELS];
-static qhandle_t fbDecalDesigns[FB_STICKER_CODES];                                 ///< fbd/s/<design>, by code
+static qhandle_t fbDecalDesigns[ARRAY_LEN(fbGraffitiNames)];                       ///< fbd/s/<design>, by design
 static qhandle_t fbDecalPlate;
 static qhandle_t fbDecalDigits[10];
 static int fbDecalHostOf[WP_NUM_WEAPONS][W_NUM_TYPES][W_MAX_PARTS + 1];            ///< fbDecalHosts index + 1
@@ -1591,6 +1607,50 @@ static int CG_FatBoss_StickerCode(char c)
 	return -1;
 }
 
+/**
+ * @brief A gun's sticker codes into the design on each spot (-1 none). wide (b21: ":J", or a panel field of 8-10
+ * chars): two base-36 chars per spot, high then low, ".." for none; else one char per spot, "." for none. A design
+ * this cgame's table does not hold is no sticker.
+ */
+static void CG_FatBoss_ReadStickers(const char *codes, qboolean wide, short stk[FB_STICKER_SPOTS])
+{
+	int k, hi, lo, design;
+
+	for (k = 0; k < FB_STICKER_SPOTS && codes[0] && (!wide || codes[1]); k++, codes += wide ? 2 : 1)
+	{
+		hi     = CG_FatBoss_StickerCode(codes[0]);
+		lo     = wide ? CG_FatBoss_StickerCode(codes[1]) : 0;
+		design = (hi < 0 || lo < 0) ? -1 : (wide ? hi * FB_STICKER_BASE + lo : hi);
+		stk[k] = (short)(design < FB_GRAFFITI_DESIGNS ? design : -1);
+	}
+}
+
+/**
+ * @brief The codes as the server writes them: one char per spot while every design is below 36, else two.
+ */
+static void CG_FatBoss_StickerString(const short stk[FB_STICKER_SPOTS], char *out, int outSize)
+{
+	qboolean wide = qfalse;
+	int      k, o = 0;
+
+	for (k = 0; k < FB_STICKER_SPOTS; k++)
+	{
+		if (stk[k] >= FB_STICKER_BASE)
+		{
+			wide = qtrue;
+		}
+	}
+	for (k = 0; k < FB_STICKER_SPOTS && o + 2 < outSize; k++)
+	{
+		if (wide)
+		{
+			out[o++] = stk[k] >= 0 ? fbStickerChars[(stk[k] / FB_STICKER_BASE) % FB_STICKER_BASE] : '.';
+		}
+		out[o++] = stk[k] >= 0 ? fbStickerChars[stk[k] % FB_STICKER_BASE] : '.';
+	}
+	out[o] = 0;
+}
+
 static qhandle_t CG_FatBoss_GraffitiIcon(int index, qboolean load);
 static int CG_FatBoss_LoadAllGraffiti(void);
 static int CG_FatBoss_LoadDecals(void);
@@ -1628,7 +1688,7 @@ static void CG_FatBoss_AddDecal(refEntity_t *re, int model, qhandle_t shader)
 /**
  * @brief A slot's stickers on one weapon model, from a copy of its entity (the gun, a part, the panel's).
  */
-static void CG_FatBoss_AddStickers(const refEntity_t *gun, const fbDecalHost_t *host, int tex, const signed char *stickers)
+static void CG_FatBoss_AddStickers(const refEntity_t *gun, const fbDecalHost_t *host, int tex, const short *stickers)
 {
 	refEntity_t re;
 	int         s;
@@ -1641,9 +1701,9 @@ static void CG_FatBoss_AddStickers(const refEntity_t *gun, const fbDecalHost_t *
 	re.shaderRGBA[0] = re.shaderRGBA[1] = re.shaderRGBA[2] = re.shaderRGBA[3] = 255;
 	for (s = 0; s < FB_STICKER_SPOTS && s < fbStickerSpots[tex]; s++)
 	{
-		if (stickers[s] > 0 && stickers[s] < FB_STICKER_CODES && host->spot[s] >= 0)
+		if (stickers[s] > 0 && stickers[s] < FB_GRAFFITI_DESIGNS && host->spot[s] >= 0)
 		{
-			CG_FatBoss_AddDecal(&re, host->spot[s], fbDecalDesigns[(int)stickers[s]]);
+			CG_FatBoss_AddDecal(&re, host->spot[s], fbDecalDesigns[stickers[s]]);
 		}
 	}
 }
@@ -1698,12 +1758,11 @@ void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNu
 
 /**
  * @brief The fields after a skin's theme: "NNN" (wear x 1000), "sN" (StatTrak count), "jabcde" (a sticker per spot;
- * "kabcd" before b16, read as the first spots).
+ * "kabcd" before b16, read as the first spots), "J0a1b...." (two chars per spot, b21).
  */
-static void CG_FatBoss_ReadFields(char *p, short *wear, int *st, signed char stk[FB_STICKER_SPOTS])
+static void CG_FatBoss_ReadFields(char *p, short *wear, int *st, short stk[FB_STICKER_SPOTS])
 {
 	char *next;
-	int  k;
 
 	for (; p && *p; p = next)
 	{
@@ -1716,12 +1775,9 @@ static void CG_FatBoss_ReadFields(char *p, short *wear, int *st, signed char stk
 		{
 			*st = MAX(0, MIN(999999, Q_atoi(p + 1)));
 		}
-		else if (*p == 'j' || *p == 'k')
+		else if (*p == 'j' || *p == 'k' || *p == 'J')
 		{
-			for (k = 0; k < FB_STICKER_SPOTS && p[1 + k]; k++)
-			{
-				stk[k] = (signed char)CG_FatBoss_StickerCode(p[1 + k]);
-			}
+			CG_FatBoss_ReadStickers(p + 1, *p == 'J', stk);
 		}
 		else if (*p >= '0' && *p <= '9')
 		{
@@ -1735,7 +1791,7 @@ static void CG_FatBoss_ReadFields(char *p, short *wear, int *st, signed char stk
  * wear (float x 1000, "theme:NNN"; 0 without one), the graffiti design.
  */
 static void CG_FatBoss_ReadLoadout(int clientNum, int wanted[FB_SKIN_SLOTS], short wear[FB_SKIN_SLOTS], int st[FB_SKIN_SLOTS],
-                                   signed char stk[FB_SKIN_SLOTS][FB_STICKER_SPOTS], char *design, int designSize)
+                                   short stk[FB_SKIN_SLOTS][FB_STICKER_SPOTS], char *design, int designSize)
 {
 	char buf[MAX_STRING_CHARS];
 	char *p = buf, *token, *colon;
@@ -1744,7 +1800,7 @@ static void CG_FatBoss_ReadLoadout(int clientNum, int wanted[FB_SKIN_SLOTS], sho
 	Q_strncpyz(buf, CG_ConfigString(FB_CS_SKINS + clientNum), sizeof(buf));
 	Com_Memset(wanted, 0, sizeof(int) * FB_SKIN_SLOTS);
 	Com_Memset(wear, 0, sizeof(short) * FB_SKIN_SLOTS);
-	Com_Memset(stk, -1, sizeof(signed char) * FB_SKIN_SLOTS * FB_STICKER_SPOTS);
+	Com_Memset(stk, -1, sizeof(short) * FB_SKIN_SLOTS * FB_STICKER_SPOTS);     // every byte 0xff: -1
 	for (i = 0; i < FB_SKIN_SLOTS; i++)
 	{
 		st[i] = -1;
@@ -2054,14 +2110,9 @@ void CG_FatBoss_Skins_f(void)
 				}
 				if (CG_FatBoss_HasStickers(i, s))
 				{
-					char spots[FB_STICKER_SPOTS + 1];
-					int  k;
+					char spots[FB_STICKER_SPOTS * 2 + 1];
 
-					for (k = 0; k < FB_STICKER_SPOTS; k++)
-					{
-						spots[k] = fbStickers[i][s][k] >= 0 ? fbStickerChars[(int)fbStickers[i][s][k]] : '.';
-					}
-					spots[k] = 0;
+					CG_FatBoss_StickerString(fbStickers[i][s], spots, sizeof(spots));
 					Q_strcat(line, sizeof(line), va("[stickers %s]", spots));
 				}
 			}
@@ -2186,17 +2237,9 @@ void CG_FatBoss_ClearSprays(void)
  * and sends them back as "fbinv_begin", "fbinv_items" and "fbinv_end". "fbwear <id>" and
  * "fbwear off <slot>" wear or take off; the server sets the new loadout configstring at once,
  * and "Apply now" loads what it needs (fb_loadskins). The preview draws the third-person weapon
- * with the skin at 1k and the copy's wear, turning slowly; graffiti show as their picture.
+ * with the skin at 1k and the copy's wear, turning slowly; graffiti show as their picture. The display names
+ * (fbSkinDisplayNames, fbGraffitiNames) come from cg_fatboss_names.inc, included with the stickers above.
  */
-
-typedef struct
-{
-	const char *key;
-	const char *name;
-	const char *rarity;
-} fbName_t;
-
-#include "cg_fatboss_names.inc"
 
 #define FB_PANEL_TABS     (FB_SKIN_SLOTS + 1)       ///< the five weapon slots, then graffiti
 #define FB_PANEL_GRAFFITI FB_SKIN_SLOTS
@@ -2221,7 +2264,7 @@ typedef struct
 	int serial;
 	int flags;
 	int stattrak;       ///< count, -1: not StatTrak
-	signed char stickers[FB_STICKER_SPOTS];     ///< design per spot, -1 none
+	short stickers[FB_STICKER_SPOTS];           ///< design per spot, -1 none
 	char name[24];      ///< its name tag
 } fbInvItem_t;
 
@@ -2479,7 +2522,7 @@ static void CG_FatBoss_DecodeTag(const char *in, char *out, int size)
 static void CG_FatBoss_PanelParseItem(const char *token)
 {
 	char        buf[160], *field[9], *p;
-	int         n = 0, tab, value, k;
+	int         n = 0, tab, value;
 	fbInvItem_t *it;
 
 	if (fbPanel.numItems >= FB_INV_MAX)
@@ -2496,7 +2539,8 @@ static void CG_FatBoss_PanelParseItem(const char *token)
 			field[n++] = p + 1;
 		}
 	}
-	// "id,slot,value,wear,serial,flags" (fatboss.lua 0.11), then ",stattrak,stickers,name" (0.13)
+	// "id,slot,value,wear,serial,flags" (fatboss.lua 0.11), then ",stattrak,stickers,name" (0.13); the stickers
+	// one char per spot (4-5 chars) or, with a design from 36 up, two (8-10 chars, b21)
 	if ((n != 6 && n != 9) || (tab = CG_FatBoss_TabIndex(field[1])) < 0)
 	{
 		return;
@@ -2524,10 +2568,7 @@ static void CG_FatBoss_PanelParseItem(const char *token)
 	if (n == 9)
 	{
 		it->stattrak = MAX(-1, MIN(999999, Q_atoi(field[6])));
-		for (k = 0; k < FB_STICKER_SPOTS && field[7][k]; k++)
-		{
-			it->stickers[k] = (signed char)CG_FatBoss_StickerCode(field[7][k]);
-		}
+		CG_FatBoss_ReadStickers(field[7], strlen(field[7]) >= 8, it->stickers);
 		CG_FatBoss_DecodeTag(field[8], it->name, sizeof(it->name));
 	}
 	it->id     = Q_atoi(field[0]);
@@ -2626,7 +2667,7 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 /**
  * @brief The third-person weapon of a slot with a skin at 1k and a wear, turning, in a box of the panel.
  */
-static void CG_FatBoss_PanelPreview(float x, float y, float w, float h, int tab, int theme, int wear, const signed char *stickers)
+static void CG_FatBoss_PanelPreview(float x, float y, float w, float h, int tab, int theme, int wear, const short *stickers)
 {
 	refdef_t            refdef;
 	refEntity_t         ent;
@@ -2817,8 +2858,8 @@ static int CG_FatBoss_LoadDecals(void)
 			}
 		}
 	}
-	// the first design is FatBoss's own graffiti, no sticker
-	for (i = 1; i < FB_STICKER_CODES && i < (int)ARRAY_LEN(fbGraffitiNames); i++)
+	// the first design is FatBoss's own graffiti, no sticker; every other one is (b21: all 75, past base 36)
+	for (i = 1; i < FB_GRAFFITI_DESIGNS; i++)
 	{
 		if (!fbDecalDesigns[i])
 		{
