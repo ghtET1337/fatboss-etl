@@ -58,6 +58,12 @@
     counts copies the killer's linked account still owns. Name tags go to the
     owner's cgame alone ("fbtags"), once it said it knows them ("fbsync 13").
 
+    map_restart (0.20): the end of the warmup and stopwatch round 2 start a new
+    Lua VM, but the players stay and their cgames send no new fbsync. The build
+    each cgame told goes into a server cvar of its slot (fatboss_cgame<slot> =
+    "<build> <cl_guid>") when the map restarts and comes back when that slot
+    connects again with the same cl_guid; any other start only clears them.
+
     FATBOSS_DEFAULT_GRAFFITI=fatboss lets players without a graffiti of their
     own spray that design (the FatBoss starter everybody gets).
 
@@ -94,7 +100,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.19"
+local VERSION = "0.20"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 local PROPS           = { dong = true }   -- punishment props the FatBoss cgame draws (b17)
@@ -167,6 +173,10 @@ local SWEEP_AGE_MIN   = 1
 local GS_PLAYING      = "0"
 local CGAME_TAGS      = 13      -- the first FatBoss cgame that shows name tags ("fbsync 13")
 local CGAME_WIDE_STK  = 21      -- the first FatBoss cgame that reads two-char sticker codes (":J")
+-- a map_restart keeps each cgame build in BUILD_CVAR .. slot (0.20): one cvar per slot, because Lua reads at most
+-- 255 chars of a cvar; every slot the engine has (MAX_CLIENTS) is cleared at the next start
+local BUILD_CVAR      = "fatboss_cgame"
+local MAX_SLOTS       = 64
 -- means of death -> the slot whose StatTrak copy counts the kill (bg_public.h of ET: Legacy 2.86)
 local MOD_SLOT        = {
     [5] = "knife", [61] = "knife", [65] = "knife",                       -- knife, KA-BAR, backstab
@@ -194,6 +204,7 @@ local stPending    = {}  -- copy id -> { guid, n }: StatTrak kills not reported 
 local stInflight   = nil -- { file, base, started, deadline, ids = { copy id -> n } } of the report on its way
 local stFloor      = {}  -- copy id -> count FatBoss confirmed (a feed read before the report stays below it)
 local cgameBuild   = {}  -- clientNum -> the FatBoss cgame build it announced with fbsync
+local keptBuilds   = {}  -- clientNum -> { build, guid } the map_restart kept, until that slot connects again
 local sentTags     = {}  -- clientNum -> fbtags command last sent
 local abandoned    = {}  -- { base, deadline } of requests nobody waits for: their files go at the deadline
 local sweepAt      = nil -- trap_Milliseconds time of this map's sweep of earlier runs' request files (nil: done)
@@ -1107,6 +1118,17 @@ local function resync(clientNum)
     syncClient(clientNum)
 end
 
+-- a map_restart: every cgame build this map heard, with its player's cl_guid, into the slot's cvar (see BUILD_CVAR);
+-- an odd guid or build (a client can send anything) is not kept, that player sends fbsync with the next cgame start
+local function keepBuilds()
+    for clientNum, build in pairs(cgameBuild) do
+        local guid = guidOf(clientNum)
+        if build < 100000 and #guid <= 64 and guid:match("^%x+$") then
+            et.trap_Cvar_Set(BUILD_CVAR .. clientNum, string.format("%d %s", build, guid))
+        end
+    end
+end
+
 function et_InitGame(levelTime, randomSeed, restart)
     et.RegisterModname(MODNAME .. " " .. VERSION)
     maxClients = tonumber(et.trap_Cvar_Get("sv_maxclients")) or 64
@@ -1144,6 +1166,18 @@ function et_InitGame(levelTime, randomSeed, restart)
     lastTry = {}
     requests, lastPanel, outbox = {}, {}, {}
     stPending, stInflight, stFloor, cgameBuild, sentTags = {}, nil, {}, {}, {}
+    -- the builds a map_restart kept come back in et_ClientConnect; any other start only clears what an earlier map kept
+    keptBuilds = {}
+    for clientNum = 0, MAX_SLOTS - 1 do
+        local value = et.trap_Cvar_Get(BUILD_CVAR .. clientNum) or ""
+        if value ~= "" then
+            et.trap_Cvar_Set(BUILD_CVAR .. clientNum, "")
+            local build, guid = value:match("^(%d%d?%d?%d?%d?) (%x+)$")
+            if restart == 1 and build and tonumber(build) >= 1 then
+                keptBuilds[clientNum] = { build = tonumber(build), guid = guid }
+            end
+        end
+    end
     -- what earlier runs left goes 30 s into the map, when every curl of the last map is surely over
     sweepAt = et.trap_Milliseconds() + CURL_DONE_MS
     readLoadouts()
@@ -1187,9 +1221,12 @@ function et_RunFrame(levelTime)
     end
 end
 
--- the kills of the last seconds go to FatBoss before the map (and this Lua VM) ends
+-- the kills of the last seconds go to FatBoss before the map (and this Lua VM) ends; a map_restart keeps the builds
 function et_ShutdownGame(restart)
     reportKills(et.trap_Milliseconds(), true)
+    if restart == 1 then
+        keepBuilds()
+    end
 end
 
 -- returns nothing: a string would replace the game's obituary message
@@ -1236,6 +1273,13 @@ end
 -- Before the gamestate goes out: the connecting player's loadout is in it, so their
 -- own cgame and everybody else's (a configstring update) know it from the start.
 function et_ClientConnect(clientNum, firstTime, isBot)
+    -- after a map_restart the engine connects everybody again (firstTime 0): the same player gets the kept build back,
+    -- a new connection or another cl_guid in the slot does not
+    local kept = keptBuilds[clientNum]
+    keptBuilds[clientNum] = nil
+    if kept and firstTime == 0 and kept.guid == guidOf(clientNum) then
+        cgameBuild[clientNum] = kept.build
+    end
     setLoadout(clientNum, loadoutString(clientNum))
     return nil
 end
@@ -1267,6 +1311,7 @@ function et_ClientDisconnect(clientNum)
     lastLink[clientNum] = nil
     lastSync[clientNum] = nil
     cgameBuild[clientNum] = nil
+    keptBuilds[clientNum] = nil
     sentTags[clientNum] = nil
     setLoadout(clientNum, "")
 end
