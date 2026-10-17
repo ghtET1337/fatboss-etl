@@ -57,6 +57,9 @@
     so the server starts no extra process) and when the map ends; FatBoss only
     counts copies the killer's linked account still owns. Name tags go to the
     owner's cgame alone ("fbtags"), once it said it knows them ("fbsync 13").
+    A knife kill counts only when the knife used shows the worn theme (0.21):
+    WuT is on the Allied KA-BAR only, so an Axis knife kill or backstab adds
+    nothing to a WuT knife (every other knife theme covers both knives).
 
     map_restart (0.20): the end of the warmup and stopwatch round 2 start a new
     Lua VM, but the players stay and their cgames send no new fbsync. The build
@@ -100,7 +103,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.20"
+local VERSION = "0.21"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 local PROPS           = { dong = true }   -- punishment props the FatBoss cgame draws (b17)
@@ -184,6 +187,15 @@ local MOD_SLOT        = {
     [7] = "colt", [45] = "colt", [53] = "colt", [55] = "colt",           -- colt, silenced, akimbo, akimbo silenced
     [8] = "mp40", [9] = "thompson",
 }
+-- which knife made a knife kill (0.21): MOD_KNIFE is the Axis knife, MOD_KNIFE_KABAR the Allied KA-BAR; a backstab
+-- (MOD_BACKSTAB) names neither, so it is the knife in the killer's hand, read as the game's obituary reads it
+-- (s.weapon: WP_KNIFE 1, WP_KNIFE_KABAR 48)
+local MOD_KNIFE_USED  = { [5] = "knife", [61] = "kabar" }
+local WP_KNIFE_USED   = { [1] = "knife", [48] = "kabar" }
+-- themes in the knife slot that leave a knife stock, as the FatBoss cgame draws them (cg_fatboss_skins.inc) and the
+-- bot sells them (SKIN_THEMES): WuT is on the KA-BAR only, Defender (a Colt skin) on neither; every other theme
+-- covers both knives
+local KNIFE_COVER     = { wut = { kabar = true }, defender = {} }
 
 local loadouts     = {}  -- cl_guid (upper case) -> { graffiti = design, skins = { slot = theme }, wear = { slot = 0..1 } }
 local testLoadouts = {}  -- the same, set with /fbequip in test mode; wins over loadouts
@@ -678,7 +690,9 @@ local function checkLinks(now)
             links[clientNum] = nil
             local answer = json.decode(text or "")
             if type(answer) == "table" and answer.ok then
-                tell(clientNum, string.format("^2linked^7 to %s. Your FatBoss loadout shows up within a minute.", tostring(answer.name or "your account")))
+                -- two lines: the cgame cuts a cpm popup at 127 chars (MAX_LOC_LEN)
+                tell(clientNum, string.format("^2linked^7 to %s. Your graffiti works now.", tostring(answer.name or "your account")))
+                tell(clientNum, "Your skins show after /reconnect or on the next map (fb_loadskins loads them now).")
                 et.G_LogPrint(string.format("%s: linked %d %s\n", MODNAME, clientNum, pending.guid))
                 nextFetch = 0          -- fetch the loadouts right away
             elseif type(answer) == "table" and answer.error then
@@ -1005,6 +1019,18 @@ end
 
 -- ------------------------------------------------------------------ StatTrak
 
+-- whether the knife of a knife kill shows the worn knife theme (0.21). team: the killer's, for a backstab whose
+-- s.weapon is no knife (Weapon_Knife is the only source of MOD_BACKSTAB, so never seen): Allies carry the KA-BAR
+local function knifeShowsTheme(theme, killer, meansOfDeath, team)
+    local cover = KNIFE_COVER[theme]
+    if not cover then
+        return true
+    end
+    local knife = MOD_KNIFE_USED[meansOfDeath] or WP_KNIFE_USED[et.gentity_get(killer, "s.weapon")]
+        or (team == TEAM_ALLIES and "kabar" or "knife")
+    return cover[knife] == true
+end
+
 -- an enemy killed with the weapon of a StatTrak copy the killer wears, in a real game
 local function countKill(victim, killer, meansOfDeath)
     local slot = MOD_SLOT[meansOfDeath]
@@ -1024,6 +1050,10 @@ local function countKill(victim, killer, meansOfDeath)
     end
     local loadout = testLoadouts[guid] or loadouts[guid]
     if not loadout or not loadout.st or not loadout.st[slot] then
+        return
+    end
+    -- a WuT knife counts KA-BAR kills only: on the Axis knife its skin never shows
+    if slot == "knife" and not knifeShowsTheme(loadout.skins and loadout.skins.knife, killer, meansOfDeath, kt) then
         return
     end
     local id = loadout.ids and loadout.ids[slot]

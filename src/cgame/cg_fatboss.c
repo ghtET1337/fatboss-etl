@@ -15,8 +15,8 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b21"
-#define FATBOSS_CGAME_BUILD   21        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags", 21 two-char sticker codes
+#define FATBOSS_CGAME_VERSION "b22"
+#define FATBOSS_CGAME_BUILD   22        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags", 21 two-char sticker codes
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -3437,16 +3437,23 @@ void CG_FatBoss_Panel_Draw(void)
 		}
 		if (it)
 		{
+			// the StatTrak kills: after the serial, and on a test copy (no serial) as well (b22)
+			char kills[32] = "";
+
+			if (it->stattrak >= 0)
+			{
+				Com_sprintf(kills, sizeof(kills), "^8%i kills^7", it->stattrak);
+			}
 			if (it->wear >= 0)
 			{
 				CG_Text_Paint_Ext(x, y, 0.19f, 0.19f, fbPanelText, va("%s   float %.4f", CG_FatBoss_ConditionName(it->wear), it->wear / 1000.0), 0, 0, 0,
 				                  &cgs.media.limboFont2);
 				y += 13;
 			}
-			CG_Text_Paint_Ext(x, y, 0.17f, 0.17f, fbPanelDim, it->serial ? va("#%i%s%s", it->serial,
-			                                                                  it->stattrak >= 0 ? va("   ^8%i kills^7", it->stattrak) : "",
+			CG_Text_Paint_Ext(x, y, 0.17f, 0.17f, fbPanelDim, it->serial ? va("#%i%s%s%s", it->serial, kills[0] ? "   " : "", kills,
 			                                                                  (it->flags & FB_INV_SALE) ? "   on the market" : "")
-			                  : ((it->flags & FB_INV_BOUND) ? "bound to you" : ""), 0, 0, 0, &cgs.media.limboFont2);
+			                  : va("%s%s%s", (it->flags & FB_INV_BOUND) ? "bound to you" : "", ((it->flags & FB_INV_BOUND) && kills[0]) ? "   " : "",
+			                       kills), 0, 0, 0, &cgs.media.limboFont2);
 		}
 		else
 		{
