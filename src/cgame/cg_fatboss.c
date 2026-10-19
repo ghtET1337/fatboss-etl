@@ -15,8 +15,8 @@
 
 #include "cg_local.h"
 
-#define FATBOSS_CGAME_VERSION "b22"
-#define FATBOSS_CGAME_BUILD   22        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags", 21 two-char sticker codes
+#define FATBOSS_CGAME_VERSION "b23"
+#define FATBOSS_CGAME_BUILD   23        ///< told to fatboss.lua with fbsync: 13 and up know "fbtags", 21 two-char sticker codes
 
 #define FB_INSPECT_IN_TIME    350
 #define FB_INSPECT_OUT_TIME   350
@@ -254,14 +254,10 @@ static struct
 	int weapon;
 	float endFraction;
 	const fbInspectProfile_t *profile;
-	int nextShot;                   ///< fb_inspectshots: inspect time of the next screenshot
 	qboolean framed;                ///< stableFit: the first frame's framing is stored
 	vec3_t frameCenterCam;          ///< stableFit: weapon centre in view space
 	vec3_t frameCenterModel;        ///< stableFit: weapon centre in the hand's own frame
 } fbInspect;
-
-/// review aid, off by default: screenshot every N ms of inspect game time
-static vmCvar_t fb_inspectshots;
 
 static const fbInspectProfile_t *CG_FatBoss_InspectProfile(int weapon)
 {
@@ -403,7 +399,6 @@ void CG_FatBoss_Inspect_f(void)
 	fbInspect.startTime = cg.time;
 	fbInspect.weapon    = cg.predictedPlayerState.weapon;
 	fbInspect.profile   = CG_FatBoss_InspectProfile(fbInspect.weapon);
-	fbInspect.nextShot  = 0;
 	fbInspect.framed    = qfalse;
 }
 
@@ -428,13 +423,6 @@ void CG_FatBoss_UpdateInspect(const playerState_t *ps)
 	if (!fbInspect.active)
 	{
 		return;
-	}
-	trap_Cvar_Update(&fb_inspectshots);
-	if (fb_inspectshots.integer > 0 && cg.time - fbInspect.startTime >= fbInspect.nextShot)
-	{
-		CG_Printf("FBSHOT %d %d\n", fbInspect.weapon, fbInspect.nextShot);
-		trap_SendConsoleCommand("screenshotJPEG\n");
-		fbInspect.nextShot += fb_inspectshots.integer;
 	}
 	if (!CG_FatBoss_InspectAllowed(ps) || ps->weapon != fbInspect.weapon
 	    || cg.time < fbInspect.startTime
@@ -1025,6 +1013,9 @@ static sfxHandle_t fbSpraySound;
 // (vid_restart) forgets them, so the first frame of every cgame asks for them again
 static qboolean fbSyncAsked;
 
+static qhandle_t CG_FatBoss_GraffitiIcon(int index, qboolean load);
+static int CG_FatBoss_GraffitiIndex(const char *design);
+
 /**
  * @brief Design names come from the server: only [a-z0-9_] reach a shader path.
  */
@@ -1153,7 +1144,9 @@ static void CG_FatBoss_ParseSpray(void)
 		spray->polyVerts[spray->numPolys++] = numPoints;
 		k                                  += numPoints;
 	}
-	spray->shader = trap_R_RegisterShader(va("fatboss/graffiti/%s", design));
+	// another player's spray loads nothing (b23): every design was registered on the loading screen
+	// (CG_FatBoss_LoadAllGraffiti), here it is only looked up; a design this cgame does not know is not drawn
+	spray->shader = CG_FatBoss_GraffitiIcon(CG_FatBoss_GraffitiIndex(design), qfalse);
 	spray->active = spray->numPolys && spray->shader;
 	CG_DPrintf("fbspray: client %i design %s fragments %i polys %i verts %i\n", clientNum, design, numFragments,
 	           spray->numPolys, k);
@@ -1184,6 +1177,11 @@ static void CG_FatBoss_ParseSpray(void)
  * skin on the website, a player joining) waits: it is applied at once when its
  * textures are already loaded, otherwise at the intermission, on the next map, after
  * /reconnect or vid_restart, or with fb_loadskins.
+ *
+ * b23: nothing another player does makes this cgame load anything during a round in play (his loadout, his
+ * spray, drawing him). The player's own click may stall his own game: fb_loadskins and the Arsenal panel's
+ * APPLY NOW, in the warmup, its countdown, the intermission and demos only (CG_FatBoss_LoadingAllowed); the
+ * panel's preview of the skin he picks; an fb_shine change.
  *
  * Sizes: 4k for your own first-person weapon, 1k for everybody else's (the player
  * you spectate uses the best size that is loaded). Uploading a texture takes
@@ -1651,7 +1649,6 @@ static void CG_FatBoss_StickerString(const short stk[FB_STICKER_SPOTS], char *ou
 	out[o] = 0;
 }
 
-static qhandle_t CG_FatBoss_GraffitiIcon(int index, qboolean load);
 static int CG_FatBoss_LoadAllGraffiti(void);
 static int CG_FatBoss_LoadDecals(void);
 
@@ -2002,6 +1999,20 @@ qboolean CG_FatBoss_ConfigStringModified(int num)
 }
 
 /**
+ * @brief Whether the player's own click may load skins now (fb_loadskins, APPLY NOW): in the warmup, its
+ * countdown, the intermission and demos, never during a round in play (b23). Loading stalls the frame that does
+ * it; between rounds nobody fights.
+ */
+static qboolean CG_FatBoss_LoadingAllowed(void)
+{
+	if (cg.demoPlayback || (cg.snap && cg.snap->ps.pm_type == PM_INTERMISSION))
+	{
+		return qtrue;
+	}
+	return cgs.gamestate == GS_WARMUP || cgs.gamestate == GS_WARMUP_COUNTDOWN || cgs.gamestate == GS_INTERMISSION;
+}
+
+/**
  * @brief During the intermission (and in demos) waiting skins load, one texture a frame: nobody is fighting.
  */
 static void CG_FatBoss_SkinPump(void)
@@ -2030,12 +2041,18 @@ static void CG_FatBoss_SkinPump(void)
 }
 
 /**
- * @brief fb_loadskins: load every waiting skin now (it stalls the game a moment).
+ * @brief fb_loadskins: load every waiting skin now (it stalls the game a moment). In the warmup, its countdown, the
+ * intermission and demos only (b23): during a round in play a new look shows from the next round.
  */
 void CG_FatBoss_LoadPending_f(void)
 {
 	int i, s, textures = 0;
 
+	if (!CG_FatBoss_LoadingAllowed())
+	{
+		CG_Printf("FatBoss: not during a round - new skins show from the next round (fb_loadskins works in the warmup and the intermission)\n");
+		return;
+	}
 	for (i = 0; i < MAX_CLIENTS; i++)
 	{
 		for (s = 0; fbSkinPending[i] && s < FB_SKIN_SLOTS; s++)
@@ -2137,7 +2154,7 @@ void CG_FatBoss_Skins_f(void)
 	}
 	if (i < MAX_CLIENTS)
 	{
-		CG_Printf("^3FatBoss: changes marked \"next\" wait for the intermission, the next map or /reconnect (fb_loadskins loads them now)\n");
+		CG_Printf("^3FatBoss: changes marked \"next\" wait for the intermission, the next map or /reconnect (fb_loadskins loads them in the warmup)\n");
 	}
 	for (i = 0; i < FB_SKIN_THEMES; i++)
 	{
@@ -2239,6 +2256,11 @@ void CG_FatBoss_ClearSprays(void)
  * and "Apply now" loads what it needs (fb_loadskins). The preview draws the third-person weapon
  * with the skin at 1k and the copy's wear, turning slowly; graffiti show as their picture. The display names
  * (fbSkinDisplayNames, fbGraffitiNames) come from cg_fatboss_names.inc, included with the stickers above.
+ *
+ * b23: APPLY NOW only in the warmup, its countdown and the intermission; during a round in play the panel
+ * says the new look shows from the next round (fatboss.lua 0.22 holds it until then). The first whole list
+ * of the map is kept: opening the panel again shows it at once, R, F5 or REFRESH asks again, a wear updates
+ * it; the panel asks by itself only without a whole list (none yet, a refusal, no answer in FB_PANEL_WAIT).
  */
 
 #define FB_PANEL_TABS     (FB_SKIN_SLOTS + 1)       ///< the five weapon slots, then graffiti
@@ -2284,6 +2306,8 @@ static struct
 	qboolean waiting;
 	qboolean wearing;           ///< the request on its way is a wear or take off
 	qboolean quiet;             ///< a reload after a refused wear: keep the refusal on screen
+	qboolean complete;          ///< the last list came in whole (fbinv_end): kept for the map (b23)
+	qboolean savedInPlay;       ///< a wear saved during this round in play: it shows from the next round (b23)
 	int requestTime;
 	int refreshAt;              ///< cg.time to reload the items at, 0 none
 	int tab;
@@ -2386,6 +2410,33 @@ static void CG_FatBoss_PanelStatus(const char *text)
 }
 
 /**
+ * @brief What the status line says about the list itself: nothing, no items yet, or how many of them came.
+ */
+static void CG_FatBoss_PanelListStatus(void)
+{
+	if (!fbPanel.numItems)
+	{
+		CG_FatBoss_PanelStatus("No items yet: open Arsenal or Spray crates on your FatBoss profile.");
+	}
+	else if (fbPanel.total > fbPanel.numItems)
+	{
+		CG_FatBoss_PanelStatus(va("Showing %i of your %i items; the FatBoss profile has them all.", fbPanel.numItems, fbPanel.total));
+	}
+	else
+	{
+		fbPanel.status[0] = 0;
+	}
+}
+
+/**
+ * @brief A row's copy, or NULL: none owned, or a new list is arriving and the rows still point into the old one.
+ */
+static fbInvItem_t *CG_FatBoss_PanelItem(const fbPanelRow_t *r)
+{
+	return (r && r->item >= 0 && r->item < fbPanel.numItems && !fbPanel.receiving) ? &fbPanel.items[r->item] : NULL;
+}
+
+/**
  * @brief The rows of the open tab: the items owned, or everything there is with what is owned of it.
  */
 static void CG_FatBoss_PanelRows(void)
@@ -2460,7 +2511,8 @@ static void CG_FatBoss_PanelRequest(qboolean quiet)
 }
 
 /**
- * @brief fbmenu: open the Arsenal panel (the ESC menu button runs it too).
+ * @brief fbmenu: open the Arsenal panel (the ESC menu button runs it too). The map's list shows at once (b23); the
+ * panel asks only without a whole list: none yet, a refusal, or a request with no answer in FB_PANEL_WAIT.
  */
 void CG_FatBoss_Menu_f(void)
 {
@@ -2479,7 +2531,31 @@ void CG_FatBoss_Menu_f(void)
 	cgs.cursorX    = Ccg_WideX(SCREEN_WIDTH) * 0.5f;
 	cgs.cursorY    = SCREEN_HEIGHT * 0.5f;
 	CG_FatBoss_PanelRows();
+	if (fbPanel.waiting && cg.time - fbPanel.requestTime <= FB_PANEL_WAIT)
+	{
+		return;     // a request on its way: its answer comes to the open panel
+	}
+	if (!fbPanel.complete || fbPanel.waiting)
+	{
+		CG_FatBoss_PanelRequest(qfalse);    // no whole list: none yet, a refusal, or no answer in FB_PANEL_WAIT
+	}
+	else if (!fbPanel.refreshAt)
+	{
+		CG_FatBoss_PanelListStatus();       // the map's list, at once; nothing is asked
+	}
+}
+
+/**
+ * @brief R, F5 or the REFRESH button: ask for the list again (a new item from the website, a sale).
+ */
+static void CG_FatBoss_PanelRefresh(void)
+{
+	if (fbPanel.waiting)
+	{
+		return;
+	}
 	CG_FatBoss_PanelRequest(qfalse);
+	trap_S_StartLocalSound(cgs.media.sndLimboFilter, CHAN_LOCAL_SOUND);
 }
 
 /**
@@ -2590,6 +2666,7 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 	{
 		fbPanel.numItems  = 0;
 		fbPanel.receiving = qtrue;
+		fbPanel.complete  = qfalse;
 		fbPanel.total     = Q_atoi(CG_Argv(2));
 		Q_strncpyz(fbPanel.account, CG_Argv(3), sizeof(fbPanel.account));
 		return qtrue;
@@ -2606,22 +2683,15 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 	{
 		fbPanel.receiving = qfalse;
 		fbPanel.loaded    = qtrue;
+		fbPanel.complete  = qtrue;
 		fbPanel.waiting   = qfalse;
 		if (fbPanel.quiet)
 		{
 			fbPanel.quiet = qfalse;     // the refusal that caused the reload stays on screen
 		}
-		else if (!fbPanel.numItems)
-		{
-			CG_FatBoss_PanelStatus("No items yet: open Arsenal or Spray crates on your FatBoss profile.");
-		}
-		else if (fbPanel.total > fbPanel.numItems)
-		{
-			CG_FatBoss_PanelStatus(va("Showing %i of your %i items; the FatBoss profile has them all.", fbPanel.numItems, fbPanel.total));
-		}
 		else
 		{
-			fbPanel.status[0] = 0;
+			CG_FatBoss_PanelListStatus();
 		}
 		CG_FatBoss_PanelRows();
 		return qtrue;
@@ -2637,6 +2707,10 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 			// the panel showed the change at once: take the truth back from FatBoss
 			fbPanel.wearing   = qfalse;
 			fbPanel.refreshAt = cg.time + 1200;
+		}
+		else
+		{
+			fbPanel.complete = qfalse;  // a refused list: the next open asks again
 		}
 		return qtrue;
 	}
@@ -2657,7 +2731,16 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 				}
 			}
 		}
-		CG_FatBoss_PanelStatus(tab == FB_PANEL_GRAFFITI ? "Saved. Your next graffiti uses it." : "Saved. APPLY NOW to see it here, or it shows on the next map.");
+		if (!CG_FatBoss_LoadingAllowed())
+		{
+			// during a round in play fatboss.lua 0.22 holds the new look until the next round (b23)
+			fbPanel.savedInPlay = qtrue;
+			CG_FatBoss_PanelStatus("Saved. It shows from the next round.");
+		}
+		else
+		{
+			CG_FatBoss_PanelStatus(tab == FB_PANEL_GRAFFITI ? "Saved. Your next graffiti uses it." : "Saved. APPLY NOW to see it here, or it shows on the next map.");
+		}
 		CG_FatBoss_PanelRows();
 		return qtrue;
 	}
@@ -2666,6 +2749,8 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 
 /**
  * @brief The third-person weapon of a slot with a skin at 1k and a wear, turning, in a box of the panel.
+ * Self-inflicted: the 1k texture of the skin the player picked may load here, a short stall in his own game
+ * only (the panel is open only after his own fbmenu); nobody else's game loads anything for it (b23).
  */
 static void CG_FatBoss_PanelPreview(float x, float y, float w, float h, int tab, int theme, int wear, const short *stickers)
 {
@@ -2779,7 +2864,7 @@ static qboolean CG_FatBoss_PanelButton(float x, float y, float w, float h, const
  */
 static void CG_FatBoss_PanelRowText(const fbPanelRow_t *r, char *name, int nameSize, char *detail, int detailSize)
 {
-	const fbInvItem_t *it = r->item >= 0 ? &fbPanel.items[r->item] : NULL;
+	const fbInvItem_t *it = CG_FatBoss_PanelItem(r);
 
 	if (fbPanel.tab == FB_PANEL_GRAFFITI)
 	{
@@ -3283,13 +3368,18 @@ void CG_FatBoss_Panel_Draw(void)
 
 	CG_FatBoss_DrawInspectCard();
 	CG_FatBoss_DrawPropNotice();
+	if (fbPanel.savedInPlay && CG_FatBoss_LoadingAllowed())
+	{
+		fbPanel.savedInPlay = qfalse;   // the round is over: what was saved during it is out now
+	}
 	if (!fbPanel.open)
 	{
 		return;
 	}
 	if (fbPanel.waiting && cg.time - fbPanel.requestTime > FB_PANEL_WAIT)
 	{
-		fbPanel.waiting = qfalse;
+		fbPanel.waiting  = qfalse;
+		fbPanel.complete = qfalse;      // the next open asks again
 		CG_FatBoss_PanelStatus("No answer from the server (it needs fatboss.lua 0.12). Close and try again.");
 	}
 	if (fbPanel.refreshAt && cg.time >= fbPanel.refreshAt && !fbPanel.waiting)
@@ -3307,6 +3397,7 @@ void CG_FatBoss_Panel_Draw(void)
 		CG_Text_Paint_Ext(x0 + 200, y0 + 18, 0.2f, 0.2f, fbPanelText, fbPanel.account, 0, 32, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
 	}
 	CG_FatBoss_PanelButton(x0 + FB_PANEL_W - 26, y0 + 4, 20, 20, "X", qtrue);
+	CG_FatBoss_PanelButton(x0 + FB_PANEL_W - 104, y0 + 4, 72, 20, "REFRESH", !fbPanel.waiting);
 
 	// tabs, and mine / everything
 	for (i = 0; i < FB_PANEL_TABS; i++)
@@ -3331,6 +3422,7 @@ void CG_FatBoss_Panel_Draw(void)
 	CG_Text_Paint_Ext(x0 + 10, y + 40, 0.16f, 0.16f, fbPanelDim, "1-6 / Left, Right: weapon", 0, 0, 0, &cgs.media.limboFont2);
 	CG_Text_Paint_Ext(x0 + 10, y + 52, 0.16f, 0.16f, fbPanelDim, "Up, Down, wheel: pick", 0, 0, 0, &cgs.media.limboFont2);
 	CG_Text_Paint_Ext(x0 + 10, y + 64, 0.16f, 0.16f, fbPanelDim, "Enter: wear   ESC: close", 0, 0, 0, &cgs.media.limboFont2);
+	CG_Text_Paint_Ext(x0 + 10, y + 76, 0.16f, 0.16f, fbPanelDim, "R, F5: refresh the list", 0, 0, 0, &cgs.media.limboFont2);
 
 	// the list
 	x = x0 + 140;
@@ -3345,7 +3437,7 @@ void CG_FatBoss_Panel_Draw(void)
 		int r = fbPanel.scroll + i;
 
 		row = &fbPanel.rows[r];
-		it  = row->item >= 0 ? &fbPanel.items[row->item] : NULL;
+		it  = CG_FatBoss_PanelItem(row);
 		y   = y0 + 38 + i * FB_PANEL_ROW_H;
 		if (r == fbPanel.sel)
 		{
@@ -3380,7 +3472,7 @@ void CG_FatBoss_Panel_Draw(void)
 	CG_FillRect(x, y0 + 38, 238, 180, fbPanelBox);
 	CG_DrawRect_FixedBorder(x, y0 + 38, 238, 180, 1, fbPanelOff);
 	row = fbPanel.sel < fbPanel.numRows ? &fbPanel.rows[fbPanel.sel] : NULL;
-	it  = (row && row->item >= 0) ? &fbPanel.items[row->item] : NULL;
+	it  = CG_FatBoss_PanelItem(row);
 	if (row)
 	{
 		if (fbPanel.tab == FB_PANEL_GRAFFITI)
@@ -3466,9 +3558,17 @@ void CG_FatBoss_Panel_Draw(void)
 		CG_FatBoss_PanelButton(x, y, 115, 24, "WEAR", it && !(it->flags & (FB_INV_WORN | FB_INV_SALE)) && !fbPanel.waiting);
 		CG_FatBoss_PanelButton(x + 123, y, 115, 24, "TAKE OFF", it && (it->flags & FB_INV_WORN) && !fbPanel.waiting);
 	}
-	if (fbSkinPending[cg.clientNum])
+	if (CG_FatBoss_LoadingAllowed())
 	{
-		CG_FatBoss_PanelButton(x, y0 + 322, 238, 24, "APPLY NOW (short freeze)", qtrue);
+		if (fbSkinPending[cg.clientNum])
+		{
+			CG_FatBoss_PanelButton(x, y0 + 322, 238, 24, "APPLY NOW (short freeze)", qtrue);
+		}
+	}
+	else if (fbSkinPending[cg.clientNum] || fbPanel.savedInPlay)
+	{
+		// during a round in play nothing loads (b23)
+		CG_Text_Paint_Ext(x, y0 + 338, 0.19f, 0.19f, fbPanelDim, "Shows from the next round", 0, 0, 0, &cgs.media.limboFont2);
 	}
 
 	// status line
@@ -3511,9 +3611,7 @@ static void CG_FatBoss_PanelSelect(int sel)
 
 static fbInvItem_t *CG_FatBoss_PanelSelected(void)
 {
-	const fbPanelRow_t *row = fbPanel.sel < fbPanel.numRows ? &fbPanel.rows[fbPanel.sel] : NULL;
-
-	return (row && row->item >= 0) ? &fbPanel.items[row->item] : NULL;
+	return CG_FatBoss_PanelItem(fbPanel.sel < fbPanel.numRows ? &fbPanel.rows[fbPanel.sel] : NULL);
 }
 
 /**
@@ -3567,6 +3665,11 @@ static void CG_FatBoss_PanelClick(void)
 		CG_EventHandling(CGAME_EVENT_NONE, qfalse);
 		return;
 	}
+	if (CG_FatBoss_Inside(x0 + FB_PANEL_W - 104, y0 + 4, 72, 20))
+	{
+		CG_FatBoss_PanelRefresh();
+		return;
+	}
 	for (i = 0; i < FB_PANEL_TABS; i++)
 	{
 		if (CG_FatBoss_Inside(x0 + 10, y0 + 38 + i * 28, 120, 24))
@@ -3605,7 +3708,7 @@ static void CG_FatBoss_PanelClick(void)
 		CG_FatBoss_PanelWear(it, qtrue);
 		return;
 	}
-	if (fbSkinPending[cg.clientNum] && CG_FatBoss_Inside(x, y0 + 322, 238, 24))
+	if (fbSkinPending[cg.clientNum] && CG_FatBoss_LoadingAllowed() && CG_FatBoss_Inside(x, y0 + 322, 238, 24))
 	{
 		CG_FatBoss_LoadPending_f();
 		CG_FatBoss_PanelStatus("Loaded: your weapons wear it now.");
@@ -3659,6 +3762,11 @@ void CG_FatBoss_Panel_Key(int key, qboolean down)
 	case K_KP_RIGHTARROW:
 		CG_FatBoss_PanelTab((fbPanel.tab + 1) % FB_PANEL_TABS);
 		break;
+	case K_F5:
+	case 'r':
+	case 'R':
+		CG_FatBoss_PanelRefresh();
+		break;
 	default:
 		if (key >= '1' && key < '1' + FB_PANEL_TABS)
 		{
@@ -3695,7 +3803,6 @@ void CG_FatBoss_Init(void)
 	Com_Memset(fbWobble, 0, sizeof(fbWobble));
 	fbPropNoticeUntil = 0;
 	fbPropWasAlive    = qfalse;
-	trap_Cvar_Register(&fb_inspectshots, "fb_inspectshots", "0", CVAR_TEMP);
 	trap_Cvar_Register(&fb_shine, "fb_shine", "1", CVAR_ARCHIVE);
 	fbShineShown = fb_shine.integer != 0;
 	// the ESC menu's "FatBoss Arsenal" button shows while this is 1 (CG_FatBoss_Shutdown puts it back)
