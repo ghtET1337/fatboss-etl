@@ -37,8 +37,9 @@
     "fbinv"; the module asks FatBoss (/inventory, next to the loadout URL) for the
     items of the account this computer is linked to and sends them back in a few
     "fbinv_items" commands. "fbwear <id>" or "fbwear off <slot>" goes to /equip;
-    the new loadout comes back with the answer and is set at once. FatBoss only
-    ever touches the account the player's cl_guid is linked to.
+    the new loadout comes back with the answer and is set at once (during play:
+    from the next round, 0.22). FatBoss only ever touches the account the
+    player's cl_guid is linked to.
 
     StatTrak, stickers, name tags (cgame b13): the feed also gives, per slot, the
     worn copy's id ("ids"), its StatTrak count ("st", StatTrak copies only), its
@@ -94,6 +95,38 @@
     the next map sweeps, so they usually go with the map after that; after a quit
     they go with the first or second map of the next start.
 
+    No stutter (0.22): nothing FatBoss does may cost a server frame or a player's
+    snapshots.
+    - The site answers the feed and the panel's item list in lines (?format=lines,
+      FatBoss from 19.10; an older bot ignores it and sends JSON, read at once as
+      before, so the bot goes first). The feed: "fatboss-loadouts 1 <stamp>",
+      one line per computer "<cl_guid> <graffiti> <prop> <prop_until> <knife>
+      <colt> <luger> <thompson> <mp40>" (a slot "-" or "theme,wear x 1000,id,
+      stattrak,stickers,name tag", "-" for what it lacks, the name tag
+      %-encoded), "end <lines>". The panel: "fatboss-inventory 1", "account
+      <total> <name %-encoded>", "entry <the feed line's fields without the
+      cl_guid>", one line per item (the token the panel gets), "end <lines>".
+      Both are read a few lines a frame (COST) into a new table that is put in
+      place only once the "end" line matched; every field goes through the same
+      checks as the JSON. The stamp is a hash of the rest of the feed, so an
+      unchanged feed costs RunFrame one short line, never a whole read; the
+      lines of computers that are not on the server are kept as they came and
+      read when the player joins.
+    - The panel's list goes out as fast as the player's line carries it: ET
+      writes every command the client has not acknowledged into every snapshot,
+      so the bytes this module sent in the last ping + snapshot must fit beside
+      the snapshot (NET.reserve) in rate / snaps of the client (its userinfo,
+      sv_maxRate / sv_minRate, sv_fps), in commands that fit one snapshot. A
+      configstring change of the feed waits the same way for every client.
+    - A new look (theme, wear, stickers, name tag, graffiti) FatBoss sends for a
+      player on the server during play shows from the next round, warmup or
+      intermission; the changer hears it once a round. StatTrak counts (kills
+      count on the copy that is shown) and the punishment prop still go out at
+      once. A computer just linked with /fblink and the feed the map start
+      downloads (it lands a few seconds in) show at once. A panel change no
+      longer downloads the whole feed again; a feed asked for before it does
+      not undo it.
+
     Runs next to Oksii's stats.lua and combinedfixes.lua in its own Lua VM and
     handles only its own commands ("spray", "fblink", "fbsync", "fbinv", "fbwear",
     and "fbequip" in test mode).
@@ -103,7 +136,7 @@
 local json = require("dkjson")
 
 local MODNAME = "fatboss"
-local VERSION = "0.21"
+local VERSION = "0.22"
 
 local SLOTS           = { "knife", "colt", "luger", "thompson", "mp40" }   -- order in the configstring
 local PROPS           = { dong = true }   -- punishment props the FatBoss cgame draws (b17)
@@ -159,10 +192,8 @@ local SPRAY_GAP_MS    = 2000    -- between two graffiti of one player
 local SPRAY_TRY_MS    = 400
 local PANEL_GAP_MS    = 500     -- one panel request (list, wear) per player every half second
 local PANEL_WAIT_MS   = 15000   -- how long a panel request waits for FatBoss
-local PANEL_CHUNK     = 700     -- characters of items per fbinv_items command
--- fbinv_items commands a frame for one player: ET drops a client that has 64 reliable commands
--- it has not acknowledged, so a list of hundreds of items goes out over a few frames
-local PANEL_PER_FRAME = 4
+local PANEL_CHUNK     = 700     -- characters of items per fbinv_items command, at most (a fast line)
+local PANEL_MIN_CHUNK = 160     -- and at least: one item token always fits (the cgame reads 159 chars of one)
 local REPORT_WAIT_MS  = 15000   -- StatTrak kills go to FatBoss with the minute's download (and when the map ends)
 local CURL_MAX_S      = 10      -- curl's --max-time for every call to FatBoss
 -- a request nobody waits for any more leaves its files until this long after it started: its curl is over by then
@@ -174,6 +205,38 @@ local REQUEST_FILES   = { "fatboss_link_*", "fatboss_panel_*", "fatboss_stattrak
 -- two minutes with busybox): no curl writes it any more
 local SWEEP_AGE_MIN   = 1
 local GS_PLAYING      = "0"
+-- the site's line format (0.22, see the top); a bot before 19.10 ignores the question and answers JSON
+local LINES = {
+    query = "format=lines",
+    feed  = "^fatboss%-loadouts 1 (%w+)$",          -- the feed's first line, with its stamp
+    inv   = "fatboss-inventory 1",                  -- the panel answer's first line
+    line  = "^(%w+) (%S+) (%S+) (%S+) (%S+) (%S+) (%S+) (%S+) (%S+)$",
+    entry = "^entry (%S+) (%S+) (%S+) (%S+) (%S+) (%S+) (%S+) (%S+)$",
+    slot  = "^([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)$",
+    item  = "^(%d+),([%l%d]+),([%w_]+),(%-?%d+),(%d+),(%d+),(%-?%d+),([^,%s]+),([^,%s]+)$",
+}
+-- the work one server frame does for the site's answers, all together, in rough microseconds of Lua (measured on a
+-- desktop i9; a VPS core takes about twice that): a feed line kept as it came (line), a feed line of a player on the
+-- server read into a loadout (parse), a panel item turned into its token (item), a whole feed put in place (swap: a
+-- player on the server, the frame after its last line), a player's configstring checked (check) and changed (change)
+local COST = { frame = 200, line = 4, parse = 40, item = 4, swap = 12, check = 5, change = 30 }
+-- the feed the map start downloads lands a few seconds into the round: it still counts as the round's start
+local ROUND_START_MS  = 20000
+-- reliable commands go to a client no faster than its line carries them (0.22). ET writes every command the client
+-- has not acknowledged into every snapshot until the ack comes back, so what this module sent in the last ping +
+-- snapshot must fit, beside the snapshot itself (reserve: playerstate, entities, other scripts' commands), in what
+-- one snapshot may take of the client's rate (sv_snapshot.c SV_RateMsec), unfragmented (net_chan.c)
+local NET = {
+    reserve  = 260,
+    overhead = 32,       -- UDP/IP header (UDPIP_HEADER_SIZE 28) + the netchan sequence (4)
+    fragment = 1300,     -- MAX_PACKETLEN - 100: a message this big goes in fragments and the next snapshot waits
+    huff     = 1.08,     -- bytes on the wire a char after ET's Huffman coding (item commands 1.07-1.09 with their
+                         -- header, configstrings 1.04-1.06)
+    cmd      = 8,        -- svc_serverCommand, the command's sequence number and the closing NUL
+    ledger   = 2000,     -- the longest anything counts as unacknowledged here (ping 999 + a snapshot)
+    snapMs   = 50,       -- a client without "snaps": DEFAULT_SV_FRAMETIME
+}
+local PUBLISH_PER_FRAME = 4     -- players whose configstring is rebuilt in one frame (a feed, a report, a round end)
 local CGAME_TAGS      = 13      -- the first FatBoss cgame that shows name tags ("fbsync 13")
 local CGAME_WIDE_STK  = 21      -- the first FatBoss cgame that reads two-char sticker codes (":J")
 -- a map_restart keeps each cgame build in BUILD_CVAR .. slot (0.20): one cvar per slot, because Lua reads at most
@@ -220,6 +283,23 @@ local keptBuilds   = {}  -- clientNum -> { build, guid } the map_restart kept, u
 local sentTags     = {}  -- clientNum -> fbtags command last sent
 local abandoned    = {}  -- { base, deadline } of requests nobody waits for: their files go at the deadline
 local sweepAt      = nil -- trap_Milliseconds time of this map's sweep of earlier runs' request files (nil: done)
+-- 0.22
+local held         = {}  -- cl_guid -> a loadout with a new look FatBoss sent during play, in effect from the next round
+                         --   (false: nothing worn any more); loadouts[] keeps the look on screen meanwhile
+local takenAt      = {}  -- cl_guid -> frameTime of the last loadout a panel answer set (an older feed never undoes it)
+local justLinked   = {}  -- cl_guid -> true from a /fblink until its first loadout, which shows at once
+local toldHeld     = {}  -- clientNum -> true once told this round that a change shows from the next round
+local feedJob      = nil -- the feed being read, a few lines a frame: { next, close, fresh, count, lines, fetched, roundStart }
+local invJobs      = {}  -- clientNum -> a panel answer in lines being read: { guid, next, tokens, lines, total, name, entry }
+local ledger       = {}  -- clientNum -> { t = {}, n = {}, head, tail }: reliable bytes this module sent, for the pacing
+local bots         = {}  -- clientNum -> true for a bot (no line to pace)
+local frameTime    = 0   -- trap_Milliseconds of the last RunFrame (the clock of everything 0.22 times)
+local work         = 0   -- what is left of this frame's COST.frame
+local readyFeed    = nil -- a feed read to its "end" line, put in place at the start of the next frame
+local budgets      = { at = {}, room = {}, window = {} }  -- clientNum -> budgetOf, worked out once a frame
+local lastGamestate, roundStartUntil, publishAt, lastFetchAt = nil, 0, nil, -1
+local lastStamp, failedStamp  -- the stamp of the feed in effect, and of the last one that was broken
+local entryOf      -- cl_guid -> its loadout in effect (see below: a feed line is read the first time it is needed)
 -- in every request file name: trap_Milliseconds starts at 0 again with every server process, so without the time
 -- this Lua VM started, a file an earlier run left could have the name of a new request and pass for its answer;
 -- the sweep also tells this map's own files by it
@@ -298,12 +378,117 @@ local function connected(clientNum)
     return et.gentity_get(clientNum, "pers.connected") == CON_CONNECTED
 end
 
+local function isPlaying()
+    return et.trap_Cvar_Get("gamestate") == GS_PLAYING
+end
+
+-- ------------------------------------------------------------------ pacing (0.22)
+
+-- a reliable command's bytes on the wire, roughly (ET's Huffman coding and the command's header)
+local function wireBytes(cmd)
+    return math.ceil(#cmd * NET.huff) + NET.cmd
+end
+
+local function logBytes(clientNum, bytes)
+    local l = ledger[clientNum]
+    if not l then
+        l = { t = {}, n = {}, head = 1, tail = 0 }
+        ledger[clientNum] = l
+    end
+    local now = et.trap_Milliseconds()
+    l.tail = l.tail + 1
+    l.t[l.tail], l.n[l.tail] = now, bytes
+    while l.head < l.tail and l.t[l.head] <= now - NET.ledger do
+        l.t[l.head], l.n[l.head] = nil, nil
+        l.head = l.head + 1
+    end
+end
+
+-- what this module sent the client in the last window ms: what ET may still write into its next snapshot
+local function inFlight(clientNum, window)
+    local l = ledger[clientNum]
+    if not l then
+        return 0
+    end
+    local sum, since = 0, et.trap_Milliseconds() - window
+    for i = l.tail, l.head, -1 do
+        if l.t[i] <= since then
+            break
+        end
+        sum = sum + l.n[i]
+    end
+    return sum
+end
+
+-- a reliable command to a client (-1: everybody), counted for the pacing
+local function send(clientNum, cmd)
+    et.trap_SendServerCommand(clientNum, cmd)
+    local bytes = wireBytes(cmd)
+    if clientNum >= 0 then
+        return logBytes(clientNum, bytes)
+    end
+    for c = 0, maxClients - 1 do
+        if connected(c) then
+            logBytes(c, bytes)
+        end
+    end
+end
+
+-- Q_atoi: the leading number, 0 for none
+local function atoi(text)
+    return math.tointeger(tonumber((text or ""):match("^%s*([%-+]?%d+)") or "0") or 0) or 0
+end
+
+-- what one snapshot of the client may carry beside the snapshot itself, and how long a command stays unacknowledged
+-- (in every snapshot from the first one until the ack comes back: ping + a snapshot). rate and snaps as
+-- SV_UserinfoChanged reads the userinfo, sv_maxRate / sv_minRate as SV_RateMsec applies them
+local function budgetOf(clientNum)
+    if budgets.at[clientNum] == frameTime then
+        return budgets.room[clientNum], budgets.window[clientNum]
+    end
+    local userinfo = et.trap_GetUserinfo(clientNum)
+    local value = et.Info_ValueForKey(userinfo, "rate") or ""
+    local rate = math.max(1000, math.min(90000, value == "" and 5000 or atoi(value)))
+    local maxRate = atoi(et.trap_Cvar_Get("sv_maxRate"))
+    if maxRate > 0 then
+        rate = math.min(rate, math.max(1000, maxRate))
+    end
+    local minRate = atoi(et.trap_Cvar_Get("sv_minRate"))
+    if minRate > 0 then
+        rate = math.max(rate, math.max(1000, minRate))
+    end
+    rate = math.max(1000, math.min(90000, rate))
+    local fps = atoi(et.trap_Cvar_Get("sv_fps"))
+    fps = fps > 0 and fps or 20
+    value = et.Info_ValueForKey(userinfo, "snaps") or ""
+    local snapMs = value == "" and NET.snapMs or 1000 // math.max(1, math.min(fps, atoi(value)))
+    local ping = math.max(0, math.min(999, tonumber(et.gentity_get(clientNum, "ps.ping")) or 0))
+    local room, window = math.min(rate * snapMs / 1000 - NET.overhead, NET.fragment - 1) - NET.reserve, ping + snapMs
+    budgets.at[clientNum], budgets.room[clientNum], budgets.window[clientNum] = frameTime, room, window
+    return room, window
+end
+
+-- whether a command of so many bytes fits every client's line now (a configstring change goes to everybody); with
+-- nothing in flight it always goes, so a slow line still gets everything in the end
+local function roomForAll(bytes)
+    for c = 0, maxClients - 1 do
+        if connected(c) and not bots[c] then
+            local room, window = budgetOf(c)
+            local busy = inFlight(c, window)
+            if busy > 0 and busy + bytes > room then
+                return false
+            end
+        end
+    end
+    return true
+end
+
 local function loadoutOf(clientNum)
     local guid = guidOf(clientNum)
     if guid == "" then
         return {}
     end
-    return testLoadouts[guid] or loadouts[guid] or {}
+    return testLoadouts[guid] or entryOf(guid) or {}
 end
 
 -- the StatTrak count a slot shows: FatBoss's (or the higher one it confirmed to a report since),
@@ -356,10 +541,21 @@ local function loadoutString(clientNum)
     return table.concat(parts, " ")
 end
 
+local function csCommand(clientNum, value)
+    return string.format('cs %d "%s"', FB_CS + clientNum, value)
+end
+
 local function setLoadout(clientNum, value)
     if setStrings[clientNum] ~= value then
         setStrings[clientNum] = value
         et.trap_SetConfigstring(FB_CS + clientNum, value)
+        -- ET sends the change to every client as a reliable command
+        local bytes = wireBytes(csCommand(clientNum, value))
+        for c = 0, maxClients - 1 do
+            if connected(c) then
+                logBytes(c, bytes)
+            end
+        end
     end
 end
 
@@ -377,18 +573,51 @@ local function sendTags(clientNum)
     local cmd = "fbtags " .. table.concat(parts, " ")
     if sentTags[clientNum] ~= cmd then
         sentTags[clientNum] = cmd
-        et.trap_SendServerCommand(clientNum, cmd)
+        send(clientNum, cmd)
     end
 end
 
--- every connected player's loadout into its configstring (only the changed ones go out)
-local function publishLoadouts()
+-- every connected player's loadout into its configstring (only the changed ones go out), a few players a frame from
+-- RunFrame (publishStep); now: all of them at once
+local function publishLoadouts(now)
+    if not now then
+        publishAt = 0
+        return
+    end
+    publishAt = nil
     for clientNum = 0, maxClients - 1 do
         if connected(clientNum) then
             setLoadout(clientNum, loadoutString(clientNum))
             sendTags(clientNum)
         end
     end
+end
+
+-- PUBLISH_PER_FRAME players a frame at most, within what is left of the frame's work; during play a changed
+-- configstring also waits until every client's line has room for it (it goes to everybody)
+local function publishStep()
+    local checked = 0
+    while publishAt and publishAt < maxClients do
+        local c = publishAt
+        if connected(c) then
+            if checked >= PUBLISH_PER_FRAME or (checked > 0 and work <= 0) then
+                return
+            end
+            checked = checked + 1
+            work = work - COST.check
+            local value = loadoutString(c)
+            if value ~= setStrings[c] then
+                work = work - COST.change
+                if isPlaying() and not roomForAll(wireBytes(csCommand(c, value))) then
+                    return
+                end
+            end
+            setLoadout(c, value)
+            sendTags(c)
+        end
+        publishAt = c + 1
+    end
+    publishAt = nil
 end
 
 -- a name tag as FatBoss allows it: 1-20 of letters, digits, spaces and . , ! ? ' _ -
@@ -418,6 +647,10 @@ local function validStickers(codes)
     return true
 end
 
+local function tableOr(t)
+    return type(t) == "table" and t or {}
+end
+
 local function parseEntry(entry)
     if type(entry) ~= "table" then
         return nil
@@ -428,10 +661,7 @@ local function parseEntry(entry)
     end
     if type(entry.skins) == "table" then
         out.skins, out.wear, out.ids, out.st, out.stk, out.tags = {}, {}, {}, {}, {}, {}
-        local function map(t)
-            return type(t) == "table" and t or {}
-        end
-        local wear, ids, st, stk, tags = map(entry.wear), map(entry.ids), map(entry.st), map(entry.stk), map(entry.tags)
+        local wear, ids, st, stk, tags = tableOr(entry.wear), tableOr(entry.ids), tableOr(entry.st), tableOr(entry.stk), tableOr(entry.tags)
         for _, slot in ipairs(SLOTS) do
             if validName(entry.skins[slot]) then
                 out.skins[slot] = entry.skins[slot]
@@ -463,14 +693,142 @@ local function parseEntry(entry)
     return out
 end
 
--- reads the loadout file when it changed; a broken file keeps the last good table
-local function readLoadouts()
-    local f = io.open(loadoutPath, "r")
-    if not f then
-        return
+-- ------------------------------------------------------------------ the line format (0.22)
+
+-- a %-encoded field (name tags, the account name) back to its bytes
+local function decodeTag(text)
+    return (text:gsub("%%(%x%x)", function(hex)
+        return string.char(tonumber(hex, 16))
+    end))
+end
+
+-- the fields of a feed line (without the cl_guid) as the JSON entry they stand for: parseEntry checks them all
+local function lineEntry(graffiti, prop, propUntil, ...)
+    if not graffiti then
+        return nil
     end
-    local text = f:read("*a")
-    f:close()
+    local entry = { skins = {}, wear = {}, ids = {}, st = {}, stk = {}, tags = {} }
+    if graffiti ~= "-" then
+        entry.graffiti = graffiti
+    end
+    if prop ~= "-" then
+        entry.prop, entry.prop_until = prop, tonumber(propUntil)
+    end
+    for i, field in ipairs({ ... }) do
+        local slot = SLOTS[i]
+        local theme, wear, id, st, stk, tag = field:match(LINES.slot)
+        if slot and theme then
+            entry.skins[slot] = theme
+            entry.wear[slot] = wear ~= "-" and (tonumber(wear) or -1) / 1000 or nil
+            entry.ids[slot] = id ~= "-" and tonumber(id) or nil
+            entry.st[slot] = st ~= "-" and tonumber(st) or nil
+            entry.stk[slot] = stk ~= "-" and stk or nil
+            entry.tags[slot] = tag ~= "-" and decodeTag(tag) or nil
+        end
+    end
+    return entry
+end
+
+-- a feed line read into a loadout (nil for a broken one)
+local function lineLoadout(line)
+    local _, graffiti, prop, propUntil, knife, colt, luger, thompson, mp40 = line:match(LINES.line)
+    return parseEntry(lineEntry(graffiti, prop, propUntil, knife, colt, luger, thompson, mp40))
+end
+
+-- The feed keeps the line of every computer that is not on the server as it came, and reads it the first time it is
+-- needed (the player joins): a feed of hundreds of computers costs the frames little, and every line is checked
+-- the same way, only later
+entryOf = function(guid)
+    local entry = loadouts[guid]
+    if type(entry) == "string" then
+        entry = lineLoadout(entry)
+        loadouts[guid] = entry
+    end
+    return entry
+end
+
+-- what a player sees of a loadout, and the cgame loads textures for: theme, wear, which copy (a StatTrak one or
+-- not), stickers, name tag, graffiti. Not in it: the StatTrak count and the punishment prop, which go out at once
+local function lookOf(entry)
+    entry = entry or {}
+    local skins, wear, ids, st, stk, tags = entry.skins or {}, entry.wear or {}, entry.ids or {}, entry.st or {}, entry.stk or {}, entry.tags or {}
+    local parts = { entry.graffiti or "-" }
+    for _, slot in ipairs(SLOTS) do
+        parts[#parts + 1] = skins[slot] and string.format("%s/%s/%s/%s/%s/%s", skins[slot], tostring(wear[slot]), tostring(ids[slot]),
+            st[slot] and "st" or "", stk[slot] or "", tags[slot] or "") or "-"
+    end
+    return table.concat(parts, " ")
+end
+
+-- the loadout on screen while a newer look waits for the next round: its look, the newer one's StatTrak counts (of
+-- the same copies) and punishment prop
+local function keepLook(shown, newer)
+    local out = {}
+    for k, v in pairs(shown) do
+        out[k] = v
+    end
+    out.prop, out.propUntil = newer.prop, newer.propUntil
+    if shown.st then
+        out.st = {}
+        for slot, n in pairs(shown.st) do
+            local id = shown.ids and shown.ids[slot]
+            out.st[slot] = id and newer.ids and newer.ids[slot] == id and newer.st and newer.st[slot] or n
+        end
+    end
+    return out
+end
+
+-- the cl_guids of the players on the server
+local function shownGuids()
+    local out = {}
+    for c = 0, maxClients - 1 do
+        if connected(c) then
+            local guid = guidOf(c)
+            if guid ~= "" then
+                out[guid] = true
+            end
+        end
+    end
+    return out
+end
+
+-- a whole feed read: in place of the old one. During play a player on the server whose look changed keeps the old
+-- look until the next round (held); what a panel answer set after this feed was asked for stays
+local function applyFeed(fresh, count, fetchedAt, roundStart)
+    local hold = isPlaying() and not roundStart
+    local shown = shownGuids()
+    work = work - COST.swap
+    for guid in pairs(shown) do
+        work = work - COST.swap
+        local now, newer = entryOf(guid), fresh[guid]
+        if type(newer) == "string" then
+            newer = lineLoadout(newer)          -- a player who joined while the feed was being read
+            fresh[guid] = newer
+        end
+        if (takenAt[guid] or -1) >= fetchedAt then
+            fresh[guid] = now
+        elseif hold and not justLinked[guid] and lookOf(now) ~= lookOf(newer) then
+            held[guid] = newer or false
+            fresh[guid] = keepLook(now or {}, newer or {})
+        else
+            held[guid] = nil
+        end
+        if newer then
+            justLinked[guid] = nil
+        end
+    end
+    for guid in pairs(held) do
+        if not shown[guid] then
+            held[guid] = nil         -- nobody shows it: the feed's newest is in effect already
+        end
+    end
+    loadouts = fresh
+    et.G_LogPrint(string.format("%s: %d loadouts\n", MODNAME, count))
+    publishLoadouts()
+end
+
+-- an old bot's JSON feed (or a hand-written file), all at once as 0.21 read it; a broken one keeps the last good table
+local function readJsonFeed(text, fetchedAt, roundStart)
     if not text or text == lastLoadoutText then
         return
     end
@@ -487,13 +845,104 @@ local function readLoadouts()
             count = count + 1
         end
     end
-    loadouts, lastLoadoutText = fresh, text
-    et.G_LogPrint(string.format("%s: %d loadouts\n", MODNAME, count))
-    publishLoadouts()
+    lastLoadoutText, lastStamp = text, nil
+    applyFeed(fresh, count, fetchedAt, roundStart)
 end
 
--- background download; the file is swapped in only when curl succeeds. extra: another background
--- command (the StatTrak report) that goes out in the same shell, so the server forks once a minute
+local function stopFeed()
+    if feedJob then
+        feedJob.close()
+        feedJob = nil
+    end
+end
+
+-- the feed being read, within what is left of the frame's work; a feed read to its end goes in place at the start of
+-- the next frame (swapFeed)
+local function feedStep()
+    local job = feedJob
+    while work > 0 do
+        local line = job.next()
+        if not line then
+            stopFeed()
+            failedStamp = job.stamp
+            et.G_LogPrint(string.format("%s: ignored a loadout feed that ended early\n", MODNAME))
+            return
+        end
+        work = work - COST.line
+        local lines = line:match("^end (%d+)$")
+        if lines then
+            stopFeed()
+            if tonumber(lines) ~= job.lines then
+                failedStamp = job.stamp
+                et.G_LogPrint(string.format("%s: ignored a loadout feed of %d lines that says %s\n", MODNAME, job.lines, lines))
+            else
+                readyFeed = job
+            end
+            return
+        end
+        job.lines = job.lines + 1
+        local guid = line:match("^(%w+) ")
+        if guid and #guid <= 64 then
+            guid = guid:upper()
+            if job.shown[guid] then
+                -- a player on the server: read now (the feed's end compares it with what is shown)
+                job.fresh[guid] = lineLoadout(line)
+                work = work - COST.parse
+            else
+                job.fresh[guid] = line
+            end
+            job.count = job.count + 1
+        end
+    end
+end
+
+local function swapFeed()
+    local job = readyFeed
+    readyFeed = nil
+    lastStamp, lastLoadoutText = job.stamp, nil
+    applyFeed(job.fresh, job.count, job.fetched, job.roundStart)
+end
+
+-- the loadout file, when it changed. In lines, its first line carries the feed's stamp (a hash of the rest): an
+-- unchanged feed costs one short read; a new one is read a few lines a frame from the same open file (a feed still
+-- being read is dropped: this one is newer). JSON (a bot before 19.10, a hand-written file) is read whole and
+-- compared with the last one, as 0.21 did. now: the whole feed in this call (the map is loading)
+local function readLoadouts(now)
+    local f = io.open(loadoutPath, "r")
+    if not f then
+        return
+    end
+    local first = f:read("l") or ""
+    local stamp = first:match(LINES.feed)
+    -- a download is as new as the moment it was asked for; a hand-written file as the moment it is read
+    local fetchedAt = now and -1 or (loadoutUrl and loadoutUrl ~= "" and lastFetchAt or frameTime)
+    local roundStart = now or frameTime < roundStartUntil
+    if stamp then
+        if stamp == lastStamp or stamp == failedStamp or (feedJob and feedJob.stamp == stamp) then
+            f:close()
+            return
+        end
+        stopFeed()
+        readyFeed = nil
+        feedJob = { next = function() return f:read("l") end, close = function() f:close() end, stamp = stamp, fresh = {},
+                    count = 0, lines = 0, fetched = fetchedAt, roundStart = roundStart, shown = shownGuids() }
+        if now then
+            work = math.huge
+            feedStep()
+            if readyFeed then
+                swapFeed()
+            end
+            work = 0
+        end
+        return
+    end
+    local rest = f:read("a")
+    f:close()
+    readJsonFeed(first .. "\n" .. (rest or ""), fetchedAt, roundStart)
+end
+
+-- background download (in lines, see the top); the file is swapped in only when curl succeeds. extra: another
+-- background command (the StatTrak report) that goes out in the same shell, so the server forks once a minute
 local function fetchLoadouts(extra)
     if not loadoutUrl or loadoutUrl == "" then
         if extra then
@@ -501,13 +950,15 @@ local function fetchLoadouts(extra)
         end
         return
     end
+    lastFetchAt = frameTime
     local tmp = loadoutPath .. ".tmp"
     local auth = ""
     if apiToken and apiToken ~= "" then
         auth = " -H " .. shellQuote("Authorization: Bearer " .. apiToken)
     end
+    local url = loadoutUrl .. (loadoutUrl:find("?", 1, true) and "&" or "?") .. LINES.query
     os.execute(string.format("(curl -fsS --max-time %d%s -o %s %s && mv -f %s %s) >/dev/null 2>&1 &%s",
-        CURL_MAX_S, auth, shellQuote(tmp), shellQuote(loadoutUrl), shellQuote(tmp), shellQuote(loadoutPath), extra and (" " .. extra) or ""))
+        CURL_MAX_S, auth, shellQuote(tmp), shellQuote(url), shellQuote(tmp), shellQuote(loadoutPath), extra and (" " .. extra) or ""))
 end
 
 local function refuse(clientNum, levelTime, text)
@@ -515,7 +966,7 @@ local function refuse(clientNum, levelTime, text)
         return
     end
     lastMessage[clientNum] = levelTime
-    et.trap_SendServerCommand(clientNum, string.format('cpm "^3FatBoss:^7 %s"', text))
+    send(clientNum, string.format('cpm "^3FatBoss:^7 %s"', text))
 end
 
 local function vma(a, s, b)
@@ -628,7 +1079,7 @@ local function spray(clientNum)
 
     local cmd = string.format("fbspray %d %s %.1f %.1f %.1f %.4f %.4f %.4f %.4f %.4f %.4f %.1f",
         clientNum, design, center[1], center[2], center[3], n[1], n[2], n[3], up[1], up[2], up[3], half)
-    et.trap_SendServerCommand(-1, cmd .. " 1")
+    send(-1, cmd .. " 1")
     -- the cgame keeps one graffiti per player: this one takes the place of the last
     sprays[clientNum] = cmd .. " 0"
     sprayCount[clientNum] = (sprayCount[clientNum] or 0) + 1
@@ -637,8 +1088,8 @@ local function spray(clientNum)
 end
 
 local function tell(clientNum, text)
-    et.trap_SendServerCommand(clientNum, string.format('print "^3FatBoss:^7 %s\n"', text))
-    et.trap_SendServerCommand(clientNum, string.format('cpm "^3FatBoss:^7 %s"', text))
+    send(clientNum, string.format('print "^3FatBoss:^7 %s\n"', text))
+    send(clientNum, string.format('cpm "^3FatBoss:^7 %s"', text))
 end
 
 -- /fblink CODE: the code from the FatBoss profile ties this computer (cl_guid) to the account
@@ -695,6 +1146,7 @@ local function checkLinks(now)
                 tell(clientNum, "Your skins show after /reconnect or on the next map (fb_loadskins loads them now).")
                 et.G_LogPrint(string.format("%s: linked %d %s\n", MODNAME, clientNum, pending.guid))
                 nextFetch = 0          -- fetch the loadouts right away
+                justLinked[pending.guid] = true    -- and show this computer's at once, also during play (0.22)
             elseif type(answer) == "table" and answer.error then
                 tell(clientNum, "^1not linked:^7 " .. tostring(answer.error))
             else
@@ -736,7 +1188,7 @@ local function equip(clientNum)
         end
     end
     local say = function(text)
-        et.trap_SendServerCommand(clientNum, string.format('print "^3FatBoss:^7 %s\n"', text))
+        send(clientNum, string.format('print "^3FatBoss:^7 %s\n"', text))
     end
     if guid == "" then
         return say("no cl_guid, nothing to equip.")
@@ -773,7 +1225,7 @@ local function equip(clientNum)
     local entry = testLoadouts[guid]
     if not entry then
         -- start from the real loadout, so one slot changes at a time
-        local base = loadouts[guid] or {}
+        local base = entryOf(guid) or {}
         entry = { graffiti = base.graffiti, prop = base.prop, propUntil = base.propUntil, skins = {}, wear = {}, st = {}, stk = {}, tags = {} }
         for _, key in ipairs({ "skins", "wear", "st", "stk", "tags" }) do
             for k, v in pairs(base[key] or {}) do
@@ -813,7 +1265,7 @@ local function plain(text)
 end
 
 local function panelError(clientNum, text)
-    et.trap_SendServerCommand(clientNum, string.format('fbpanel_err "%s"', plain(text)))
+    send(clientNum, string.format('fbpanel_err "%s"', plain(text)))
 end
 
 local function isSlot(slot)
@@ -857,7 +1309,7 @@ local function panelStart(clientNum, url)
         panelError(clientNum, "This server is not connected to FatBoss.")
         return nil
     end
-    if requests[clientNum] or outbox[clientNum] or (lastPanel[clientNum] and now - lastPanel[clientNum] < PANEL_GAP_MS) then
+    if requests[clientNum] or outbox[clientNum] or invJobs[clientNum] or (lastPanel[clientNum] and now - lastPanel[clientNum] < PANEL_GAP_MS) then
         panelError(clientNum, "One moment, the last request is still on its way.")
         return nil
     end
@@ -885,7 +1337,7 @@ end
 
 -- fbinv: the panel opened, it wants the player's items
 local function panelInventory(clientNum)
-    panelSend(clientNum, inventoryUrl, {}, "inv")
+    panelSend(clientNum, inventoryUrl and inventoryUrl .. "?" .. LINES.query, {}, "inv")
 end
 
 -- fbwear <id> | fbwear off <slot>
@@ -904,16 +1356,39 @@ local function panelWear(clientNum)
     panelSend(clientNum, equipUrl, { id = math.floor(id) }, "wear")
 end
 
--- a loadout FatBoss just sent for this player: set it now instead of waiting for the next fetch
+-- a loadout FatBoss just sent for this player (a panel answer): in effect now instead of at the next feed, or, when
+-- it changes the look during play, from the next round (returns true then). No feed download follows (0.22): the
+-- player's own loadout is all that changed, and an older feed landing later does not undo it (takenAt)
 local function takeEntry(clientNum, guid, entry)
     if type(entry) ~= "table" then
-        return
+        return false
     end
-    loadouts[guid] = parseEntry(entry) or {}
-    testLoadouts[guid] = nil          -- a real choice replaces an /fbequip test loadout
+    local newer = parseEntry(entry) or {}
+    local later = false
+    takenAt[guid] = frameTime
+    if testLoadouts[guid] then
+        testLoadouts[guid] = nil      -- a real choice replaces an /fbequip test loadout (test servers: at once)
+        loadouts[guid], held[guid] = newer, nil
+    elseif isPlaying() and not justLinked[guid] and lookOf(entryOf(guid)) ~= lookOf(newer) then
+        held[guid] = newer
+        loadouts[guid] = keepLook(entryOf(guid) or {}, newer)
+        later = true
+    else
+        loadouts[guid], held[guid] = newer, nil
+    end
+    justLinked[guid] = nil
     setLoadout(clientNum, loadoutString(clientNum))
     sendTags(clientNum)
-    nextFetch = 0                     -- and everybody's feed soon after
+    return later
+end
+
+-- the looks that waited for the round to end: in effect now (the round ended, a warmup or the intermission began)
+local function applyHeld()
+    for guid, entry in pairs(held) do
+        loadouts[guid] = entry or nil
+    end
+    held, toldHeld = {}, {}
+    publishLoadouts()
 end
 
 -- a name inside an item token: nothing but [A-Za-z0-9_.!?'-] as it is, the rest as %XX
@@ -926,36 +1401,44 @@ local function encodeTag(tag)
     end))
 end
 
--- the items, a few per command (a reliable command holds about 1 KB):
+-- one item as the panel gets it, nil for one it cannot show:
 -- "id,slot,value,wear,serial,flags,stattrak,stickers,name" - wear is the float x 1000 or -1 (graffiti);
 -- flags: 1 worn, 2 on the market, 4 bound; stattrak the count or -1; stickers a code per spot or "-";
 -- name %-encoded or "-". Cgame b12 reads the first six and skips the rest.
-local function sendInventory(clientNum, guid, answer)
-    takeEntry(clientNum, guid, answer.entry)
-    local tokens = {}
-    for _, it in ipairs(type(answer.items) == "table" and answer.items or {}) do
-        local id, serial, wear
-        if type(it) == "table" then
-            id, serial, wear = tonumber(it.id), tonumber(it.serial) or 0, tonumber(it.wear)
-        end
-        if id and isSlot(it.slot) and validName(it.value) then
-            local flags = (it.worn and 1 or 0) + (it.sale and 2 or 0) + (it.bound and 4 or 0)
-            wear = wear and math.max(0, math.min(1000, math.floor(wear))) or -1
-            local st = tonumber(it.stattrak)
-            st = st and st >= 0 and math.min(999999, math.floor(st)) or -1
-            -- two-char codes only to a cgame that reads them (b21): b20 would show wrong stickers
-            local stk = validStickers(it.stickers) and (#it.stickers < 8 or (cgameBuild[clientNum] or 0) >= CGAME_WIDE_STK)
-                and it.stickers or "-"
-            tokens[#tokens + 1] = string.format("%d,%s,%s,%d,%d,%d,%d,%s,%s", math.floor(id), it.slot, it.value, wear,
-                math.floor(serial), flags, st, stk, encodeTag(it.name_tag))
-        end
+local function itemToken(clientNum, it)
+    local id, serial, wear
+    if type(it) == "table" then
+        id, serial, wear = tonumber(it.id), tonumber(it.serial) or 0, tonumber(it.wear)
+        id, serial = id and math.tointeger(math.floor(id)), math.tointeger(math.floor(serial)) or 0
     end
-    local queue = { string.format('fbinv_begin %d %d "%s"', #tokens, math.floor(tonumber(answer.total) or #tokens), plain(answer.name)) }
+    if not id or not isSlot(it.slot) or not validName(it.value) then
+        return nil
+    end
+    local flags = (it.worn and 1 or 0) + (it.sale and 2 or 0) + (it.bound and 4 or 0)
+    wear = wear and math.max(0, math.min(1000, math.floor(wear))) or -1
+    local st = tonumber(it.stattrak)
+    st = st and st >= 0 and math.min(999999, math.floor(st)) or -1
+    -- two-char codes only to a cgame that reads them (b21): b20 would show wrong stickers
+    local stk = validStickers(it.stickers) and (#it.stickers < 8 or (cgameBuild[clientNum] or 0) >= CGAME_WIDE_STK)
+        and it.stickers or "-"
+    return string.format("%d,%s,%s,%d,%d,%d,%d,%s,%s", id, it.slot, it.value, wear, serial, flags, st, stk, encodeTag(it.name_tag))
+end
+
+-- the list into the player's outbox: fbinv_begin, the tokens in fbinv_items commands that each fit one snapshot of
+-- the player's line (PANEL_MIN_CHUNK..PANEL_CHUNK chars; the first one leaves room for fbinv_begin, which goes in
+-- the same frame), fbinv_end
+local function queueInventory(clientNum, tokens, total, name)
+    total = math.tointeger(math.floor(tonumber(total) or #tokens)) or #tokens
+    local queue = { string.format('fbinv_begin %d %d "%s"', #tokens, total, plain(name)) }
+    local room = budgetOf(clientNum)
+    local chunk = math.floor((room - NET.cmd) / NET.huff) - #"fbinv_items "
+    local limit = math.max(PANEL_MIN_CHUNK, math.min(PANEL_CHUNK, chunk - wireBytes(queue[1])))
+    chunk = math.max(PANEL_MIN_CHUNK, math.min(PANEL_CHUNK, chunk))
     local line, len = {}, 0
     for _, tok in ipairs(tokens) do
-        if len + #tok + 1 > PANEL_CHUNK then
+        if len + #tok + 1 > limit and #line > 0 then
             queue[#queue + 1] = "fbinv_items " .. table.concat(line, " ")
-            line, len = {}, 0
+            line, len, limit = {}, 0, chunk
         end
         line[#line + 1] = tok
         len = len + #tok + 1
@@ -967,20 +1450,91 @@ local function sendInventory(clientNum, guid, answer)
     outbox[clientNum] = queue
 end
 
--- a few commands of each waiting item list, every frame
+-- an old bot's JSON answer: everything at once, as 0.21 did
+local function sendInventory(clientNum, guid, answer)
+    takeEntry(clientNum, guid, answer.entry)
+    local tokens = {}
+    for _, it in ipairs(type(answer.items) == "table" and answer.items or {}) do
+        tokens[#tokens + 1] = itemToken(clientNum, it)
+    end
+    queueInventory(clientNum, tokens, answer.total, answer.name)
+end
+
+-- a panel answer in lines, within what is left of the frame's work
+local function inventoryStep(clientNum, job)
+    while work > 0 do
+        local line = job.next()
+        if not line then
+            invJobs[clientNum] = nil
+            panelError(clientNum, "FatBoss did not answer properly. Try again in a minute.")
+            return
+        end
+        work = work - COST.item
+        local lines = line:match("^end (%d+)$")
+        if lines then
+            invJobs[clientNum] = nil
+            if tonumber(lines) ~= job.lines then
+                panelError(clientNum, "FatBoss did not answer properly. Try again in a minute.")
+            elseif connected(clientNum) and guidOf(clientNum) == job.guid then
+                takeEntry(clientNum, job.guid, job.entry)
+                queueInventory(clientNum, job.tokens, job.total, job.name)
+            end
+            return
+        end
+        job.lines = job.lines + 1
+        local id, slot, value, wear, serial, flags, st, stk, name = line:match(LINES.item)
+        if id then
+            flags = math.tointeger(tonumber(flags)) or 0
+            job.tokens[#job.tokens + 1] = itemToken(clientNum, { id = tonumber(id), slot = slot, value = value,
+                wear = wear ~= "-1" and tonumber(wear) or nil, serial = tonumber(serial), worn = flags & 1 ~= 0,
+                sale = flags & 2 ~= 0, bound = flags & 4 ~= 0, stattrak = tonumber(st), stickers = stk ~= "-" and stk or nil,
+                name_tag = name ~= "-" and decodeTag(name) or nil })
+        elseif line:sub(1, 8) == "account " then
+            local total, account = line:match("^account (%d+) (%S+)$")
+            job.total, job.name = tonumber(total), account and account ~= "-" and decodeTag(account) or ""
+        elseif line:sub(1, 6) == "entry " then
+            job.entry = lineEntry(line:match(LINES.entry))
+        end
+    end
+end
+
+-- a feed read last frame goes in place; then the lines of every answer being read, the panels' first (a player waits
+-- for them), within the frame's work
+local function readJobs()
+    if readyFeed then
+        swapFeed()
+    end
+    for clientNum, job in pairs(invJobs) do
+        if work <= 0 then
+            return
+        end
+        inventoryStep(clientNum, job)
+    end
+    if feedJob and work > 0 then
+        feedStep()
+    end
+end
+
+-- the waiting item lists, as fast as each player's line carries them: a command goes when it and what was sent in
+-- the last ping + snapshot fit one snapshot's room (budgetOf), or when nothing is on its way. fbinv_begin and
+-- fbinv_end (a few bytes) go in the frame of the first and the last items, not a round trip apart
 local function drainOutbox()
     for clientNum, queue in pairs(outbox) do
         if not connected(clientNum) then
             outbox[clientNum] = nil
         else
-            for _ = 1, PANEL_PER_FRAME do
-                local cmd = table.remove(queue, 1)
-                if not cmd then
+            local room, window = budgetOf(clientNum)
+            local busy = inFlight(clientNum, window)
+            local sent = 0
+            while queue[1] do
+                local bytes = wireBytes(queue[1])
+                if busy > 0 and busy + bytes > room and not (sent > 0 and queue[1] == "fbinv_end") then
                     break
                 end
-                et.trap_SendServerCommand(clientNum, cmd)
+                send(clientNum, table.remove(queue, 1))
+                busy, sent = busy + bytes, sent + 1
             end
-            if #queue == 0 then
+            if not queue[1] then
                 outbox[clientNum] = nil
             end
         end
@@ -991,23 +1545,34 @@ local function checkRequests(now)
     for clientNum, pending in pairs(requests) do
         local f = io.open(pending.file, "r")
         if f then
-            local text = f:read("*a")
+            local text = f:read("a") or ""
             f:close()
             os.remove(pending.file)
             requests[clientNum] = nil
-            local answer = json.decode(text or "")
             if not connected(clientNum) or guidOf(clientNum) ~= pending.guid then
                 -- the player left, or somebody else has the slot now: nothing to tell
-            elseif type(answer) ~= "table" then
-                panelError(clientNum, "FatBoss did not answer properly. Try again in a minute.")
-            elseif not answer.ok then
-                panelError(clientNum, tostring(answer.error or "FatBoss said no."))
-            elseif pending.kind == "inv" then
-                sendInventory(clientNum, pending.guid, answer)
+            elseif pending.kind == "inv" and text:sub(1, #LINES.inv + 1) == LINES.inv .. "\n" then
+                local lines = text:gmatch("([^\n]*)\n")
+                lines()
+                invJobs[clientNum] = { guid = pending.guid, next = lines, tokens = {}, lines = 0 }
             else
-                takeEntry(clientNum, pending.guid, answer.entry)
-                et.trap_SendServerCommand(clientNum, "fbwear_ok " .. (isSlot(answer.slot) and answer.slot or "-"))
-                et.G_LogPrint(string.format("%s: wear %d %s %s\n", MODNAME, clientNum, pending.guid, tostring(answer.label or answer.slot)))
+                local answer = json.decode(text)
+                if type(answer) ~= "table" then
+                    panelError(clientNum, "FatBoss did not answer properly. Try again in a minute.")
+                elseif not answer.ok then
+                    panelError(clientNum, tostring(answer.error or "FatBoss said no."))
+                elseif pending.kind == "inv" then
+                    sendInventory(clientNum, pending.guid, answer)
+                else
+                    local later = takeEntry(clientNum, pending.guid, answer.entry)
+                    send(clientNum, "fbwear_ok " .. (isSlot(answer.slot) and answer.slot or "-"))
+                    if later and not toldHeld[clientNum] then
+                        toldHeld[clientNum] = true
+                        tell(clientNum, "saved - it shows from the next round.")
+                    end
+                    et.G_LogPrint(string.format("%s: wear %d %s %s%s\n", MODNAME, clientNum, pending.guid,
+                        tostring(answer.label or answer.slot), later and " (from the next round)" or ""))
+                end
             end
         elseif now > pending.deadline then
             requests[clientNum] = nil
@@ -1048,7 +1613,7 @@ local function countKill(victim, killer, meansOfDeath)
     if guid == "" then
         return
     end
-    local loadout = testLoadouts[guid] or loadouts[guid]
+    local loadout = testLoadouts[guid] or entryOf(guid)
     if not loadout or not loadout.st or not loadout.st[slot] then
         return
     end
@@ -1127,7 +1692,7 @@ end
 -- the graffiti already on the map, to one client (without the sound)
 local function syncClient(clientNum)
     for _, cmd in pairs(sprays) do
-        et.trap_SendServerCommand(clientNum, cmd)
+        send(clientNum, cmd)
     end
 end
 
@@ -1196,6 +1761,13 @@ function et_InitGame(levelTime, randomSeed, restart)
     lastTry = {}
     requests, lastPanel, outbox = {}, {}, {}
     stPending, stInflight, stFloor, cgameBuild, sentTags = {}, nil, {}, {}, {}
+    stopFeed()
+    readyFeed = nil
+    held, takenAt, justLinked, toldHeld, invJobs, ledger, bots = {}, {}, {}, {}, {}, {}, {}
+    budgets = { at = {}, room = {}, window = {} }
+    frameTime, publishAt, lastFetchAt = et.trap_Milliseconds(), nil, -1
+    -- the round starts here: what FatBoss says until the feed this start downloads is read shows at once
+    lastGamestate, roundStartUntil = et.trap_Cvar_Get("gamestate"), frameTime + ROUND_START_MS
     -- the builds a map_restart kept come back in et_ClientConnect; any other start only clears what an earlier map kept
     keptBuilds = {}
     for clientNum = 0, MAX_SLOTS - 1 do
@@ -1210,7 +1782,9 @@ function et_InitGame(levelTime, randomSeed, restart)
     end
     -- what earlier runs left goes 30 s into the map, when every curl of the last map is surely over
     sweepAt = et.trap_Milliseconds() + CURL_DONE_MS
-    readLoadouts()
+    -- the last feed, whole, now: the map is loading, and the configstrings the players connect with need it
+    lastStamp, failedStamp = nil, nil
+    readLoadouts(true)
     fetchLoadouts()
     nextFetch = levelTime + FETCH_MS
     nextRead = levelTime + READ_MS
@@ -1219,8 +1793,17 @@ function et_InitGame(levelTime, randomSeed, restart)
         testMode and ", test mode (/fbequip on)" or ""))
 end
 
--- download every minute (with the StatTrak report), pick up the downloaded file every few seconds
+-- download every minute (with the StatTrak report), pick up the downloaded file every few seconds; the looks that
+-- waited for the round's end go out when the game leaves play
 function et_RunFrame(levelTime)
+    frameTime, work = et.trap_Milliseconds(), COST.frame
+    local gamestate = et.trap_Cvar_Get("gamestate")
+    if gamestate ~= lastGamestate then
+        lastGamestate = gamestate
+        if gamestate ~= GS_PLAYING and next(held) ~= nil then
+            applyHeld()
+        end
+    end
     if levelTime >= nextFetch then
         nextFetch = levelTime + FETCH_MS
         fetchLoadouts(reportKills(et.trap_Milliseconds(), false))
@@ -1236,6 +1819,9 @@ function et_RunFrame(levelTime)
     if next(requests) then
         checkRequests(et.trap_Milliseconds())
     end
+    if readyFeed or feedJob or next(invJobs) then
+        readJobs()
+    end
     if next(outbox) then
         drainOutbox()
     end
@@ -1249,10 +1835,14 @@ function et_RunFrame(levelTime)
         sweepAt = nil
         sweepLeftovers()
     end
+    if publishAt then
+        publishStep()
+    end
 end
 
 -- the kills of the last seconds go to FatBoss before the map (and this Lua VM) ends; a map_restart keeps the builds
 function et_ShutdownGame(restart)
+    stopFeed()
     reportKills(et.trap_Milliseconds(), true)
     if restart == 1 then
         keepBuilds()
@@ -1310,6 +1900,7 @@ function et_ClientConnect(clientNum, firstTime, isBot)
     if kept and firstTime == 0 and kept.guid == guidOf(clientNum) then
         cgameBuild[clientNum] = kept.build
     end
+    bots[clientNum] = isBot == 1 or nil
     setLoadout(clientNum, loadoutString(clientNum))
     return nil
 end
@@ -1331,6 +1922,10 @@ function et_ClientDisconnect(clientNum)
     abandon(links[clientNum])
     requests[clientNum] = nil
     outbox[clientNum] = nil
+    invJobs[clientNum] = nil
+    ledger[clientNum] = nil
+    toldHeld[clientNum] = nil
+    bots[clientNum] = nil
     lastPanel[clientNum] = nil
     sprayCount[clientNum] = nil
     lastSpray[clientNum] = nil
