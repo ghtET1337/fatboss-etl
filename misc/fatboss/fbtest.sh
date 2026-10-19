@@ -25,7 +25,7 @@ set -euo pipefail
 
 VER="${FB_VER:-b22}"            # cgame release: fatboss-<VER>
 SKINS="${FB_SKINS:-s9}"        # skins release: fatboss-skins-<SKINS>, pk3 names listed in its skins.txt
-SERVER="${FB_SERVER:-0.21}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
+SERVER="${FB_SERVER:-0.22}"     # server files release: fatboss-server-<SERVER> (fatboss.lua, fatboss-start.sh)
 REL="https://github.com/ghtET1337/fatboss-etl/releases/download"
 ETL_DIR="${ETL_DIR:-/root/etlserver}"
 PROD="${PROD:-etl-server1}"
