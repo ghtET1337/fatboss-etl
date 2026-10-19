@@ -1386,6 +1386,7 @@ static void CG_MapRestart(void)
 
 	Com_Memset(&cg.lastWeapSelInBank[0], 0, MAX_WEAP_BANKS_MP * sizeof(int)); // clear weapon bank selections
 	CG_FatBoss_ClearSprays();
+	CG_FatBoss_MapRestart();
 
 	cg.autoCmdExecuted         = qfalse;
 	cg.numbufferedSoundScripts = 0;

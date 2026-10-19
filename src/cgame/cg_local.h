@@ -3185,6 +3185,7 @@ qhandle_t CG_FatBoss_GunSkin(int weaponNum, int team, qhandle_t skin);
 qboolean CG_FatBoss_ServerCommand(const char *cmd);
 void CG_FatBoss_AddSprays(void);
 void CG_FatBoss_ClearSprays(void);
+void CG_FatBoss_MapRestart(void);
 void CG_FatBoss_WeaponSkin(refEntity_t *re, int clientNum, int weaponNum, int view, int part, int team, int powerups);
 void CG_FatBoss_WeaponExtras(const refEntity_t *gun, int clientNum, int weaponNum, int view, int part);
 void CG_FatBoss_Skins_f(void);

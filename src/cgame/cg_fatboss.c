@@ -2323,6 +2323,13 @@ static struct
 	fbPanelRow_t rows[FB_PANEL_ROWS_MAX];
 } fbPanel;
 
+/// a list on its way (fbinv_begin to fbinv_end): the panel keeps showing the last whole one until it is all in (b23)
+static struct
+{
+	int numItems;
+	fbInvItem_t items[FB_INV_MAX];
+} fbPanelIncoming;
+
 static qhandle_t fbGraffitiShaders[ARRAY_LEN(fbGraffitiNames)];     ///< 0 not tried, -1 missing
 static vmCvar_t  fb_arsenal;                                        ///< 1 while this cgame runs: the ESC menu shows its button
 static const char *fbPanelTabNames[FB_PANEL_TABS] = { "KNIFE", "COLT", "LUGER", "THOMPSON", "MP 40", "GRAFFITI" };
@@ -2429,11 +2436,12 @@ static void CG_FatBoss_PanelListStatus(void)
 }
 
 /**
- * @brief A row's copy, or NULL: none owned, or a new list is arriving and the rows still point into the old one.
+ * @brief A row's copy, or NULL when none is owned. The rows point into the list shown, which a new list replaces only
+ * when it is all in (fbinv_end, which builds the rows again).
  */
 static fbInvItem_t *CG_FatBoss_PanelItem(const fbPanelRow_t *r)
 {
-	return (r && r->item >= 0 && r->item < fbPanel.numItems && !fbPanel.receiving) ? &fbPanel.items[r->item] : NULL;
+	return (r && r->item >= 0 && r->item < fbPanel.numItems) ? &fbPanel.items[r->item] : NULL;
 }
 
 /**
@@ -2559,6 +2567,29 @@ static void CG_FatBoss_PanelRefresh(void)
 }
 
 /**
+ * @brief map_restart (the end of the warmup, stopwatch round 2) starts the server's game and fatboss.lua again: the
+ * new Lua VM never answers a list or a wear the old one had on its way, and all the old one sent came before the
+ * "map_restart" command. So the panel stops waiting for it, and an open panel asks the new VM again (b23).
+ */
+void CG_FatBoss_MapRestart(void)
+{
+	if (!fbPanel.waiting && !fbPanel.receiving)
+	{
+		return;
+	}
+	fbPanel.waiting   = qfalse;
+	fbPanel.receiving = qfalse;
+	fbPanel.wearing   = qfalse;
+	fbPanel.quiet     = qfalse;
+	fbPanel.complete  = qfalse;     // a closed panel asks when it opens again
+	if (!fbPanel.open)
+	{
+		return;
+	}
+	CG_FatBoss_PanelRequest(qfalse);
+}
+
+/**
  * @brief The event handling left the panel (ESC, the close button, another menu).
  */
 void CG_FatBoss_Panel_Closed(void)
@@ -2601,7 +2632,7 @@ static void CG_FatBoss_PanelParseItem(const char *token)
 	int         n = 0, tab, value;
 	fbInvItem_t *it;
 
-	if (fbPanel.numItems >= FB_INV_MAX)
+	if (fbPanelIncoming.numItems >= FB_INV_MAX)
 	{
 		return;
 	}
@@ -2637,7 +2668,7 @@ static void CG_FatBoss_PanelParseItem(const char *token)
 	{
 		return;     // an item this cgame does not know (a newer skin): the website still shows it
 	}
-	it         = &fbPanel.items[fbPanel.numItems++];
+	it         = &fbPanelIncoming.items[fbPanelIncoming.numItems++];
 	it->stattrak = -1;
 	Com_Memset(it->stickers, -1, sizeof(it->stickers));
 	it->name[0] = 0;
@@ -2664,10 +2695,10 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 
 	if (!Q_stricmp(cmd, "fbinv_begin"))
 	{
-		fbPanel.numItems  = 0;
-		fbPanel.receiving = qtrue;
-		fbPanel.complete  = qfalse;
-		fbPanel.total     = Q_atoi(CG_Argv(2));
+		fbPanelIncoming.numItems = 0;
+		fbPanel.receiving        = qtrue;
+		fbPanel.complete         = qfalse;
+		fbPanel.total            = Q_atoi(CG_Argv(2));
 		Q_strncpyz(fbPanel.account, CG_Argv(3), sizeof(fbPanel.account));
 		return qtrue;
 	}
@@ -2681,9 +2712,15 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 	}
 	if (!Q_stricmp(cmd, "fbinv_end"))
 	{
+		if (fbPanel.receiving)
+		{
+			// the whole list is in: only now it replaces the one shown, whose rows stayed whole meanwhile (b23)
+			fbPanel.numItems = fbPanelIncoming.numItems;
+			Com_Memcpy(fbPanel.items, fbPanelIncoming.items, fbPanel.numItems * sizeof(fbPanel.items[0]));
+			fbPanel.complete = qtrue;
+		}
 		fbPanel.receiving = qfalse;
 		fbPanel.loaded    = qtrue;
-		fbPanel.complete  = qtrue;
 		fbPanel.waiting   = qfalse;
 		if (fbPanel.quiet)
 		{
