@@ -2314,6 +2314,7 @@ static struct
 	int savedTheme;
 	int wearTab;                ///< the slot of the wear on its way
 	int wornBefore;             ///< the id of the copy that slot wore before it (0 none): WORN again when the wear is lost
+	int graffitiBefore;         ///< the graffiti copy worn before this round's first saved graffiti wear (0 none): no hint when worn again
 	int requestTime;
 	int refreshAt;              ///< cg.time to reload the items at, 0 none
 	int tab;
@@ -2874,6 +2875,10 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 		{
 			// during a round in play fatboss.lua 0.22 holds the new look until the next round (b23); the hint shows
 			// on that slot's tab only
+			if ((tab >= 0 ? tab : fbPanel.wearTab) == FB_PANEL_GRAFFITI && !(fbPanel.savedInPlay & (1 << FB_PANEL_GRAFFITI)))
+			{
+				fbPanel.graffitiBefore = fbPanel.wornBefore;    // what it wore when the round began
+			}
 			fbPanel.savedInPlay |= 1 << (tab >= 0 ? tab : fbPanel.wearTab);
 			CG_FatBoss_PanelStatus("Saved. It shows from the next round.");
 		}
@@ -3500,14 +3505,15 @@ static void CG_FatBoss_DrawPropNotice(void)
 
 /**
  * @brief The dim hint under WEAR / TAKE OFF during a round in play (b23): only on a tab whose slot has the player's
- * own change waiting for the next round (his own skin pending there, or a wear saved there this round; graffiti is a
- * tab of its own), and it says what. Its two lines, or qfalse for none on this tab.
+ * own change waiting for the next round (his own skin pending there, or wears saved there this round that change what
+ * it wears; graffiti is a tab of its own), and it says what. Its two lines, or qfalse for none on this tab.
  */
 static qboolean CG_FatBoss_PanelNextRound(int tab, const char **first, const char **second)
 {
-	static char what[48];
-	qboolean    on = qfalse;
-	int         i;
+	static char       what[48];
+	qboolean          on    = qfalse;
+	const fbInvItem_t *worn = NULL;
+	int               i;
 
 	if (tab < 0 || tab >= FB_PANEL_TABS)
 	{
@@ -3520,9 +3526,18 @@ static qboolean CG_FatBoss_PanelNextRound(int tab, const char **first, const cha
 		{
 			if (fbPanel.items[i].tab == tab && (fbPanel.items[i].flags & FB_INV_WORN))
 			{
-				on = qtrue;
+				worn = &fbPanel.items[i];
 			}
 		}
+		// none when the round's wears add up to no change (taken off again, or the copy on now worn again): a skin
+		// against what is drawn, graffiti against the copy it wore before the round's first wear
+		if (tab == FB_PANEL_GRAFFITI ? (worn ? worn->id : 0) == fbPanel.graffitiBefore
+		    : worn ? worn->value + 1 == fbSkinLoadout[cg.clientNum][tab] && worn->wear == fbSkinWear[cg.clientNum][tab]
+		    : !fbSkinLoadout[cg.clientNum][tab])
+		{
+			return qfalse;
+		}
+		on = worn ? qtrue : qfalse;
 	}
 	else if (tab < FB_SKIN_SLOTS && fbSkinPending[cg.clientNum] && fbSkinLoadout[cg.clientNum][tab] != fbSkinWanted[cg.clientNum][tab])
 	{
