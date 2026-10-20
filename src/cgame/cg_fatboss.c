@@ -2269,9 +2269,10 @@ void CG_FatBoss_ClearSprays(void)
 #define FB_PANEL_ROWS_MAX FB_INV_MAX
 #define FB_PANEL_VISIBLE  13
 #define FB_PANEL_W        620.f
-#define FB_PANEL_H        380.f
+#define FB_PANEL_H        392.f                     ///< b23: the status line has its own line under the list's counter
 #define FB_PANEL_ROW_H    24.f
 #define FB_PANEL_WAIT     20000                     ///< ms a request may take before the panel gives up
+#define FB_PANEL_SAVED    "Saved. APPLY NOW to see it now, or it shows from the next round."
 
 #define FB_INV_WORN  1
 #define FB_INV_SALE  2
@@ -2308,6 +2309,10 @@ static struct
 	qboolean quiet;             ///< a reload after a refused wear: keep the refusal on screen
 	qboolean complete;          ///< the last list came in whole (fbinv_end): kept for the map (b23)
 	qboolean savedInPlay;       ///< a wear saved during this round in play: it shows from the next round (b23)
+	qboolean lostWear;          ///< a wear was on its way at a map_restart: the next whole list tells if it got through
+	int savedTab;               ///< the slot of the last wear saved between rounds, and what it wears now (1 + theme, 0 none)
+	int savedTheme;
+	int wearTab;                ///< the slot of the wear on its way
 	int requestTime;
 	int refreshAt;              ///< cg.time to reload the items at, 0 none
 	int tab;
@@ -2409,6 +2414,46 @@ static void CG_FatBoss_PanelOrigin(float *x0, float *y0)
 {
 	*x0 = (Ccg_WideX(SCREEN_WIDTH) - FB_PANEL_W) * 0.5f;
 	*y0 = (SCREEN_HEIGHT - FB_PANEL_H) * 0.5f;
+}
+
+/**
+ * @brief A panel text as it fits maxW at this scale and font, measured as drawn (b23): whole when it fits, else
+ * cut with "..." so it never runs past its column or into the next one. Color codes take no width.
+ */
+static const char *CG_FatBoss_Fit(const char *text, float scale, float maxW, fontHelper_t *font)
+{
+	static char buf[4][192];
+	static int  next;
+	char        *out;
+	int         n = 0, keep = 0, step;
+
+	if (CG_Text_Width_Ext_Float(text, scale, 0, font) <= maxW)
+	{
+		return text;
+	}
+	out = buf[next++ & 3];
+	while (text[n])
+	{
+		step = Q_IsColorString(text + n) ? 2 : MAX(1, Q_UTF8_Width(text + n));
+		if (n + step > (int)sizeof(buf[0]) - 4)
+		{
+			break;
+		}
+		Com_Memcpy(out + n, text + n, step);
+		Q_strncpyz(out + n + step, "...", 4);
+		if (CG_Text_Width_Ext_Float(out, scale, 0, font) > maxW)
+		{
+			break;
+		}
+		n   += step;
+		keep = n;
+	}
+	while (keep > 0 && out[keep - 1] == ' ')
+	{
+		keep--;
+	}
+	Q_strncpyz(out + keep, "...", 4);
+	return out;
 }
 
 static void CG_FatBoss_PanelStatus(const char *text)
@@ -2524,6 +2569,8 @@ static void CG_FatBoss_PanelRequest(qboolean quiet)
  */
 void CG_FatBoss_Menu_f(void)
 {
+	float x0, y0;
+
 	if (cg.demoPlayback || !cg.snap)
 	{
 		return;
@@ -2536,8 +2583,10 @@ void CG_FatBoss_Menu_f(void)
 	fbPanel.open   = qtrue;
 	fbPanel.sel    = 0;
 	fbPanel.scroll = 0;
-	cgs.cursorX    = Ccg_WideX(SCREEN_WIDTH) * 0.5f;
-	cgs.cursorY    = SCREEN_HEIGHT * 0.5f;
+	// the cursor starts in the empty corner under the key help (b23): it hovers no row, no tab, no button
+	CG_FatBoss_PanelOrigin(&x0, &y0);
+	cgs.cursorX = (int)(x0 + 60);
+	cgs.cursorY = (int)(y0 + 320);
 	CG_FatBoss_PanelRows();
 	if (fbPanel.waiting && cg.time - fbPanel.requestTime <= FB_PANEL_WAIT)
 	{
@@ -2569,7 +2618,8 @@ static void CG_FatBoss_PanelRefresh(void)
 /**
  * @brief map_restart (the end of the warmup, stopwatch round 2) starts the server's game and fatboss.lua again: the
  * new Lua VM never answers a list or a wear the old one had on its way, and all the old one sent came before the
- * "map_restart" command. So the panel stops waiting for it, and an open panel asks the new VM again (b23).
+ * "map_restart" command. So the panel stops waiting for it, and an open panel asks the new VM again (b23). A wear
+ * on its way says it was not saved while the list comes; the list then tells whether it got through after all.
  */
 void CG_FatBoss_MapRestart(void)
 {
@@ -2577,16 +2627,24 @@ void CG_FatBoss_MapRestart(void)
 	{
 		return;
 	}
+	if (fbPanel.waiting && fbPanel.wearing)
+	{
+		fbPanel.lostWear = qtrue;
+	}
 	fbPanel.waiting   = qfalse;
 	fbPanel.receiving = qfalse;
 	fbPanel.wearing   = qfalse;
 	fbPanel.quiet     = qfalse;
 	fbPanel.complete  = qfalse;     // a closed panel asks when it opens again
+	if (fbPanel.lostWear)
+	{
+		CG_FatBoss_PanelStatus("Not saved (the map restarted). Try again.");
+	}
 	if (!fbPanel.open)
 	{
 		return;
 	}
-	CG_FatBoss_PanelRequest(qfalse);
+	CG_FatBoss_PanelRequest(fbPanel.lostWear);     // quiet: that line stays while the list comes
 }
 
 /**
@@ -2730,6 +2788,21 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 		{
 			CG_FatBoss_PanelListStatus();
 		}
+		if (fbPanel.lostWear && fbPanel.complete)
+		{
+			// the wear on its way at a map_restart: its request may have reached FatBoss before (b23)
+			qboolean landed = !fbPanel.wearId;
+
+			for (i = 0; i < fbPanel.numItems; i++)
+			{
+				if (fbPanel.items[i].tab == fbPanel.wearTab && (fbPanel.items[i].flags & FB_INV_WORN))
+				{
+					landed = fbPanel.items[i].id == fbPanel.wearId;
+				}
+			}
+			fbPanel.lostWear = qfalse;
+			CG_FatBoss_PanelStatus(landed ? "Saved after all: FatBoss got it before the map restarted." : "Not saved (the map restarted). Try again.");
+		}
 		CG_FatBoss_PanelRows();
 		return qtrue;
 	}
@@ -2755,8 +2828,10 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 	{
 		int tab = CG_FatBoss_TabIndex(CG_Argv(1));
 
-		fbPanel.waiting = qfalse;
-		fbPanel.wearing = qfalse;
+		fbPanel.waiting    = qfalse;
+		fbPanel.wearing    = qfalse;
+		fbPanel.savedTab   = tab;
+		fbPanel.savedTheme = 0;
 		for (i = 0; tab >= 0 && i < fbPanel.numItems; i++)
 		{
 			if (fbPanel.items[i].tab == tab)
@@ -2765,6 +2840,7 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 				if (fbPanel.wearId && fbPanel.items[i].id == fbPanel.wearId)
 				{
 					fbPanel.items[i].flags |= FB_INV_WORN;
+					fbPanel.savedTheme      = fbPanel.items[i].value + 1;
 				}
 			}
 		}
@@ -2776,7 +2852,7 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 		}
 		else
 		{
-			CG_FatBoss_PanelStatus(tab == FB_PANEL_GRAFFITI ? "Saved. Your next graffiti uses it." : "Saved. APPLY NOW to see it here, or it shows on the next map.");
+			CG_FatBoss_PanelStatus(tab == FB_PANEL_GRAFFITI ? "Saved. Your next graffiti uses it." : FB_PANEL_SAVED);
 		}
 		CG_FatBoss_PanelRows();
 		return qtrue;
@@ -3397,10 +3473,11 @@ static void CG_FatBoss_DrawPropNotice(void)
 
 void CG_FatBoss_Panel_Draw(void)
 {
-	float              x0, y0, x, y;
+	float              x0, y0, x, y, dw, ts;
 	int                i;
 	const fbPanelRow_t *row;
 	const fbInvItem_t  *it;
+	const char         *fit;
 	char               name[64], detail[64];
 
 	CG_FatBoss_DrawInspectCard();
@@ -3431,7 +3508,8 @@ void CG_FatBoss_Panel_Draw(void)
 	CG_Text_Paint_Ext(x0 + 10, y0 + 19, 0.3f, 0.3f, fbPanelGold, "FATBOSS ARSENAL", 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1);
 	if (fbPanel.account[0])
 	{
-		CG_Text_Paint_Ext(x0 + 200, y0 + 18, 0.2f, 0.2f, fbPanelText, fbPanel.account, 0, 32, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+		CG_Text_Paint_Ext(x0 + 200, y0 + 18, 0.2f, 0.2f, fbPanelText, CG_FatBoss_Fit(fbPanel.account, 0.2f, FB_PANEL_W - 312, &cgs.media.limboFont2), 0, 0,
+		                  ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
 	}
 	CG_FatBoss_PanelButton(x0 + FB_PANEL_W - 26, y0 + 4, 20, 20, "X", qtrue);
 	CG_FatBoss_PanelButton(x0 + FB_PANEL_W - 104, y0 + 4, 72, 20, "REFRESH", !fbPanel.waiting);
@@ -3485,16 +3563,20 @@ void CG_FatBoss_Panel_Draw(void)
 			CG_FillRect(x, y, 220, FB_PANEL_ROW_H - 2, fbPanelHover);
 		}
 		CG_FatBoss_PanelRowText(row, name, sizeof(name), detail, sizeof(detail));
-		CG_Text_Paint_Ext(x + 6, y + 15, 0.2f, 0.2f, (fbPanel.browseAll && !row->owned) ? fbPanelDim : fbPanelText, name, 0, 22,
-		                  ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
-		CG_Text_Paint_Ext(x + 138, y + 15, 0.17f, 0.17f, fbPanelDim, detail, 0, 16, 0, &cgs.media.limboFont2);
+		// columns (b23): WORN / SALE at x + 193, the wear and float (or rarity) end just before it, the name has the
+		// rest up to 4 before that; each is cut with "..." only when it does not fit
+		fit = CG_FatBoss_Fit(detail, 0.17f, 80, &cgs.media.limboFont2);
+		dw  = CG_Text_Width_Ext_Float(fit, 0.17f, 0, &cgs.media.limboFont2);
+		CG_Text_Paint_Ext(x + 188 - dw, y + 15, 0.17f, 0.17f, fbPanelDim, fit, 0, 0, 0, &cgs.media.limboFont2);
+		CG_Text_Paint_Ext(x + 6, y + 15, 0.2f, 0.2f, (fbPanel.browseAll && !row->owned) ? fbPanelDim : fbPanelText,
+		                  CG_FatBoss_Fit(name, 0.2f, 188 - dw - 4 - 6, &cgs.media.limboFont2), 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
 		if (it && (it->flags & FB_INV_WORN))
 		{
-			CG_Text_Paint_Ext(x + 190, y + 15, 0.16f, 0.16f, fbPanelGreen, "WORN", 0, 0, 0, &cgs.media.limboFont1);
+			CG_Text_Paint_Ext(x + 193, y + 15, 0.16f, 0.16f, fbPanelGreen, "WORN", 0, 0, 0, &cgs.media.limboFont1);
 		}
 		else if (it && (it->flags & FB_INV_SALE) && !fbPanel.browseAll)
 		{
-			CG_Text_Paint_Ext(x + 190, y + 15, 0.16f, 0.16f, fbPanelDim, "SALE", 0, 0, 0, &cgs.media.limboFont1);
+			CG_Text_Paint_Ext(x + 193, y + 15, 0.16f, 0.16f, fbPanelDim, "SALE", 0, 0, 0, &cgs.media.limboFont1);
 		}
 	}
 	if (fbPanel.numRows > FB_PANEL_VISIBLE)
@@ -3557,11 +3639,17 @@ void CG_FatBoss_Panel_Draw(void)
 			Com_sprintf(name, sizeof(name), "%s%s | %s", (it && it->stattrak >= 0) ? "^8StatTrak ^3" : "", fbPanelSlotTitles[fbPanel.tab],
 			            CG_FatBoss_ThemeName(row->value));
 		}
-		CG_Text_Paint_Ext(x, y, 0.24f, 0.24f, fbPanelGold, name, 0, 38, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
+		// the title fits the 238 of the box (b23): a long one a little smaller (down to 0.18, which every title of
+		// today fits), cut with "..." only when even that does not
+		dw = CG_Text_Width_Ext_Float(name, 0.24f, 0, &cgs.media.limboFont2);
+		ts = dw > 238 ? MAX(0.18f, 0.24f * 237.f / dw) : 0.24f;
+		CG_Text_Paint_Ext(x, y, ts, ts, fbPanelGold, CG_FatBoss_Fit(name, ts, 238, &cgs.media.limboFont2), 0, 0, ITEM_TEXTSTYLE_SHADOWED,
+		                  &cgs.media.limboFont2);
 		y += 16;
 		if (it && it->name[0])
 		{
-			CG_Text_Paint_Ext(x, y, 0.19f, 0.19f, fbPanelGold, va("\"%s\"", it->name), 0, 0, 0, &cgs.media.limboFont2);
+			CG_Text_Paint_Ext(x, y, 0.19f, 0.19f, fbPanelGold, CG_FatBoss_Fit(va("\"%s\"", it->name), 0.19f, 238, &cgs.media.limboFont2), 0, 0, 0,
+			                  &cgs.media.limboFont2);
 			y += 13;
 		}
 		if (it)
@@ -3575,20 +3663,24 @@ void CG_FatBoss_Panel_Draw(void)
 			}
 			if (it->wear >= 0)
 			{
-				CG_Text_Paint_Ext(x, y, 0.19f, 0.19f, fbPanelText, va("%s   float %.4f", CG_FatBoss_ConditionName(it->wear), it->wear / 1000.0), 0, 0, 0,
-				                  &cgs.media.limboFont2);
+				CG_Text_Paint_Ext(x, y, 0.19f, 0.19f, fbPanelText, CG_FatBoss_Fit(va("%s   float %.4f", CG_FatBoss_ConditionName(it->wear), it->wear / 1000.0),
+				                                                                  0.19f, 238, &cgs.media.limboFont2), 0, 0, 0, &cgs.media.limboFont2);
 				y += 13;
 			}
-			CG_Text_Paint_Ext(x, y, 0.17f, 0.17f, fbPanelDim, it->serial ? va("#%i%s%s%s", it->serial, kills[0] ? "   " : "", kills,
-			                                                                  (it->flags & FB_INV_SALE) ? "   on the market" : "")
-			                  : va("%s%s%s", (it->flags & FB_INV_BOUND) ? "bound to you" : "", ((it->flags & FB_INV_BOUND) && kills[0]) ? "   " : "",
-			                       kills), 0, 0, 0, &cgs.media.limboFont2);
+			CG_Text_Paint_Ext(x, y, 0.17f, 0.17f, fbPanelDim, CG_FatBoss_Fit(it->serial ? va("#%i%s%s%s", it->serial, kills[0] ? "   " : "", kills,
+			                                                                                 (it->flags & FB_INV_SALE) ? "   on the market" : "")
+			                                                                 : va("%s%s%s", (it->flags & FB_INV_BOUND) ? "bound to you" : "",
+			                                                                      ((it->flags & FB_INV_BOUND) && kills[0]) ? "   " : "", kills),
+			                                                                 0.17f, 238, &cgs.media.limboFont2), 0, 0, 0, &cgs.media.limboFont2);
 		}
 		else
 		{
-			CG_Text_Paint_Ext(x, y, 0.18f, 0.18f, fbPanelDim, "Not yours yet: get it from the Arsenal or Spray", 0, 0, 0, &cgs.media.limboFont2);
+			// two lines that fit the 238 of the box (b23: the first one ran past it)
+			CG_Text_Paint_Ext(x, y, 0.18f, 0.18f, fbPanelDim, CG_FatBoss_Fit("Not yours yet: get it from the Arsenal", 0.18f, 238, &cgs.media.limboFont2), 0, 0, 0,
+			                  &cgs.media.limboFont2);
 			y += 12;
-			CG_Text_Paint_Ext(x, y, 0.18f, 0.18f, fbPanelDim, "crates on your FatBoss profile.", 0, 0, 0, &cgs.media.limboFont2);
+			CG_Text_Paint_Ext(x, y, 0.18f, 0.18f, fbPanelDim, CG_FatBoss_Fit("or Spray crates on your FatBoss profile.", 0.18f, 238, &cgs.media.limboFont2), 0, 0, 0,
+			                  &cgs.media.limboFont2);
 		}
 
 		y = y0 + 292;
@@ -3608,11 +3700,18 @@ void CG_FatBoss_Panel_Draw(void)
 		CG_Text_Paint_Ext(x, y0 + 338, 0.19f, 0.19f, fbPanelDim, "Shows from the next round", 0, 0, 0, &cgs.media.limboFont2);
 	}
 
-	// status line
+	// a look saved between rounds that is on now (fb_loadskins, APPLY NOW, the intermission): the status says so (b23)
+	if (!strcmp(fbPanel.status, FB_PANEL_SAVED) && fbPanel.savedTab >= 0 && fbPanel.savedTab < FB_SKIN_SLOTS && !fbSkinPending[cg.clientNum]
+	    && fbSkinWanted[cg.clientNum][fbPanel.savedTab] == fbPanel.savedTheme)
+	{
+		CG_FatBoss_PanelStatus(fbPanel.savedTheme ? "Done. Your new skin is on." : "Done. The skin is off.");
+	}
+
+	// status line: a line of its own under the list's counter (b23), across the panel
 	if (fbPanel.status[0])
 	{
-		CG_Text_Paint_Ext(x0 + 10, y0 + FB_PANEL_H - 10, 0.18f, 0.18f, fbPanel.loaded ? fbPanelText : fbPanelRed, fbPanel.status, 0, 90, 0,
-		                  &cgs.media.limboFont2);
+		CG_Text_Paint_Ext(x0 + 10, y0 + FB_PANEL_H - 10, 0.18f, 0.18f, fbPanel.loaded ? fbPanelText : fbPanelRed,
+		                  CG_FatBoss_Fit(fbPanel.status, 0.18f, FB_PANEL_W - 20, &cgs.media.limboFont2), 0, 0, 0, &cgs.media.limboFont2);
 	}
 
 	trap_R_SetColor(NULL);
@@ -3674,6 +3773,8 @@ static void CG_FatBoss_PanelWear(fbInvItem_t *it, qboolean off)
 		it->flags |= FB_INV_WORN;
 	}
 	fbPanel.wearId      = off ? 0 : it->id;
+	fbPanel.wearTab     = it->tab;
+	fbPanel.lostWear    = qfalse;
 	fbPanel.waiting     = qtrue;
 	fbPanel.wearing     = qtrue;
 	fbPanel.requestTime = cg.time;
