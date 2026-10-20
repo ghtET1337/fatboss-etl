@@ -2308,11 +2308,12 @@ static struct
 	qboolean wearing;           ///< the request on its way is a wear or take off
 	qboolean quiet;             ///< a reload after a refused wear: keep the refusal on screen
 	qboolean complete;          ///< the last list came in whole (fbinv_end): kept for the map (b23)
-	qboolean savedInPlay;       ///< a wear saved during this round in play: it shows from the next round (b23)
 	qboolean lostWear;          ///< a wear was on its way at a map_restart: the next whole list tells if it got through
+	int savedInPlay;            ///< bit per tab (1 << tab): a wear saved there during this round in play, it shows from the next round (b23)
 	int savedTab;               ///< the slot of the last wear saved between rounds, and what it wears now (1 + theme, 0 none)
 	int savedTheme;
 	int wearTab;                ///< the slot of the wear on its way
+	int wornBefore;             ///< the id of the copy that slot wore before it (0 none): WORN again when the wear is lost
 	int requestTime;
 	int refreshAt;              ///< cg.time to reload the items at, 0 none
 	int tab;
@@ -2616,10 +2617,33 @@ static void CG_FatBoss_PanelRefresh(void)
 }
 
 /**
+ * @brief A wear that was lost on its way (b23): the WORN marks of its slot go back to what they were before it, so
+ * the list never says otherwise than the status line; the next whole list still has the last word.
+ */
+static void CG_FatBoss_PanelUnwear(void)
+{
+	int i;
+
+	for (i = 0; i < fbPanel.numItems; i++)
+	{
+		if (fbPanel.items[i].tab == fbPanel.wearTab)
+		{
+			fbPanel.items[i].flags &= ~FB_INV_WORN;
+			if (fbPanel.wornBefore && fbPanel.items[i].id == fbPanel.wornBefore)
+			{
+				fbPanel.items[i].flags |= FB_INV_WORN;
+			}
+		}
+	}
+	CG_FatBoss_PanelRows();
+}
+
+/**
  * @brief map_restart (the end of the warmup, stopwatch round 2) starts the server's game and fatboss.lua again: the
  * new Lua VM never answers a list or a wear the old one had on its way, and all the old one sent came before the
  * "map_restart" command. So the panel stops waiting for it, and an open panel asks the new VM again (b23). A wear
- * on its way says it was not saved while the list comes; the list then tells whether it got through after all.
+ * on its way says it was not saved, and its slot's WORN marks go back, while the list comes; the list then tells
+ * whether it got through after all.
  */
 void CG_FatBoss_MapRestart(void)
 {
@@ -2630,6 +2654,7 @@ void CG_FatBoss_MapRestart(void)
 	if (fbPanel.waiting && fbPanel.wearing)
 	{
 		fbPanel.lostWear = qtrue;
+		CG_FatBoss_PanelUnwear();
 	}
 	fbPanel.waiting   = qfalse;
 	fbPanel.receiving = qfalse;
@@ -2814,7 +2839,8 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 		CG_FatBoss_PanelStatus(CG_Argv(1));
 		if (fbPanel.wearing)
 		{
-			// the panel showed the change at once: take the truth back from FatBoss
+			// the panel showed the change at once: the slot's marks go back, then take the truth back from FatBoss
+			CG_FatBoss_PanelUnwear();
 			fbPanel.wearing   = qfalse;
 			fbPanel.refreshAt = cg.time + 1200;
 		}
@@ -2846,8 +2872,9 @@ static qboolean CG_FatBoss_PanelCommand(const char *cmd)
 		}
 		if (!CG_FatBoss_LoadingAllowed())
 		{
-			// during a round in play fatboss.lua 0.22 holds the new look until the next round (b23)
-			fbPanel.savedInPlay = qtrue;
+			// during a round in play fatboss.lua 0.22 holds the new look until the next round (b23); the hint shows
+			// on that slot's tab only
+			fbPanel.savedInPlay |= 1 << (tab >= 0 ? tab : fbPanel.wearTab);
 			CG_FatBoss_PanelStatus("Saved. It shows from the next round.");
 		}
 		else
@@ -3471,20 +3498,61 @@ static void CG_FatBoss_DrawPropNotice(void)
 	CG_Text_Paint_Ext(x + 7, y + 10.5f, FB_CARD_TEXT, FB_CARD_TEXT, text, line, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont2);
 }
 
+/**
+ * @brief The dim hint under WEAR / TAKE OFF during a round in play (b23): only on a tab whose slot has the player's
+ * own change waiting for the next round (his own skin pending there, or a wear saved there this round; graffiti is a
+ * tab of its own), and it says what. Its two lines, or qfalse for none on this tab.
+ */
+static qboolean CG_FatBoss_PanelNextRound(int tab, const char **first, const char **second)
+{
+	static char what[48];
+	qboolean    on = qfalse;
+	int         i;
+
+	if (tab < 0 || tab >= FB_PANEL_TABS)
+	{
+		return qfalse;
+	}
+	if (fbPanel.savedInPlay & (1 << tab))
+	{
+		// saved this round: the list shows what the slot wears from the next round
+		for (i = 0; i < fbPanel.numItems; i++)
+		{
+			if (fbPanel.items[i].tab == tab && (fbPanel.items[i].flags & FB_INV_WORN))
+			{
+				on = qtrue;
+			}
+		}
+	}
+	else if (tab < FB_SKIN_SLOTS && fbSkinPending[cg.clientNum] && fbSkinLoadout[cg.clientNum][tab] != fbSkinWanted[cg.clientNum][tab])
+	{
+		on = fbSkinWanted[cg.clientNum][tab] ? qtrue : qfalse;
+	}
+	else
+	{
+		return qfalse;
+	}
+	Com_sprintf(what, sizeof(what), on ? "Your new %s%s" : "Your %s%s comes off", tab == FB_PANEL_GRAFFITI ? "graffiti" : fbPanelSlotTitles[tab],
+	            tab == FB_PANEL_GRAFFITI ? "" : " skin");
+	*first  = what;
+	*second = on ? "shows from the next round" : "from the next round";
+	return qtrue;
+}
+
 void CG_FatBoss_Panel_Draw(void)
 {
 	float              x0, y0, x, y, dw, ts;
 	int                i;
 	const fbPanelRow_t *row;
 	const fbInvItem_t  *it;
-	const char         *fit;
+	const char         *fit, *hint[2];
 	char               name[64], detail[64];
 
 	CG_FatBoss_DrawInspectCard();
 	CG_FatBoss_DrawPropNotice();
 	if (fbPanel.savedInPlay && CG_FatBoss_LoadingAllowed())
 	{
-		fbPanel.savedInPlay = qfalse;   // the round is over: what was saved during it is out now
+		fbPanel.savedInPlay = 0;        // the round is over: what was saved during it is out now
 	}
 	if (!fbPanel.open)
 	{
@@ -3694,10 +3762,13 @@ void CG_FatBoss_Panel_Draw(void)
 			CG_FatBoss_PanelButton(x, y0 + 322, 238, 24, "APPLY NOW (short freeze)", qtrue);
 		}
 	}
-	else if (fbSkinPending[cg.clientNum] || fbPanel.savedInPlay)
+	else if (CG_FatBoss_PanelNextRound(fbPanel.tab, &hint[0], &hint[1]))
 	{
-		// during a round in play nothing loads (b23)
-		CG_Text_Paint_Ext(x, y0 + 338, 0.19f, 0.19f, fbPanelDim, "Shows from the next round", 0, 0, 0, &cgs.media.limboFont2);
+		// during a round in play nothing loads (b23): the tab whose slot has the player's own change says what
+		CG_Text_Paint_Ext(x, y0 + 338, 0.19f, 0.19f, fbPanelDim, CG_FatBoss_Fit(hint[0], 0.19f, 238, &cgs.media.limboFont2), 0, 0, 0,
+		                  &cgs.media.limboFont2);
+		CG_Text_Paint_Ext(x, y0 + 351, 0.19f, 0.19f, fbPanelDim, CG_FatBoss_Fit(hint[1], 0.19f, 238, &cgs.media.limboFont2), 0, 0, 0,
+		                  &cgs.media.limboFont2);
 	}
 
 	// a look saved between rounds that is on now (fb_loadskins, APPLY NOW, the intermission): the status says so (b23)
@@ -3761,10 +3832,15 @@ static void CG_FatBoss_PanelWear(fbInvItem_t *it, qboolean off)
 	{
 		return;
 	}
+	fbPanel.wornBefore = 0;
 	for (i = 0; i < fbPanel.numItems; i++)
 	{
 		if (fbPanel.items[i].tab == it->tab)
 		{
+			if (fbPanel.items[i].flags & FB_INV_WORN)
+			{
+				fbPanel.wornBefore = fbPanel.items[i].id;     // back on if this wear is lost (b23)
+			}
 			fbPanel.items[i].flags &= ~FB_INV_WORN;
 		}
 	}
